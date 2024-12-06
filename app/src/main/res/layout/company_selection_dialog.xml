@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/LinearLayoutVertical"
+    android:layout_margin="@dimen/_10sdp"
+    android:background="@drawable/dialog_background"
+    android:padding="@dimen/_20sdp">
+
+
+    <TextView
+        android:id="@+id/tvLabel"
+        style="@style/CommonTextViewExtraBoldStyle16"
+        android:text="@string/select_company" />
+
+    <FrameLayout
+        android:id="@+id/flCompany"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:layout_marginTop="@dimen/_20sdp">
+
+        <Spinner
+            android:id="@+id/spCompany"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:layout_marginBottom="@dimen/_20sdp"
+            android:background="@drawable/edittext_background"
+            android:gravity="start"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <EditText
+        android:id="@+id/etRemarks"
+        android:inputType="text"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:visibility="gone"
+        android:hint="@string/remarks_label"
+        style="@style/CommonMultiLineEditTextStyle" />
+
+    <TextView
+        android:id="@+id/btnSubmit"
+        style="@style/CommonButtonStyle"
+        android:backgroundTint="@color/colorPrimary"
+        android:text="@string/submit" />
+</LinearLayout>

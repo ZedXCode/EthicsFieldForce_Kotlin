@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for ffms.ethicstechno.com:41422 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ffms.ethicstechno.com</domain>
+    </domain-config>
+
+    <!-- Allow cleartext traffic for nuceratiles.com:57582 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ffms.nuceratiles.com</domain>
+    </domain-config>
+
+    <!-- Allow cleartext traffic for exxarotiles.com:57581 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">webapi.exxarotiles.com</domain>
+    </domain-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">106.201.234.74</domain>
+    </domain-config>
+
+    <!-- Default base configuration with system trust anchors -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

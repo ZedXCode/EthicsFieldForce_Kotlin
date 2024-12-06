@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:id="@+id/llMain"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:layout_marginRight="@dimen/_10sdp"
+                android:layout_marginBottom="@dimen/_10sdp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:text="@string/category" />
+
+                <TextView
+                    android:id="@+id/tvCategory"
+                    style="@style/BoxTextView"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:visibility="gone" />
+
+                <FrameLayout
+                    android:id="@+id/flCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp">
+
+                    <Spinner
+                        android:id="@+id/spCategory"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/edittext_background"
+                        android:gravity="start"
+                        android:singleLine="true"
+                        android:textColor="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_20sdp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="end|center"
+                        android:layout_marginEnd="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </FrameLayout>
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/party_account_name" />
+
+                <EditText
+                    android:id="@+id/etPartyAccountName"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="text"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/address" />
+
+                <EditText
+                    android:id="@+id/etAddress"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="text"
+                    android:singleLine="true" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/zipcode" />
+
+                <EditText
+                    android:id="@+id/etZipcode"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="number"
+                    android:maxLength="10" />
+
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/city" />
+
+                <LinearLayout
+                    android:id="@+id/llSelectPlace"
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvSelectPlace"
+                        style="@style/TextViewLabelNormal"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:drawablePadding="@dimen/_5sdp"
+                        android:gravity="start|center"
+                        android:hint="@string/select_place"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:paddingEnd="@dimen/_5sdp"
+                        android:singleLine="true"
+                        android:textSize="@dimen/_12ssp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+
+                    <ImageView
+                        android:id="@+id/imgDropDown"
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/phone" />
+
+                <EditText
+                    android:id="@+id/etPhone"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="phone"
+                    android:maxLength="10"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/email" />
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/contact_person" />
+
+                <EditText
+                    android:id="@+id/etContactPerson"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="text"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/contact_person_phone" />
+
+                <EditText
+                    android:id="@+id/etContactPersonPhone"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="phone"
+                    android:maxLength="10"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/contact_person_email" />
+
+                <EditText
+                    android:id="@+id/etContactPersonEmail"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/account_handle_by" />
+
+                <TextView
+                    android:id="@+id/tvAccountHandleBy"
+                    style="@style/BoxTextView"
+                    android:textSize="@dimen/_12ssp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:visibility="gone" />
+
+                <FrameLayout
+                    android:id="@+id/flAccountHandle"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp">
+
+                    <Spinner
+                        android:id="@+id/spAccountHandleBy"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/edittext_background"
+                        android:gravity="start"
+                        android:singleLine="true"
+                        android:textColor="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_20sdp"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="end|center"
+                        android:layout_marginEnd="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </FrameLayout>
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/remark" />
+
+                <EditText
+                    android:id="@+id/etRemarks"
+                    style="@style/CommonEditTextViewStyle"
+                    android:inputType="text"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    style="@style/TextViewLabelNormal"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/live_location" />
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:layout_marginBottom="@dimen/_16sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <HorizontalScrollView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:id="@+id/tvLiveLocation"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/white"
+                            android:gravity="start|center"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/_12ssp"
+                            android:paddingStart="@dimen/_3sdp"
+                            android:paddingEnd="@dimen/_2sdp"
+                            android:fontFamily="@font/nunito_sans_regular"/>
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/imgFetchCurrentLocation"
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_location_detect" />
+
+                </LinearLayout>
+
+
+                <TextView
+                    android:id="@+id/tvSubmit"
+                    style="@style/CommonButtonStyle"
+                    android:layout_marginTop="@dimen/_15sdp"
+                    android:layout_marginBottom="@dimen/_20sdp"
+                    android:text="@string/submit"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
+</layout>

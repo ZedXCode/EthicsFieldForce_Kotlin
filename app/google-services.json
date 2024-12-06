@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "552773503075",
+    "project_id": "ethics-fieldforce",
+    "storage_bucket": "ethics-fieldforce.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:552773503075:android:180aeff073694b1c619056",
+        "android_client_info": {
+          "package_name": "ethicstechno.com.fieldforce"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDihdVieyzt1z5aT01J3ghsDGmiuKyiP6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

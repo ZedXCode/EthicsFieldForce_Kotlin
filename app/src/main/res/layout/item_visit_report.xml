@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardMain"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/_4sdp"
+    android:layout_marginTop="@dimen/_2sdp"
+    android:layout_marginEnd="@dimen/_4sdp"
+    android:layout_marginBottom="@dimen/_2sdp"
+    app:cardCornerRadius="@dimen/_5sdp"
+    app:cardElevation="@dimen/_5sdp">
+
+    <LinearLayout
+        android:id="@+id/llMain"
+        style="@style/LinearLayoutVertical"
+        android:padding="@dimen/_5sdp">
+
+        <LinearLayout style="@style/LinearLayoutVertical">
+
+            <LinearLayout
+                style="@style/LinearLayoutHorizontal"
+                android:baselineAligned="false">
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1">
+
+                    <TextView
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="Date "
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvDate"
+                        style="@style/CommonTextViewNormalLatoStyle12"
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end">
+
+                    <TextView
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/time"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvTime"
+                        style="@style/CommonTextViewNormalLatoStyle12"
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/LinearLayoutHorizontal"
+                android:baselineAligned="false">
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1">
+
+                    <TextView
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="Type "
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvType"
+                        style="@style/CommonTextViewNormalLatoStyle12"
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:singleLine="true"
+                        android:text=""
+                        android:textColor="@color/black" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end">
+
+                    <TextView
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/map_km"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvMapKm"
+                        style="@style/CommonTextViewNormalLatoStyle12"
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:singleLine="true"
+                        android:text=""
+                        android:textColor="@color/black" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout style="@style/LinearLayoutHorizontal">
+
+                <TextView
+                    style="@style/ListItemHeader"
+                    android:layout_width="wrap_content"
+                    android:singleLine="true"
+                    android:text="@string/party"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/tvParty"
+                    style="@style/CommonTextViewNormalLatoStyle12"
+                    android:layout_marginStart="@dimen/_7sdp"
+                    android:singleLine="true"
+                    android:text=""
+                    android:textColor="@color/black" />
+
+            </LinearLayout>
+
+            <LinearLayout style="@style/LinearLayoutHorizontal">
+
+
+                <TextView
+                    style="@style/ListItemHeader"
+                    android:layout_width="wrap_content"
+                    android:singleLine="true"
+                    android:text="@string/place"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/tvPlace"
+                    style="@style/CommonTextViewNormalLatoStyle12"
+                    android:layout_width="wrap_content"
+                    android:layout_marginStart="@dimen/_7sdp"
+                    android:singleLine="true"
+                    android:text=""
+                    android:textColor="@color/black" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

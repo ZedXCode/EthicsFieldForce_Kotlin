@@ -1,0 +1,380 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="MyAppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorAccent</item>
+        <item name="colorOnPrimary">@color/colorscreenbackground</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/colorPrimary</item>
+        <item name="colorSecondaryVariant">@color/colorAccent</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <!-- Common TextView Style -->
+    <style name="CommonEditTextViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/_40sdp</item>
+        <item name="android:gravity">start|center</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="android:layout_marginTop">@dimen/_4sdp</item>
+        <item name="android:paddingStart">@dimen/_7sdp</item>
+        <item name="android:paddingEnd">@dimen/_5sdp</item>
+        <item name="android:background">@drawable/edittext_background</item>
+    </style>
+
+    <style name="BoxTextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/_40sdp</item>
+        <item name="android:gravity">start|center</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="android:paddingStart">@dimen/_5sdp</item>
+        <item name="android:paddingEnd">@dimen/_5sdp</item>
+        <item name="android:background">@drawable/edittext_background</item>
+    </style>
+
+    <style name="CommonMultiLineEditTextStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/_60sdp</item>
+        <item name="android:gravity">start|top</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="android:layout_marginTop">@dimen/_4sdp</item>
+        <item name="android:paddingStart">@dimen/_5sdp</item>
+        <item name="android:paddingEnd">@dimen/_5sdp</item>
+        <item name="android:background">@drawable/edittext_background</item>
+    </style>
+
+    <style name="CommonButtonStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/_45sdp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_marginStart">@dimen/_5sdp</item>
+        <item name="android:layout_marginEnd">@dimen/_5sdp</item>
+        <item name="android:textSize">@dimen/_18ssp</item>
+        <item name="android:background">@drawable/button_background_secondary</item>
+    </style>
+    <style name="CommonButtonStyleSmall">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/_45sdp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="android:background">@drawable/button_background_secondary</item>
+    </style>
+
+    <!-- Common TextView Style -->
+    <style name="CommonTextViewBoldStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="TextViewLabelBold">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="TextViewLabelNormal">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="ListItemHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/lato_black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+    <style name="ListItemValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/lato_bold</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="UserNameInListing">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/lato_black</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="CommonTextViewBoldStyle14">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+    </style>
+
+    <style name="ToolBarHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_15ssp</item>
+    </style>
+
+    <style name="AttendanceItemText">
+        <item name="fontFamily">@font/lato_regular</item>
+        <item name="android:textSize">@dimen/_10ssp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="NoDataFound">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_18ssp</item>
+    </style>
+
+    <style name="DialogHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_bold</item>
+        <item name="android:textSize">@dimen/_18ssp</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldStyle14">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldStyle16">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldStyle22">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_22ssp</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldStyle24">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_24ssp</item>
+    </style>
+
+    <style name="CommonTextViewHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+    </style>
+
+    <style name="CommonTextViewLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="fontFamily">@font/nunito_sans_extra_bold</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+    </style>
+    <!-- Common TextView Style -->
+    <style name="CommonTextViewNormalStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalStyle16">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_16ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalStyle22">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_22ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalStyle24">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_24ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalStyle14">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalStyle12">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalLatoStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_13ssp</item>
+        <item name="fontFamily">@font/lato_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="DrillHeaderLine1">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="fontFamily">@font/lato_bold</item>
+    </style>
+    <style name="DrillHeaderLine2">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="fontFamily">@font/lato_regular</item>
+    </style>
+
+    <style name="CommonTextViewNormalLatoStyle14">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_14ssp</item>
+        <item name="fontFamily">@font/lato_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewNormalLatoStyle12">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_12ssp</item>
+        <item name="fontFamily">@font/lato_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="CommonTextViewBoldLatoStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_13ssp</item>
+        <item name="fontFamily">@font/lato_bold</item>
+    </style>
+
+    <style name="CommonTextViewExtraBoldLatoStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_13ssp</item>
+        <item name="fontFamily">@font/lato_black</item>
+    </style>
+
+    <style name="CommonTextViewSmallStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/_13ssp</item>
+        <item name="fontFamily">@font/nunito_sans_regular</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="LinearLayoutHorizontal">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="LinearLayoutVertical">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="NewDialog">
+        <item name="android:windowFrame">@null</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowTitleStyle">@null</item>
+        <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateUnspecified|adjustPan</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="MyAlertDialogStyle" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="colorAccent">@color/black</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:background">@color/colorscreenbackground</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <style name="NavigationDrawerStyle">
+
+        <item name="android:textSize">@dimen/_20ssp</item><!-- text size in menu-->
+
+        <!-- item size in menu-->
+        <item name="android:listPreferredItemHeightSmall">@dimen/_30sdp</item>
+        <item name="listPreferredItemHeightSmall">@dimen/_30sdp</item>
+
+        <!-- item padding left in menu-->
+        <item name="android:listPreferredItemPaddingLeft">8dp</item>
+        <item name="listPreferredItemPaddingLeft">8dp</item>
+
+        <!-- item padding right in menu-->
+        <item name="android:listPreferredItemPaddingRight">8dp</item>
+        <item name="listPreferredItemPaddingRight">8dp</item>
+    </style>
+
+    <style name="BottomNavigationTextStyle">
+        <item name="android:textSize">@dimen/_10ssp</item> <!-- Adjust the text size as needed -->
+    </style>
+    <style name="NavigationDrawerTextStyle">
+        <item name="android:textSize">@dimen/_14ssp</item> <!-- Adjust the text size as needed -->
+        <item name="android:textStyle">normal</item>
+        <item name="background">@color/colorscreenbackground</item>
+    </style>
+
+    <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:theme">@style/ThemeTextInput</item>
+        <item name="boxStrokeColor">@color/colorPrimary</item>
+        <item name="boxCornerRadiusTopStart">@dimen/_30sdp</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/_30sdp</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/_30sdp</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/_30sdp</item>
+        <item name="hintEnabled">false</item>
+    </style>
+
+    <style name="ThemeTextInput" parent="">
+        <item name="colorOnSurface">@color/colorPrimary</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>
+    </style>
+
+</resources>

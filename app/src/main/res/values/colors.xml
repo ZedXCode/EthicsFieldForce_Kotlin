@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#204FD1</color>
+    <color name="colorAccent">#1C3172</color>
+    <color name="colorPrimaryDark">#1C3172</color>
+    <color name="colorSecondary">#2196f3</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="colorscreenbackground">#F4F6FD</color>
+    <color name="colorDisable">#808080</color>
+    <color name="drawerColor">#585858</color>
+    <color name="iconColor">#585858</color>
+    <color name="drawerBackground">#F4F6FD</color>
+    <color name="colorGreen">#4F890B</color>
+    <color name="colorGreenBright">#37BF75</color>
+    <color name="colorGreenDark">#26560B</color>
+    <color name="colorRed">#E53935</color>
+    <color name="colorMaroon">#92133F</color>
+    <color name="screenBackground">#F4F6FDFF</color>
+    <color name="splashTextColor">#505050</color>
+    <color name="colorGray">#808080</color>
+    <color name="colorLightYellow">#FFF5B0</color>
+    <color name="colorBadgePending">#64B5F6</color>
+    <color name="colorBlueLight">#abc5dc</color>
+    <color name="colorProductBG">#FFF9C4</color>
+    <color name="colorSelectedProductBG">#009688</color>
+
+</resources>

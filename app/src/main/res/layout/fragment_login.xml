@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/imgLogo"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_90sdp"
+                    android:layout_marginTop="@dimen/_70sdp"
+                    android:padding="@dimen/_10sdp"
+                    android:src="@drawable/ethics_app_logo" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginTop="@dimen/_40sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:text="@string/enter_registered_number"
+                        style="@style/TextViewLabelBold"/>
+
+                    <EditText
+                        android:id="@+id/etUsername"
+                        style="@style/CommonEditTextViewStyle"
+                        android:layout_marginTop="@dimen/_7sdp"
+                        android:inputType="number" />
+
+                    <TextView
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:text="@string/password"
+                        style="@style/TextViewLabelBold" />
+
+                    <LinearLayout
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_marginTop="@dimen/_7sdp"
+                        android:background="@drawable/edittext_background"
+                        style="@style/LinearLayoutHorizontal">
+                        <EditText
+                            android:id="@+id/etPassword"
+                            android:layout_width="0dp"
+                            android:background="@color/white"
+                            android:layout_weight="1"
+                            android:paddingStart="@dimen/_5sdp"
+                            android:paddingEnd="@dimen/_5sdp"
+                            android:layout_height="match_parent"
+                            android:inputType="textPassword" />
+
+                        <ImageView
+                            android:id="@+id/imgPwdIndicator"
+                            android:src="@drawable/ic_password_hide"
+                            android:padding="@dimen/_3sdp"
+                            android:layout_gravity="center"
+                            android:layout_width="@dimen/_30sdp"
+                            android:layout_height="@dimen/_30sdp"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvForgotPwd"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:layout_marginBottom="@dimen/_20sdp"
+                        android:gravity="end"
+                        android:text="@string/forgot_password"
+                        android:textColor="@color/colorAccent"
+                        style="@style/TextViewLabelBold"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnLogin"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_40sdp"
+                        android:background="@drawable/button_background_secondary"
+                        style="@style/CommonButtonStyle"
+                        android:text="@string/login"
+                        android:textAllCaps="false"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:gravity="center"
+                        android:text="@string/powered_by"
+                        style="@style/TextViewLabelBold"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:gravity="center"
+                        style="@style/TextViewLabelNormal"
+                        android:text="@string/ethics_techno_solutions"/>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </RelativeLayout>
+</layout>

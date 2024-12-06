@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@drawable/dialog_shape"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:padding="@dimen/_10sdp"
+        android:textColor="@color/colorPrimary"
+        style="@style/CommonTextViewHeader"
+        android:text="" />
+    <TextView
+        android:id="@+id/tvMessage"
+        android:padding="@dimen/_10sdp"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:text=""
+        style="@style/CommonTextViewNormalStyle" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvCancel"
+            android:text="@string/cancel"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:padding="@dimen/_5sdp"
+            style="@style/CommonTextViewNormalStyle16"
+            android:layout_margin="@dimen/_5sdp"
+            android:background="@drawable/button_background_primary"
+            android:layout_width="@dimen/_70sdp"
+            android:layout_height="@dimen/_38sdp"/>
+
+        <TextView
+            android:id="@+id/tvOk"
+            android:text="@string/str_ok"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:layout_margin="@dimen/_5sdp"
+            android:padding="@dimen/_5sdp"
+            style="@style/CommonTextViewNormalStyle16"
+            android:background="@drawable/button_background_primary"
+            android:layout_width="@dimen/_70sdp"
+            android:layout_height="@dimen/_38sdp"/>
+
+    </LinearLayout>
+</LinearLayout>

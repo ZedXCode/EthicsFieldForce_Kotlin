@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+            <LinearLayout
+                android:layout_below="@id/toolbar"
+                style="@style/LinearLayoutVertical">
+
+                <LinearLayout
+                    android:id="@+id/llAttendanceReportLayout"
+                    style="@style/LinearLayoutVertical">
+                    <include
+                        android:id="@+id/llAttendanceReportHeader"
+                        layout="@layout/report_header_layout"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:id="@+id/llAttendanceLayout"
+                    android:visibility="gone"
+                    style="@style/LinearLayoutVertical">
+
+                    <LinearLayout
+                        style="@style/LinearLayoutHorizontal">
+
+                        <TextView
+                            android:id="@+id/tvPunchIn"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/_50sdp"
+                            android:layout_marginStart="@dimen/_10sdp"
+                            android:layout_marginEnd="@dimen/_5sdp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/nunito_sans_regular"
+                            android:background="@drawable/button_background_primary"
+                            android:gravity="center"
+                            android:text="@string/punch_in"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_18ssp" />
+
+                        <TextView
+                            android:id="@+id/tvPunchOut"
+                            android:layout_width="0dp"
+                            android:layout_height="@dimen/_50sdp"
+                            android:layout_marginStart="@dimen/_5sdp"
+                            android:layout_marginEnd="@dimen/_10sdp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/nunito_sans_regular"
+                            android:background="@drawable/button_background_primary"
+                            android:gravity="center"
+                            android:text="@string/punch_out"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_18ssp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvAttendanceLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="@dimen/_10sdp"
+                        android:fontFamily="@font/nunito_sans_bold"
+                        android:text="@string/please_punched_in_to_start"
+                        android:textSize="@dimen/_14ssp"
+                        android:textStyle="bold" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:padding="@dimen/_10sdp"
+                        app:cardUseCompatPadding="true">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginStart="@dimen/_5sdp"
+                                android:layout_weight="1"
+                                android:orientation="horizontal"
+                                android:paddingTop="@dimen/_10sdp"
+                                android:paddingBottom="@dimen/_10sdp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/_25sdp"
+                                    android:layout_height="@dimen/_25sdp"
+                                    android:layout_gravity="center"
+                                    android:layout_marginStart="@dimen/_5sdp"
+                                    android:src="@drawable/ic_cloude_refresh" />
+
+
+                                <TextView
+                                    android:id="@+id/tvDateTime"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:fontFamily="@font/lato_bold"
+                                    android:layout_marginStart="@dimen/_3sdp"
+                                    android:gravity="start|center"
+                                    android:lines="4" />
+
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="0.7dp"
+                                android:layout_height="match_parent"
+                                android:background="@color/drawerColor" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/_5sdp"
+                                android:layout_weight="1"
+                                android:orientation="horizontal"
+                                android:paddingTop="@dimen/_10sdp"
+                                android:paddingBottom="@dimen/_10sdp">
+
+                                <ImageView
+                                    android:layout_width="@dimen/_20sdp"
+                                    android:layout_height="@dimen/_20sdp"
+                                    android:layout_gravity="center"
+                                    android:src="@drawable/ic_current_location" />
+
+                                <TextView
+                                    android:id="@+id/tvLocation"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center"
+                                    android:fontFamily="@font/lato_bold"
+                                    android:layout_marginStart="@dimen/_3sdp"
+                                    android:gravity="start|center"
+                                    android:lines="4"
+                                    android:text="" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        android:id="@+id/tvCurrentMonth"
+                        android:textSize="@dimen/_18ssp"
+                        style="@style/CommonTextViewBoldStyle"
+                        android:layout_margin="@dimen/_10sdp" />
+                </LinearLayout>
+
+                <include
+                    android:id="@+id/llAttendanceHeader"
+                    layout="@layout/attendance_header_layout" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvAttendance"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_marginEnd="@dimen/_5sdp" />
+
+            </LinearLayout>
+    </RelativeLayout>
+</layout>

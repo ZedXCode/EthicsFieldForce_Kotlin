@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        tools:openDrawer="start">
+
+        <RelativeLayout
+            style="@style/LinearLayoutVertical"
+            android:layout_height="match_parent">
+
+            <include
+                layout="@layout/app_bar_home"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/bottomNavigationView" />
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNavigationView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="0dp"
+                android:background="@color/white"
+                app:itemIconTint="@color/bottom_nav_item"
+                app:itemTextAppearanceActive="@style/BottomNavigationTextStyle"
+                app:itemTextAppearanceInactive="@style/BottomNavigationTextStyle"
+                app:itemTextColor="@color/bottom_nav_text"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/menu_bottom_tab" />
+        </RelativeLayout>
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navView"
+            style="@style/NavigationDrawerStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@color/drawerBackground"
+            android:fitsSystemWindows="true"
+            android:maxWidth="@dimen/_250sdp"
+            app:headerLayout="@layout/nav_header_home"
+            app:itemHorizontalPadding="@dimen/_25sdp"
+            app:itemIconTint="@color/drawer_item"
+            app:itemTextAppearance="@style/NavigationDrawerTextStyle"
+            app:itemTextColor="@color/drawer_item"
+            app:menu="@menu/menu_home">
+
+            <ImageView
+                android:id="@+id/imgBottom"
+                android:layout_width="@dimen/_110sdp"
+                android:layout_height="@dimen/_110sdp"
+                android:layout_gravity="center|bottom"
+                android:layout_marginBottom="@dimen/_5sdp" />
+        </com.google.android.material.navigation.NavigationView>
+
+    </androidx.drawerlayout.widget.DrawerLayout>
+
+</layout>

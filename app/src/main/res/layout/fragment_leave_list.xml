@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <TextView
+            android:id="@+id/tvNoData"
+            style="@style/NoDataFound"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:visibility="gone"
+            android:textStyle="bold"
+            android:text="@string/no_data_found"
+            android:layout_marginTop="@dimen/_30sdp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvLeave"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_10sdp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/llBottom"
+            android:layout_below="@id/toolbar" />
+
+
+        <LinearLayout
+            android:id="@+id/llBottom"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAddLeave"
+                style="@style/CommonButtonStyle"
+                android:backgroundTint="@color/colorPrimary"
+                android:visibility="gone"
+                android:layout_height="@dimen/_50sdp"
+                android:text="@string/add_leave_application" />
+
+            <LinearLayout
+                android:id="@+id/llAcceptReject"
+                android:visibility="gone"
+                android:layout_height="@dimen/_50sdp"
+                style="@style/LinearLayoutHorizontal">
+
+                <TextView
+                    android:id="@+id/tvAccept"
+                    style="@style/CommonButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="@dimen/_5sdp"
+                    android:backgroundTint="@color/colorGreen"
+                    android:text="@string/accept" />
+
+                <TextView
+                    android:id="@+id/tvReject"
+                    android:layout_margin="@dimen/_5sdp"
+                    style="@style/CommonButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/colorRed"
+                    android:text="@string/reject" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</layout>

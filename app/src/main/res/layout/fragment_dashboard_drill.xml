@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground"
+        android:orientation="vertical">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <include
+            android:id="@+id/reportHeader"
+            layout="@layout/drill_header_layout" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardDrillTop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:layout_marginStart="@dimen/_7sdp"
+            android:layout_marginEnd="@dimen/_7sdp"
+            app:cardCornerRadius="@dimen/_5sdp"
+            app:cardElevation="@dimen/_5sdp">
+
+
+            <LinearLayout
+                style="@style/LinearLayoutVertical"
+                android:background="@color/colorPrimary"
+                android:padding="@dimen/_5sdp">
+
+                <LinearLayout style="@style/LinearLayoutHorizontal">
+
+                    <TextView
+                        android:textSize="@dimen/_12ssp"
+                        android:id="@+id/tvColumn1"
+                        style="@style/CommonTextViewBoldLatoStyle"
+                        android:layout_weight="1"
+                        android:gravity="start|center"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_12ssp"
+                        android:id="@+id/tvValue1"
+                        style="@style/CommonTextViewBoldLatoStyle"
+                        android:layout_weight="1"
+                        android:gravity="end|center"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:gravity="center">
+
+                    <TextView
+                        android:textSize="@dimen/_12ssp"
+                        android:id="@+id/tvColumn2"
+                        style="@style/CommonTextViewNormalLatoStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="0.7"
+                        android:gravity="start|center"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_12ssp"
+                        android:id="@+id/tvValue2"
+                        style="@style/CommonTextViewNormalLatoStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="0.3"
+                        android:gravity="end|center"
+                        android:textColor="@color/white" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+
+        <LinearLayout
+            style="@style/LinearLayoutVertical"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvNoData"
+                style="@style/NoDataFound"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_30sdp"
+                android:gravity="center"
+                android:text="@string/no_data_found"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvDashboard"
+                android:layout_marginTop="@dimen/_2sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>

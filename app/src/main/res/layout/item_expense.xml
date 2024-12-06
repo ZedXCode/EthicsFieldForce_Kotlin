@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardMain"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/_10sdp"
+    android:layout_marginTop="@dimen/_4sdp"
+    android:layout_marginBottom="@dimen/_4sdp"
+    android:layout_marginEnd="@dimen/_10sdp"
+    app:cardCornerRadius="@dimen/_5sdp"
+    app:cardElevation="@dimen/_5sdp">
+
+    <LinearLayout
+        android:id="@+id/llMain"
+        style="@style/LinearLayoutVertical"
+        android:padding="@dimen/_5sdp">
+
+        <LinearLayout style="@style/LinearLayoutVertical">
+
+            <LinearLayout
+                android:id="@+id/llTop"
+                style="@style/LinearLayoutHorizontal"
+                android:layout_marginTop="@dimen/_5sdp">
+
+                <TextView
+                    android:id="@+id/tvUserName"
+                    style="@style/UserNameInListing"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="start|center" />
+
+                <CheckBox
+                    android:id="@+id/cbApprove"
+                    android:layout_width="@dimen/_25sdp"
+                    android:layout_height="@dimen/_25sdp"
+                    android:gravity="center"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:baselineAligned="false"
+                style="@style/LinearLayoutHorizontal"
+                android:layout_marginTop="@dimen/_10sdp">
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tvLabel1"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/date"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue1"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1"
+                    android:gravity="end">
+
+                    <TextView
+                        android:id="@+id/tvLabel2"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/place"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue2"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:baselineAligned="false"
+                style="@style/LinearLayoutHorizontal"
+                android:layout_marginTop="@dimen/_10sdp">
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="start|center"
+                    android:layout_weight="1"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvLabel3"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/type"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue3"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end|center">
+
+                    <TextView
+                        android:id="@+id/tvLabel4"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/status"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue4"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/LinearLayoutHorizontal"
+                android:baselineAligned="false"
+                android:layout_marginTop="@dimen/_10sdp">
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:id="@+id/tvLabel5"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/limit"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue5"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_gravity="end"
+                    android:layout_weight="1"
+                    android:gravity="end">
+
+                    <TextView
+                        android:id="@+id/tvLabel6"
+                        style="@style/ListItemHeader"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="@string/expense"
+                        android:textColor="@color/black" />
+
+                    <TextView
+                        android:id="@+id/tvValue6"
+                        style="@style/ListItemValue"
+                        android:layout_width="wrap_content"
+                        android:singleLine="true"
+                        android:text="" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

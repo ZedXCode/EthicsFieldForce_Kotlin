@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:background="@color/colorscreenbackground"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/toolbar"
+            android:layout_alignParentTop="true"
+            layout="@layout/toolbar_header"
+            android:layout_height="@dimen/_50sdp"
+            android:layout_width="match_parent" />
+
+        <TextView
+            android:id="@+id/tvNoData"
+            android:layout_below="@id/toolbar"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            android:textStyle="bold"
+            style="@style/NoDataFound"
+            android:text="@string/no_data_found"
+            android:layout_marginTop="@dimen/_30sdp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvVisit"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:layout_below="@id/toolbar"
+            android:layout_above="@id/tvAddPartyDealer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            android:id="@+id/tvAddPartyDealer"
+            android:backgroundTint="@color/colorPrimary"
+            android:layout_alignParentBottom="true"
+            android:text="@string/add_party_dealer"
+            style="@style/CommonButtonStyle"/>
+
+    </RelativeLayout>
+
+</layout>

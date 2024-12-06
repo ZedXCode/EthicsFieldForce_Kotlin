@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/cardMain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:layout_marginBottom="@dimen/_2sdp"
+        android:layout_marginStart="@dimen/_2sdp"
+        android:layout_marginEnd="@dimen/_2sdp"
+        app:cardCornerRadius="@dimen/_5sdp"
+        app:cardElevation="@dimen/_5sdp">
+
+
+        <LinearLayout
+            android:padding="@dimen/_5sdp"
+            style="@style/LinearLayoutVertical">
+
+            <LinearLayout style="@style/LinearLayoutHorizontal">
+
+                <TextView
+                    android:id="@+id/tvColumn1"
+                    style="@style/DrillHeaderLine1"
+                    android:layout_weight="1"
+                    android:gravity="start|center"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/tvValue1"
+                    style="@style/DrillHeaderLine1"
+                    android:layout_weight="1"
+                    android:gravity="end|center"
+                    android:textColor="@color/black" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/LinearLayoutHorizontal"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvColumn2"
+                    style="@style/DrillHeaderLine2"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.7"
+                    android:gravity="start|center" />
+
+                <TextView
+                    android:id="@+id/tvValue2"
+                    style="@style/DrillHeaderLine2"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.3"
+                    android:gravity="end|center" />
+
+                <ImageView
+                    android:id="@+id/imgPaymentFollowUp"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    android:padding="@dimen/_3sdp"
+                    android:src="@drawable/ic_expense_entry"
+                    android:visibility="gone"
+                    app:tint="@color/colorGreenDark" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+</layout>

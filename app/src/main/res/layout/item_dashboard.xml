@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_marginEnd="@dimen/_5sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_5sdp"
+        app:cardElevation="@dimen/_5sdp"
+        app:cardCornerRadius="@dimen/_5sdp">
+
+        <LinearLayout
+            android:id="@+id/llMain"
+            style="@style/LinearLayoutVertical">
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:id="@+id/tvHeader"
+                style="@style/DrillHeaderLine1"
+                android:background="@color/colorPrimary"
+                android:padding="@dimen/_5sdp"
+                android:textColor="@color/white" />
+
+            <LinearLayout
+                android:padding="@dimen/_5sdp"
+                style="@style/LinearLayoutVertical">
+
+                <TextView
+                    android:textSize="@dimen/_12ssp"
+                    android:id="@+id/tvLine1"
+                    android:textColor="@color/black"
+                    style="@style/DrillHeaderLine1" />
+
+                <TextView
+                    android:textSize="@dimen/_12ssp"
+                    android:id="@+id/tvLine2"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:textColor="@color/black"
+                    style="@style/DrillHeaderLine1" />
+
+                <TextView
+                    android:textSize="@dimen/_12ssp"
+                    android:id="@+id/tvLine3"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:textColor="@color/black"
+                    style="@style/DrillHeaderLine1" />
+
+                <TextView
+                    android:textSize="@dimen/_12ssp"
+                    android:id="@+id/tvLine4"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:textColor="@color/black"
+                    style="@style/DrillHeaderLine1" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</layout>

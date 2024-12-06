@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/tool_bar"
+    android:layout_width="match_parent"
+    android:backgroundTint="@color/colorPrimary"
+    android:layout_height="@dimen/_50sdp"
+    android:background="@color/colorscreenbackground">
+
+    <FrameLayout
+        android:id="@+id/flFront"
+        android:layout_centerVertical="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/imgBack"
+            android:layout_width="@dimen/_40sdp"
+            android:layout_height="@dimen/_40sdp"
+            android:paddingTop="@dimen/_5sdp"
+            android:paddingBottom="@dimen/_5sdp"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_2sdp"
+            android:visibility="visible"
+            app:srcCompat="@drawable/ic_back" />
+
+        <ImageView
+            android:id="@+id/imgMenu"
+            android:layout_width="@dimen/_35sdp"
+            android:layout_height="@dimen/_35sdp"
+            android:padding="@dimen/_5sdp"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/_5sdp"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_2sdp"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_menu" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="@dimen/_5sdp"
+        android:layout_toStartOf="@id/flEnd"
+        android:layout_toEndOf="@id/flFront"
+        android:gravity="center"
+        style="@style/ToolBarHeader"
+        android:paddingTop="@dimen/_2sdp"
+        android:singleLine="true"
+        android:paddingEnd="@dimen/_40sdp"
+        android:paddingStart="@dimen/_2sdp"
+        android:textAllCaps="false"
+        android:textColor="@color/white" />
+
+    <LinearLayout
+        android:id="@+id/flEnd"
+        android:orientation="horizontal"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/imgFilter"
+            android:src="@drawable/ic_filter"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:padding="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_width="@dimen/_35sdp"
+            android:layout_height="@dimen/_35sdp"/>
+
+        <ImageView
+            android:id="@+id/imgShare"
+            android:visibility="gone"
+            android:src="@drawable/ic_share"
+            android:layout_gravity="center"
+            android:padding="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_width="@dimen/_35sdp"
+            android:layout_height="@dimen/_35sdp"/>
+
+        <ImageView
+            android:id="@+id/imgEdit"
+            android:visibility="gone"
+            android:src="@drawable/ic_edit"
+            android:layout_gravity="center"
+            android:padding="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_width="@dimen/_35sdp"
+            android:layout_height="@dimen/_35sdp"/>
+
+        <ImageView
+            android:id="@+id/imgDelete"
+            android:visibility="gone"
+            android:src="@drawable/ic_delete"
+            android:layout_gravity="center"
+            android:padding="@dimen/_5sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_width="@dimen/_35sdp"
+            android:layout_height="@dimen/_35sdp"/>
+
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/svView"
+            android:queryHint="Search Here.."
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:hint="@string/search_here"
+            app:queryBackground="@drawable/edittext_background"
+            app:searchIcon="@drawable/ic_search_small_white"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/_40sdp"/>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

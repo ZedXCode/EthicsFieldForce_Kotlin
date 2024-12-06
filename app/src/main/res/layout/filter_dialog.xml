@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/LinearLayoutVertical"
+    android:layout_margin="@dimen/_10sdp"
+    android:background="@drawable/dialog_background"
+    android:padding="@dimen/_20sdp">
+
+
+    <TextView
+        style="@style/DialogHeader"
+        android:text="@string/filter"
+        android:textColor="@color/colorPrimary" />
+
+    <LinearLayout
+        android:id="@+id/llPartyDealer"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/TextViewLabelNormal"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:text="@string/party_name"
+            android:textColor="@color/black" />
+
+        <LinearLayout
+            style="@style/LinearLayoutHorizontal"
+            android:layout_marginTop="@dimen/_4sdp">
+
+            <FrameLayout
+                android:id="@+id/flPartyDealer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvPartyDealer"
+                    style="@style/TextViewLabelNormal"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center"
+                    android:hint="@string/select_party"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:paddingEnd="@dimen/_25sdp"
+                    android:singleLine="true"
+                    android:textColor="@color/black"
+                    android:textColorHint="@color/black"
+                    android:textSize="@dimen/_12ssp" />
+
+                <ImageView
+                    android:layout_width="@dimen/_20sdp"
+                    android:layout_height="@dimen/_20sdp"
+                    android:layout_gravity="end|center"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:src="@drawable/ic_drop_down" />
+            </FrameLayout>
+
+            <ImageView
+                android:id="@+id/imgCancelPartyDealer"
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:padding="@dimen/_3sdp"
+                android:src="@drawable/ic_close_black"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llVisitType"
+        style="@style/LinearLayoutVertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextViewLabelNormal"
+            android:layout_marginTop="@dimen/_7sdp"
+            android:text="@string/visit_type"
+            android:textColor="@color/black" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp">
+
+            <Spinner
+                android:id="@+id/spVisitType"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:background="@drawable/edittext_background"
+                android:gravity="start|center"
+                android:paddingStart="@dimen/_5sdp"
+                android:paddingEnd="@dimen/_5sdp"
+                android:singleLine="true"
+                android:textColor="@color/black" />
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_gravity="end|center"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:src="@drawable/ic_drop_down" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llStatus"
+        style="@style/LinearLayoutVertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextViewLabelNormal"
+            android:layout_marginTop="@dimen/_7sdp"
+            android:text="@string/status"
+            android:textColor="@color/black" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp">
+
+            <Spinner
+                android:id="@+id/spStatus"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:background="@drawable/edittext_background"
+                android:gravity="start|center"
+                android:paddingStart="@dimen/_5sdp"
+                android:paddingEnd="@dimen/_5sdp"
+                android:singleLine="true"
+                android:textColor="@color/black" />
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_gravity="end|center"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:src="@drawable/ic_drop_down" />
+        </FrameLayout>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/llReportGroupBy"
+        style="@style/LinearLayoutVertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextViewLabelNormal"
+            android:layout_marginTop="@dimen/_7sdp"
+            android:text="@string/report_group_by"
+            android:textColor="@color/black" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp">
+
+            <Spinner
+                android:id="@+id/spReportGroupBy"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:background="@drawable/edittext_background"
+                android:gravity="start|center"
+                android:paddingStart="@dimen/_5sdp"
+                android:paddingEnd="@dimen/_5sdp"
+                android:singleLine="true"
+                android:textColor="@color/black" />
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_gravity="end|center"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:src="@drawable/ic_drop_down" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llFilter"
+        style="@style/LinearLayoutVertical"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/TextViewLabelNormal"
+            android:layout_marginTop="@dimen/_7sdp"
+            android:text="@string/filter"
+            android:textColor="@color/black" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp">
+
+            <Spinner
+                android:id="@+id/spFilter"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_40sdp"
+                android:background="@drawable/edittext_background"
+                android:gravity="start|center"
+                android:paddingStart="@dimen/_5sdp"
+                android:paddingEnd="@dimen/_5sdp"
+                android:singleLine="true"
+                android:textColor="@color/black" />
+
+            <ImageView
+                android:layout_width="@dimen/_20sdp"
+                android:layout_height="@dimen/_20sdp"
+                android:layout_gravity="end|center"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:src="@drawable/ic_drop_down" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/date"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <Spinner
+            android:id="@+id/spDateOption"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/llDateOption"
+        style="@style/LinearLayoutHorizontal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            style="@style/LinearLayoutVertical"
+            android:layout_width="0dp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:layout_weight="1">
+
+            <TextView
+                style="@style/TextViewLabelNormal"
+                android:text="@string/start_date"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvStartDate"
+                style="@style/CommonEditTextViewStyle"
+                android:layout_width="match_parent"
+                android:drawableRight="@drawable/ic_calendar"
+                android:drawablePadding="@dimen/_5sdp" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LinearLayoutVertical"
+            android:layout_width="0dp"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:layout_weight="1">
+
+            <TextView
+                style="@style/TextViewLabelNormal"
+                android:text="@string/end_date"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/tvEndDate"
+                style="@style/CommonEditTextViewStyle"
+                android:layout_width="match_parent"
+                android:drawableRight="@drawable/ic_calendar"
+                android:drawablePadding="@dimen/_5sdp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/btnSubmit"
+        style="@style/CommonButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_25sdp"
+        android:backgroundTint="@color/colorPrimary"
+        android:gravity="center"
+        android:paddingStart="@dimen/_40sdp"
+        android:paddingEnd="@dimen/_40sdp"
+        android:text="@string/apply" />
+</LinearLayout>

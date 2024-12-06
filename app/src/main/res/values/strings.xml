@@ -1,0 +1,362 @@
+<resources>
+    <string name="app_name" translatable="false">Ethics Fieldforce</string>
+    <string name="google_key" translatable="false">AIzaSyCN6x6R3PNj63Eh0YmnnrYwwu-3K4kzEOY</string>
+
+    <string name="str_ok" translatable="false">Ok</string>
+    <string name="str_cancel" translatable="false">Cancel</string>
+    <string name="bad_connection" translatable="false">Bad Network Connection, Please Wait…</string>
+    <string name="error_message" translatable="false">Something went wrong! Try Again</string>
+    <string name="no_internet" translatable="false">No Internet Connection</string>
+    <string name="enter_registered_number" translatable="false">Enter Registered Number</string>
+    <string name="password" translatable="false">Password</string>
+    <string name="login" translatable="false">Login</string>
+    <string name="powered_by" translatable="false">Powered by</string>
+    <string name="ethics_techno_solutions" translatable="false">Ethics Techno Solutions</string>
+    <string name="submit" translatable="false">Submit</string>
+    <string name="first_name" translatable="false">First Name</string>
+    <string name="middle_name" translatable="false">Middle Name</string>
+    <string name="last_name" translatable="false">Last Name</string>
+    <string name="address" translatable="false">Address</string>
+    <string name="state" translatable="false">State</string>
+    <string name="zone_region" translatable="false">Zone/Region</string>
+    <string name="pincode" translatable="false">Pincode</string>
+    <string name="personal_email" translatable="false">Personal Email</string>
+    <string name="personal_mobile_no" translatable="false">Personal Mobile No</string>
+    <string name="change" translatable="false">Change</string>
+    <string name="old_password" translatable="false">Old Password</string>
+    <string name="new_password" translatable="false">New Password</string>
+    <string name="confirm_new_password" translatable="false">Confirm New Password</string>
+    <string name="change_password" translatable="false">Change Password</string>
+    <string name="punch_in" translatable="false">Punch In</string>
+    <string name="punch_out" translatable="false">Punch Out</string>
+    <string name="date" translatable="false">Date</string>
+    <string name="in_time" translatable="false">In Time</string>
+    <string name="out_time" translatable="false">Out Time</string>
+    <string name="type" translatable="false">Type</string>
+    <string name="place" translatable="false">Place</string>
+    <string name="select_control" translatable="false">Select Control</string>
+    <string name="control_mode" translatable="false">Control Mode</string>
+    <string name="select_expence_type" translatable="false">Select Expence Type</string>
+    <string name="expense_type" translatable="false">Expense Type</string>
+    <string name="select_place" translatable="false">Select Place</string>
+    <string name="vehical_type" translatable="false">Vehical Type</string>
+    <string name="select_vehical" translatable="false">Select Vehical</string>
+    <string name="expense_amount" translatable="false">Expense Amount</string>
+    <string name="eligible_amount" translatable="false">Eligible Amount</string>
+    <string name="remark" translatable="false">Remark</string>
+    <string name="select_file" translatable="false">Select File</string>
+    <string name="select_category" translatable="false">Select Category</string>
+    <string name="category" translatable="false">Category</string>
+    <string name="party_account_name" translatable="false">Party Account Name</string>
+    <string name="zipcode" translatable="false">Zipcode</string>
+    <string name="city" translatable="false">City</string>
+    <string name="phone" translatable="false">Phone</string>
+    <string name="email" translatable="false">Email</string>
+    <string name="contact_person_phone" translatable="false">Contact Person Phone</string>
+    <string name="contact_person_email" translatable="false">Contact Person Email</string>
+    <string name="account_handle_by" translatable="false">Account Handle By</string>
+    <string name="live_location" translatable="false">Live Location</string>
+    <string name="report_to" translatable="false">Report To</string>
+    <string name="select_leave_type" translatable="false">Select Leave Type</string>
+    <string name="leave_type" translatable="false">Leave Type</string>
+    <string name="from_date" translatable="false">From Date</string>
+    <string name="to_date" translatable="false">To Date</string>
+    <string name="reason" translatable="false">Reason</string>
+    <string name="half_day_leave" translatable="false">Half Day Leave</string>
+    <string name="map" translatable="false">Map</string>
+    <string name="something_went_wrong" translatable="false">Something went wrong</string>
+    <string name="username_validation" translatable="false">Please enter registered number</string>
+    <string name="password_validation" translatable="false">Please enter password</string>
+    <string name="str_invalid_login" translatable="false">Invalid Login Credentials</string>
+    <string name="str_device_not_valid" translatable="false">Device not Valid</string>
+    <string name="account_details" translatable="false">Account Details</string>
+    <string name="about_us" translatable="false">About Us</string>
+    <string name="terms_condition" translatable="false"><![CDATA[Terms & Condition]]></string>
+    <string name="privacy_policy" translatable="false">Privacy Policy</string>
+    <string name="support" translatable="false">Support</string>
+    <string name="logout" translatable="false">Logout</string>
+    <string name="attendance" translatable="false">Attendance</string>
+    <string name="trip" translatable="false">Trip</string>
+    <string name="home" translatable="false">Home</string>
+    <string name="reports" translatable="false">Reports</string>
+    <string name="more_options" translatable="false">More Options</string>
+    <string name="str_location_fetch" translatable="false">Please wait, We are fetching current location</string>
+    <string name="str_punch_in_msg" translatable="false">Punch In Successfully</string>
+    <string name="cancel" translatable="false">Cancel</string>
+    <string name="error" translatable="false">Error</string>
+    <string name="trip_report" translatable="false">Trip Report</string>
+    <string name="attendance_report" translatable="false">Attendance Report</string>
+    <string name="trip_summery_report" translatable="false">Trip Summery Report</string>
+    <string name="date_option" translatable="false">Date Option</string>
+    <string name="date_range" translatable="false">Date Range</string>
+    <string name="network_error" translatable="false">Network Error</string>
+    <string name="network_error_msg" translatable="false">No Internet Connection.</string>
+    <string name="filter" translatable="false">Filter</string>
+    <string name="start_date" translatable="false">Start Date</string>
+    <string name="end_date" translatable="false">End Date</string>
+    <string name="user_list" translatable="false">User List</string>
+    <string name="vehicle" translatable="false">Vehicle</string>
+    <string name="trip_date" translatable="false">Trip Date</string>
+    <string name="start_time" translatable="false">Start Time</string>
+    <string name="end_time" translatable="false">End Time</string>
+    <string name="visit_count" translatable="false">Visit Count</string>
+    <string name="reading_km" translatable="false">Reading KM</string>
+    <string name="map_km" translatable="false">Map KM</string>
+    <string name="actual_km" translatable="false">Actual \n KM</string>
+    <string name="map_view" translatable="false">Map View</string>
+    <string name="map_error" translatable="false">MAP ERROR</string>
+    <string name="expense_list" translatable="false">Expense List</string>
+    <string name="status" translatable="false">Status</string>
+    <string name="limit" translatable="false">Limit</string>
+    <string name="expense" translatable="false">Expense</string>
+    <string name="more_expense_entry" translatable="false">Expense &#10; Entry</string>
+    <string name="more_expense_approval" translatable="false">Expense &#10; Approval</string>
+    <string name="more_party_dealer" translatable="false">Party/Dealer</string>
+    <string name="more_visit" translatable="false">Visit</string>
+    <string name="more_leave_application" translatable="false">Leave &#10; Application</string>
+    <string name="more_leave_approval" translatable="false">Leave &#10; Approval</string>
+    <string name="more_tour_plan" translatable="false">Tour &#10; Plan</string>
+    <string name="more_order_entry" translatable="false">Order Entry</string>
+    <string name="more_payment_follow_up" translatable="false">Payment FollowUp</string>
+    <string name="more_sales_inquiry" translatable="false">Sales Inquiry</string>
+    <string name="add_expense" translatable="false">Add Expense</string>
+    <string name="update_expense" translatable="false">Update Expense</string>
+    <string name="add_expense_dialog_title" translatable="false">Add Expense</string>
+    <string name="report_group_by" translatable="false">Report Group By</string>
+    <string name="leave_application" translatable="false">Leave Application</string>
+    <string name="leave_application_update_msg" translatable="false">Leave Application Update Successfully</string>
+    <string name="leave_application_add_msg" translatable="false">Leave Application Added Successfully</string>
+    <string name="add_leave_application" translatable="false">Add Leave Application</string>
+    <string name="search_here" translatable="false">Search Here...</string>
+    <string name="start_trip" translatable="false">Start Trip</string>
+    <string name="end_trip" translatable="false">End Trip</string>
+    <string name="start_meter_validation_msg" translatable="false">Please enter start meter reading</string>
+    <string name="start_meter_reading_upload_validation_msg" translatable="false">Please upload start meter reading photo</string>
+    <string name="location_error_title" translatable="false">Location Error</string>
+    <string name="location_ads_error_msg" translatable="false">Address not found, Please enable or check your location</string>
+    <string name="upload_photo" translatable="false">Upload Photo</string>
+    <string name="end_meter_reading_photo" translatable="false">End Meter Reading Photo</string>
+    <string name="end_meter_reading" translatable="false">End Meter Reading</string>
+    <string name="no_image_required" translatable="false">No Image Required</string>
+    <string name="start_trip_success_msg" translatable="false">Start Trip SuccessFully, Your Location and Trip Details are submitted.</string>
+    <string name="end_trip_success_msg" translatable="false">End Trip SuccessFully, Your Location and Trip Details are submitted.</string>
+    <string name="alert" translatable="false">Alert</string>
+    <string name="add_party_dealer" translatable="false">Add Party/Dealer</string>
+    <string name="party_dealer_list" translatable="false">Party/Dealer List</string>
+    <string name="contact_person_email_validate_msg" translatable="false">Please enter contact person email</string>
+    <string name="contact_person_email_valid_validate_msg" translatable="false">Please enter valid contact person email</string>
+    <string name="contact_person_phone_validate_msg" translatable="false">Please enter contact person phone</string>
+    <string name="contact_person_validate_msg" translatable="false">Please enter contact person</string>
+    <string name="email_not_valid_msg" translatable="false">Please enter valid email</string>
+    <string name="enter_phone_validate_msg" translatable="false">Please enter phone number</string>
+    <string name="zipcode_validate_msg" translatable="false">Please enter zipcode</string>
+    <string name="address_validate_msg" translatable="false">Please enter address</string>
+    <string name="party_account_name_validate_msg" translatable="false">Please enter party account name</string>
+    <string name="enter_email_validate" translatable="false">Please enter email</string>
+    <string name="enter_valid_mobile" translatable="false">Please enter valid mobile number</string>
+    <string name="select_place_validate" translatable="false">Please select place</string>
+    <string name="delete_msg" translatable="false">Are you sure you want to delete?</string>
+    <string name="yes" translatable="false">Yes</string>
+    <string name="no" translatable="false">No</string>
+    <string name="party_near_by_me" translatable="false">Party Near By Me</string>
+    <string name="visit_type" translatable="false">Visit Type</string>
+    <string name="party_name" translatable="false">Party Name</string>
+    <string name="select_paty_name" translatable="false">Select Paty Name</string>
+    <string name="city_name" translatable="false">City Name</string>
+    <string name="contact_person" translatable="false">Contact Person</string>
+    <string name="visit_details" translatable="false">Visit Details</string>
+    <string name="next_visit_follow_up_date" translatable="false">Next Visit/Follow-up Date</string>
+    <string name="next_visit_follow_up_time" translatable="false">Next Visit/Follow-up Time</string>
+    <string name="next_visit_follow_up_subject" translatable="false">Next Visit/Follow-up Subject</string>
+    <string name="accept" translatable="false">Accept</string>
+    <string name="reject" translatable="false">Reject</string>
+    <string name="leave_approval" translatable="false">Leave Approval</string>
+    <string name="expense_approval" translatable="false">Expense Approval</string>
+    <string name="approve_msg" translatable="false">Are you sure to Approve?</string>
+    <string name="reject_msg" translatable="false">Are you sure to Reject?</string>
+    <string name="enter_remark" translatable="false">Please enter remarks</string>
+    <string name="remarks_label" translatable="false">Enter Remarks..</string>
+    <string name="leave_application_list" translatable="false">Leave Application List</string>
+    <string name="leave_approval_list" translatable="false">Leave Approval List</string>
+    <string name="leave_approve_msg" translatable="false">Leave Approved Successfully</string>
+    <string name="expense_approve_msg" translatable="false">Expense Approved Successfully</string>
+    <string name="leave_reject_msg" translatable="false">Leave Reject Successfully</string>
+    <string name="expense_reject_msg" translatable="false">Expense Reject Successfully</string>
+    <string name="day" translatable="false">Day</string>
+    <string name="plan_details" translatable="false">Plan Details</string>
+    <string name="tour_plan" translatable="false">Tour Plan</string>
+    <string name="add_tour_plan_details" translatable="false">Add Tour Plan Details</string>
+    <string name="party_dealer" translatable="false">Party/Dealer</string>
+    <string name="reset" translatable="false">Reset</string>
+    <string name="select_city" translatable="false">Select City</string>
+    <string name="select_party" translatable="false">Select Party</string>
+    <string name="expense_approval_list" translatable="false">Expense Approval List</string>
+    <string name="expense_details" translatable="false">Expense Details</string>
+    <string name="edit_this_expense" translatable="false">Now, You can edit this expense</string>
+    <string name="edit_msg" translatable="false">Do you want to edit?</string>
+    <string name="approved_expense_msg" translatable="false">Can\'t Edit Expense. Expense is already approved</string>
+    <string name="image_preview" translatable="false">Image Preview</string>
+    <string name="place_validation" translatable="false">Please select place</string>
+    <string name="expense_type_msg" translatable="false">Please Select Expense Type</string>
+    <string name="expense_amount_validation" translatable="false">Please enter Expense Amount</string>
+    <string name="upload_expense_validation" translatable="false">Please Upload Expense Image</string>
+    <string name="location_not_found" translatable="false">Location Not Found</string>
+    <string name="party_dealer_validation" translatable="false">Please Select Party/Dealer</string>
+    <string name="place_select_validation" translatable="false">Please Select Place</string>
+    <string name="purpose_validation" translatable="false">Please Enter Purpose</string>
+    <string name="user_detaiils" translatable="false">User Details</string>
+    <string name="country_list" translatable="false">Country List</string>
+    <string name="place_list" translatable="false">Place List</string>
+    <string name="country" translatable="false">Country</string>
+    <string name="select_country" translatable="false">Select Country</string>
+    <string name="select_state" translatable="false">Select State</string>
+    <string name="profile_update" translatable="false">Profile Update</string>
+    <string name="enter_first_name" translatable="false">Please enter first name</string>
+    <string name="enter_middle_name" translatable="false">Please enter middle name</string>
+    <string name="enter_last_name" translatable="false">Please enter last name</string>
+    <string name="enter_address" translatable="false">Please enter address</string>
+    <string name="enter_country" translatable="false">Please select country</string>
+    <string name="enter_state" translatable="false">Please select state</string>
+    <string name="enter_city" translatable="false">Please select city</string>
+    <string name="enter_zone" translatable="false">Please select zone</string>
+    <string name="enter_pincode" translatable="false">Please enter pincode</string>
+    <string name="enter_mobile" translatable="false">Please enter mobile number</string>
+    <string name="enter_email" translatable="false">Please enter email</string>
+    <string name="change_pwd" translatable="false">Change Password</string>
+    <string name="profile_pwd_update_success_msg" translatable="false">Profile Password Updated Successfully.</string>
+    <string name="mobile_number" translatable="false">Mobile Number</string>
+    <string name="your_feedback" translatable="false">Your Feedback</string>
+    <string name="enter_fullname" translatable="false">Please enter fullname</string>
+    <string name="enter_feedback" translatable="false">Please enter feedback</string>
+    <string name="feedback" translatable="false">Feedback</string>
+    <string name="feedback_submit_success_msg" translatable="false">Your Feedback Successfully Updated</string>
+    <string name="enable_location" translatable="false">Please enable your location</string>
+    <string name="punch_in_alert" translatable="false">Are you you want to Punch IN?</string>
+    <string name="punch_out_alert" translatable="false">Are you sure you want to Punch Out?</string>
+    <string name="start_trip_alert" translatable="false">Are you sure you want to start trip?</string>
+    <string name="punch_in_trip_operation" translatable="false">Please Punch In for Trip Operations.</string>
+    <string name="end_trip_alert" translatable="false">Are you sure you want to End Trip?</string>
+    <string name="punch_out_success" translatable="false">Punch Out Successfully</string>
+    <string name="punch_out_success_msg" translatable="false">Your punch out date and time is recorded.</string>
+    <string name="punch_out_unsuccessful" translatable="false">Punch Out Unsuccessful</string>
+    <string name="please_punch_in_to_start" translatable="false">Please Punched In, To Start</string>
+    <string name="your_today_attendance_done" translatable="false">Your Today Attendance Is Done</string>
+    <string name="your_today_attendance_done_try_tommorrow" translatable="false">Your attendance for today has been done. Please try again tomorrow.</string>
+    <string name="start_trip_validation_for_visit" translatable="false">Please Start Trip for Visit Operations</string>
+    <string name="please_wait_fetching_location" translatable="false">Please wait. We are fetching current location.</string>
+    <string name="capture_photo" translatable="false">Capture Photo</string>
+    <string name="sr_no" translatable="false">Sr.No.</string>
+    <string name="end_meter_validation_msg" translatable="false">Please enter end meter reading</string>
+    <string name="end_meter_reading_upload_validation_msg" translatable="false">Please upload end meter reading photo</string>
+    <string name="enter_valid_meter_reading" translatable="false">Please enter valid end meter reading</string>
+    <string name="select_visit_type" translatable="false">Please select visit type</string>
+    <string name="enter_visit_details" translatable="false">Please enter visit details</string>
+    <string name="enter_next_visit_followup_subject" translatable="false">Please enter next visit follow-up subject</string>
+    <string name="upload_photo_validation" translatable="false">Please upload photo</string>
+    <string name="pary_dealer_add_successfully" translatable="false">Party/Dealer Add Successfully</string>
+    <string name="add_visit" translatable="false">Add Visit</string>
+    <string name="visit_added_success" translatable="false">Visit Added Successfully</string>
+    <string name="add_visit_details" translatable="false">Add Visit Details</string>
+    <string name="enter_contact_person" translatable="false">Please enter contact person</string>
+    <string name="write_leave_reason" translatable="false">Please write leave reason</string>
+    <string name="from_date_to_date_validation" translatable="false">Please enter valid TODate. ToDate must be grater than From Date</string>
+    <string name="half_day_leave_validation" translatable="false">From Date and ToDate must be same</string>
+    <string name="please_select_leave_type" translatable="false">Please select leave type</string>
+    <string name="leave_application_delete_success" translatable="false">Leave Application Delete Successfully</string>
+    <string name="leave_application_update" translatable="false">Leave Application Update</string>
+    <string name="approval_remarks" translatable="false">Approval Remarks</string>
+    <string name="update_party_dealer" translatable="false">Update Party/Dealer</string>
+    <string name="edit_party_dealer" translatable="false">Now, You can edit this Party/Dealer</string>
+    <string name="visit_report" translatable="false">Visit Report</string>
+    <string name="time" translatable="false">Time</string>
+    <string name="party" translatable="false">Party</string>
+    <string name="no_data_found" translatable="false">No Data Found</string>
+    <string name="start_reading" translatable="false">Start Reading</string>
+    <string name="end_reading" translatable="false">End Reading</string>
+    <string name="location" translatable="false">Location</string>
+    <string name="trip_road_map" translatable="false">Trip Road Map</string>
+    <string name="mock_location_msg" translatable="false">Mock Location is used. Please turn off mock location.</string>
+    <string name="unable_to_fetch_location" translatable="false">Unable to fetch location. Please allow the location for this app</string>
+    <string name="start_meter_reading" translatable="false">Start Meter Reading</string>
+    <string name="start_meter_reading_photo" translatable="false">Start Meter Reading Photo</string>
+    <string name="from" translatable="false">From</string>
+    <string name="days" translatable="false">Days</string>
+    <string name="expected_date" translatable="false">Expe. Date</string>
+    <string name="select_date" translatable="false">Select Date</string>
+    <string name="select_date_validation" translatable="false">Please Select Date</string>
+    <string name="payment_follow_up_history" translatable="false">Payment Follow Up History</string>
+    <string name="amount" translatable="false">Amount</string>
+    <string name="expected_date_full" translatable="false">Expected Date</string>
+    <string name="expected_amount" translatable="false">Expected Amount</string>
+    <string name="payment_folloup" translatable="false">Payment Follow Up</string>
+    <string name="payment_follow_up_success" translatable="false">Payment Follow Up added successfully</string>
+    <string name="forgot_password" translatable="false">Forgot password?</string>
+    <string name="select_company" translatable="false">Select Company</string>
+    <string name="did_you_forgot_pwd" translatable="false">Did you forgot your password?</string>
+    <string name="enter_email_id" translatable="false">Enter Email Id</string>
+    <string name="login_again" translatable="false">Login Again?</string>
+    <string name="field_force_n_management_system" translatable="false">Field Force \n Management System</string>
+    <string name="ethics_techno_solution" translatable="false">Ethics Techno Solution</string>
+    <string name="set_the_new_password_text" translatable="false">Set the new password for your account so you can login and access all the features</string>
+    <string name="from_place" translatable="false">From Place</string>
+    <string name="purpose" translatable="false">Purpose</string>
+    <string name="please_punched_in_to_start" translatable="false">Please Punched In, To Start</string>
+    <string name="if_you_required_n_support_click_on_call_button" translatable="false">If you required \n support click on call button</string>
+    <string name="full_name" translatable="false">Full Name</string>
+    <string name="account" translatable="false">Account</string>
+    <string name="expense_remarks" translatable="false">Expense Remark</string>
+    <string name="enter_approval_remarks" translatable="false">Please enter approval remarks</string>
+    <string name="delete_expense" translatable="false">Delete Expense</string>
+    <string name="expense_delete_success" translatable="false">Expense Delete Successfully</string>
+    <string name="call_now" translatable="false">Call Now</string>
+    <string name="zero" translatable="false">0</string>
+    <string name="end_image" translatable="false">End Image</string>
+    <string name="approval_amount" translatable="false">Approval Amount</string>
+    <string name="apply" translatable="false">Apply</string>
+    <string name="state_list" translatable="false">State List</string>
+    <string name="zone_list" translatable="false">Zone List</string>
+    <string name="expense_type_list" translatable="false">Expense Type List</string>
+    <string name="please_select_company" translatable="false">Please select company</string>
+    <string name="you_must_need_to_update" translatable="false">You must need to update application</string>
+    <string name="update_has_just_been_downloaded" translatable="false">An update has just been downloaded</string>
+    <string name="update_application" translatable="false">Update Application</string>
+    <string name="update" translatable="false">Update</string>
+    <string name="please_select_category" translatable="false">Please select category</string>
+    <string name="this_user_is_not_registered" translatable="false">This user is not registered</string>
+    <string name="fetching_location" translatable="false">Fetching Location...</string>
+    <string name="dont_forget_to_punch_out" translatable="false">Don\'t Forget To Punch Out</string>
+    <string name="your_today_attendance_is_done" translatable="false">Your Today Attendance Is Done</string>
+    <string name="enter_price">Enter Price</string>
+    <string name="enter_amount">Enter Amount</string>
+    <string name="add_product_item">Add Product Item</string>
+    <string name="please_select_product_group">Please select product group</string>
+    <string name="select_product">Select Product</string>
+    <string name="add_order_entry">Add Order Entry</string>
+    <string name="please_selected_order_mode">Please selected order mode</string>
+    <string name="please_select_order_category">Please select order category</string>
+    <string name="contact_person_name">Contact Person Name</string>
+    <string name="distributor_name">Distributor Name</string>
+    <string name="distributor_list">Distributor List</string>
+    <string name="select_distributor">Select Distributor</string>
+    <string name="distributor_validation">Please select distributor</string>
+    <string name="product_validation">Please add product</string>
+    <string name="order_entry_confirmation">Are you sure you want to add order entry?</string>
+    <string name="order_entry_list">Order Entry List</string>
+    <string name="select_group">Select Group</string>
+    <string name="please_enter_quantity">Please enter quantity</string>
+    <string name="please_enter_amount">Please enter amount</string>
+    <string name="update_order_entry">Update Order Entry</string>
+    <string name="update_order_entry_confirmation">Are you sure you want to Update Order entry?</string>
+    <string name="one_item_required_for_order_entry">One Item required for Order Entry</string>
+    <string name="delete">Delete</string>
+    <string name="delete_order_entry">Delete Order Entry</string>
+    <string name="are_you_sure_you_want_to_delete_order_entry">Are you sure you want to delete order entry?</string>
+    <string name="are_you_sure_you_want_to_edit_order_entry">Are you sure you want to edit order entry?</string>
+    <string name="add_product">Add Product</string>
+    <string name="order_details">Order Details</string>
+    <string name="no_image_found">No Image Found</string>
+    <string name="edit_order_entry">Edit Order Entry</string>
+    <string name="are_you_sure_you_want_to_exit">Are you sure you want to exit?</string>
+    <string name="delete_order_details">Delete Order Details</string>
+    <string name="are_you_sure_you_want_to_delete_this_product">Are you sure you want to delete this product?</string>
+</resources>

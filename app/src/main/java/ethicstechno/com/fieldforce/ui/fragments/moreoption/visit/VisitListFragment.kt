@@ -1,0 +1,491 @@
+package ethicstechno.com.fieldforce.ui.fragments.moreoption.visit
+
+import AnimationType
+import addFragment
+import android.app.Activity
+import android.content.Context
+import android.location.Location
+import android.location.LocationManager
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.SearchView
+import androidx.core.text.HtmlCompat
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
+import com.google.android.gms.tasks.Task
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.JsonObject
+import ethicstechno.com.fieldforce.R
+import ethicstechno.com.fieldforce.api.WebApiClient
+import ethicstechno.com.fieldforce.databinding.FragmentVisitListBinding
+import ethicstechno.com.fieldforce.databinding.ItemListBinding
+import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
+import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
+import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
+import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.AddPartyDealerFragment
+import ethicstechno.com.fieldforce.ui.fragments.reports.MapViewFragment
+import ethicstechno.com.fieldforce.utils.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
+class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
+
+    lateinit var binding: FragmentVisitListBinding
+    val visitList: ArrayList<VisitListResponse> = arrayListOf()
+    private var visitListAdapter: VisitListAdapter? = null
+    private var fusedLocationClient: FusedLocationProviderClient? = null
+    var currentLatitude = 0.0
+    var currentLongitude = 0.0
+
+    private val locationSettingsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                if (fusedLocationClient == null) {
+                    return@registerForActivityResult
+                }
+                fetchLocation(fusedLocationClient!!) // Call the method to fetch the location again or perform any other necessary tasks.
+            } else {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    mActivity.getString(R.string.enable_location)
+                )
+                locationEnableDialog()
+            }
+        }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding =
+            DataBindingUtil.inflate(inflater, R.layout.fragment_visit_list, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        mActivity.bottomHide()
+    }
+
+    private fun initView() {
+        mActivity.bottomHide()
+        binding.toolbar.imgBack.visibility = View.VISIBLE
+        binding.toolbar.svView.visibility = View.VISIBLE
+        binding.toolbar.svView.queryHint = HtmlCompat.fromHtml(
+            mActivity.getString(R.string.search_here),
+            HtmlCompat.FROM_HTML_MODE_LEGACY
+        )
+        binding.toolbar.imgBack.setOnClickListener(this)
+        binding.toolbar.tvHeader.text = mActivity.getString(R.string.party_near_by_me)
+        binding.tvAddPartyDealer.setOnClickListener(this)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                executeAPIsAndSetupData()
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private suspend fun executeAPIsAndSetupData() {
+        withContext(Dispatchers.IO) {
+            try {
+                val locationDeferred = async { askLocationPermission() }
+                locationDeferred.await()
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
+            }
+        }
+    }
+
+
+    private fun askLocationPermission() {
+        val arrListOfPermission = arrayListOf<String>(
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+        PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+            val locationManager =
+                mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                fusedLocationClient =
+                    LocationServices.getFusedLocationProviderClient(mActivity)
+                fetchLocation(fusedLocationClient!!)
+            } else {
+                locationEnableDialog()
+            }
+        }
+    }
+
+    private fun setupSearchFilter() {
+        binding.toolbar.svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (visitListAdapter != null) {
+                    visitListAdapter?.filter(newText.orEmpty())
+                }
+                return true
+            }
+        })
+        binding.toolbar.svView.setOnSearchClickListener {
+            binding.toolbar.imgBack.visibility = View.GONE
+        }
+        binding.toolbar.svView.setOnCloseListener {
+            binding.toolbar.imgBack.visibility = View.VISIBLE
+            false
+        }
+    }
+
+    override fun onClick(p0: View?) {
+        when (p0?.id) {
+            R.id.imgBack -> {
+                if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    mActivity.onBackPressedDispatcher.onBackPressed()
+                } else {
+                    mActivity.onBackPressed()
+                }
+            }
+            R.id.tvAddPartyDealer -> {
+                //check trp is working or not
+                mActivity.addFragment(
+                    AddPartyDealerFragment(),
+                    addToBackStack = true,
+                    ignoreIfCurrent = true,
+                    animationType = AnimationType.fadeInfadeOut
+                )
+            }
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (isAdded && !hidden) {
+            if (AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE)) {
+                AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
+                binding.toolbar.imgBack.visibility = View.VISIBLE
+                binding.toolbar.svView.onActionViewCollapsed()
+                callVisitList()
+            }
+            mActivity.bottomHide()
+        }
+    }
+
+
+    private fun callVisitList() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.network_error_msg))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val visitListReq = JsonObject()
+        visitListReq.addProperty("UserId", loginData.userId)
+        visitListReq.addProperty("Latitude", currentLatitude)
+        visitListReq.addProperty("Longitude", currentLongitude)
+
+        val partyDealerCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getVisitList(visitListReq)
+
+        partyDealerCall?.enqueue(object : Callback<List<VisitListResponse>> {
+            override fun onResponse(
+                call: Call<List<VisitListResponse>>,
+                response: Response<List<VisitListResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            binding.rvVisit.visibility = View.VISIBLE
+                            binding.tvNoData.visibility = View.GONE
+                            visitList.clear()
+                            visitList.addAll(it)
+                            setupPartyDealer()
+                        } else {
+                            binding.rvVisit.visibility = View.GONE
+                            binding.tvNoData.visibility = View.VISIBLE
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<VisitListResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun setupPartyDealer() {
+        visitListAdapter = VisitListAdapter(visitList)
+        binding.rvVisit.adapter = visitListAdapter
+        binding.rvVisit.layoutManager =
+            LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
+    }
+
+    private fun locationEnableDialog() {
+        try {
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity)
+            val locationRequest = LocationRequest.create()
+            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            locationRequest.interval = 30 * 1000
+            locationRequest.fastestInterval = 5 * 1000
+            val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+            builder.setAlwaysShow(true)
+
+            val result: Task<LocationSettingsResponse> =
+                LocationServices.getSettingsClient(mActivity)
+                    .checkLocationSettings(builder.build())
+            result.addOnCompleteListener { task ->
+                try {
+                    val response: LocationSettingsResponse? =
+                        task.getResult(ApiException::class.java)
+                    // All location settings are satisfied. The client can initialize location requests here.
+                    fetchLocation(fusedLocationClient!!)
+                    //Toast.makeText(activity, AppConstants.mLatitude + ", " + AppConstants.mLongitude, Toast.LENGTH_SHORT).show()
+                } catch (exception: ApiException) {
+                    FirebaseCrashlytics.getInstance().recordException(exception)
+                    when (exception.statusCode) {
+                        LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                            val resolvable: ResolvableApiException =
+                                exception as ResolvableApiException
+                            val intentSenderRequest =
+                                IntentSenderRequest.Builder(resolvable.resolution).build()
+                            locationSettingsLauncher.launch(intentSenderRequest)
+                        }
+                        LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                            // settings, so we won't show the dialog.
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            Log.e("TAG", "locationEnableDialog: " + e.printStackTrace())
+        }
+    }
+
+    private fun fetchLocation(fusedLocationClient: FusedLocationProviderClient) {
+        try {
+            CommonMethods.showLoading(mActivity)
+            val locationRequest = LocationRequest.create()
+            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            locationRequest.interval = 5000
+            locationRequest.fastestInterval = 2000
+            val locationCallback: LocationCallback = object : LocationCallback() {
+                override fun onLocationResult(locationResult: LocationResult) {
+                    if (locationResult == null) {
+                        // Handle the case where the location is null
+                        return
+                    }
+                    val location = locationResult.locations[0]
+                    currentLatitude = location.latitude
+                    currentLongitude = location.longitude
+                    val fromLocation = Location("")
+                    fromLocation.latitude = loginData.hqLatitude
+                    fromLocation.longitude = loginData.hqLongitude
+                    val toLocation = Location("")
+                    toLocation.latitude = currentLatitude
+                    toLocation.longitude = currentLongitude
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isMock
+                        )
+                    } else {
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isFromMockProvider
+                        )
+                    }
+
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        CommonMethods.hideLoading()
+                        callVisitList()
+                        setupSearchFilter()
+                    }, 1000)
+
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isMock
+                        )
+                    } else {
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isFromMockProvider
+                        )
+                    }
+                    fusedLocationClient.removeLocationUpdates(this)
+                }
+            }
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } catch (e: SecurityException) {
+            FirebaseCrashlytics.getInstance().recordException(e)
+            e.printStackTrace()
+        }
+    }
+
+
+    inner class VisitListAdapter(
+        partyDealerList: ArrayList<VisitListResponse>
+    ) : RecyclerView.Adapter<VisitListAdapter.ViewHolder>() {
+        var filteredItems: List<VisitListResponse> = partyDealerList
+        override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            val binding = ItemListBinding.inflate(inflater, parent, false)
+            return ViewHolder(binding)
+        }
+
+        override fun getItemCount(): Int {
+            return filteredItems.size
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val dashboardData = filteredItems[position]
+            holder.bind(dashboardData)
+        }
+
+        fun filter(query: String) {
+            filteredItems = visitList.filter { item ->
+                item.accountName.contains(query, ignoreCase = true) ||
+                        item.email.contains(query, ignoreCase = true) ||
+                        item.phoneNo.contains(query, ignoreCase = true) ||
+                        item.categoryName.contains(query, ignoreCase = true) ||
+                        item.cityName.contains(query, ignoreCase = true)
+            }
+            notifyDataSetChanged()
+        }
+
+        inner class ViewHolder(private val binding: ItemListBinding) :
+            RecyclerView.ViewHolder(binding.root) {
+
+            fun bind(visitData: VisitListResponse) {
+                binding.llPartyBottom.visibility = View.GONE
+                binding.tvAccountName.text = visitData.accountName
+                binding.tvPlace.text = visitData.cityName
+                binding.tvEmail.text = visitData.email
+                binding.tvMobile.text = visitData.phoneNo
+                binding.tvCategory.text = " - " + visitData.categoryName
+
+                binding.tvAddVisit.setOnClickListener {
+                    mActivity.addFragment(
+                        AddVisitFragment.newInstance(visitData, VisitReportListResponse(), false),
+                        true,
+                        true,
+                        AnimationType.fadeInfadeOut
+                    )
+                }
+
+                binding.imgLocation.setOnClickListener {
+                    mActivity.addFragment(
+                        MapViewFragment.newInstance(
+                            0,
+                            0,
+                            true,
+                            visitData.latitude,
+                            visitData.longitude,
+                            visitData.accountName,
+                            visitData.location,
+                            0.0,
+                            0.0,
+                            "",
+                            "",
+                            false,
+                        ),
+                        addToBackStack = true,
+                        ignoreIfCurrent = true,
+                        animationType = AnimationType.fadeInfadeOut
+                    )
+                }
+
+                binding.llAccount.setOnClickListener {
+                    Log.e(
+                        "TAG",
+                        "bind: VISIT LISTING Data STOREPROCEDURE : " + visitData.storeProcedureName + ", REPORTGROUP BY : " + visitData.reportGroupBy + "" +
+                                ", ParameterString : " + visitData.parameterString + ", FILTER :: " + visitData.filter
+                    )
+                    mActivity.addFragment(
+                        DashboardDrillFragment.newInstance(
+                            false,
+                            DashboardListResponse(),
+                            DashboardDrillResponse(),
+                            visitData.storeProcedureName,
+                            visitData.reportSetupId,
+                            arrayListOf(),
+                            visitData.reportName,
+                            visitData.filter,
+                            visitData.reportGroupBy,
+                            true,
+                            isFromPartyDealerORVisit = true,
+                            parameterString = visitData.parameterString
+                        ), true, true, AnimationType.fadeInfadeOut
+                    )
+                }
+
+                binding.llMain.setOnClickListener {
+                }
+            }
+        }
+    }
+
+}

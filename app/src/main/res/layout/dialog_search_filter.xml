@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialog_shape"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:background="@color/colorPrimary"
+        android:orientation="horizontal"
+        android:layout_height="@dimen/_40sdp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:text="@string/user_list"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:textStyle="bold"
+            android:gravity="start|center"
+            android:textAllCaps="true"
+            style="@style/CommonTextViewExtraBoldStyle16"
+            android:layout_marginStart="@dimen/_10sdp"
+            android:textColor="@color/white"
+            android:layout_height="match_parent"/>
+
+        <ImageView
+            android:id="@+id/imgClose"
+            android:src="@drawable/ic_close"
+            android:layout_gravity="center"
+            android:layout_marginEnd="@dimen/_10sdp"
+            android:padding="@dimen/_2sdp"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"/>
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/svView"
+        android:background="@drawable/edittext_background"
+        android:layout_width="match_parent"
+        android:hint="@string/search_here"
+        app:queryBackground="@color/white"
+        app:searchIcon="@drawable/ic_search_small"
+        app:iconifiedByDefault="true"
+        android:layout_margin="@dimen/_10sdp"
+        android:layout_height="@dimen/_40sdp"
+        app:queryHint="Search Here"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUser"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:layout_marginBottom="@dimen/_20sdp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

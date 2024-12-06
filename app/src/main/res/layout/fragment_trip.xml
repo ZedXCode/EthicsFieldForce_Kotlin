@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar">
+
+            <LinearLayout
+                style="@style/LinearLayoutVertical"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_15sdp"
+                android:layout_marginEnd="@dimen/_10sdp">
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/from_place" />
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_6sdp"
+                    android:background="@drawable/edittext_background">
+
+                    <HorizontalScrollView
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:paddingEnd="@dimen/_7sdp">
+
+                        <TextView
+                            android:id="@+id/tvLocation"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/white"
+                            android:fontFamily="@font/nunito_sans_regular"
+                            android:gravity="start|center"
+                            android:textColor="@color/black"
+                            android:textSize="@dimen/_12ssp" />
+                    </HorizontalScrollView>
+
+                    <ImageView
+                        android:id="@+id/imgRefresh"
+                        android:layout_width="@dimen/_25sdp"
+                        android:layout_height="@dimen/_25sdp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_location_detect" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/vehical_type" />
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_5sdp">
+
+                    <Spinner
+                        android:id="@+id/spVehicleType"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_gravity="start|center"
+                        android:background="@drawable/edittext_background"
+                        android:gravity="start|center"
+                        android:paddingStart="@dimen/_5sdp"
+                        android:paddingEnd="@dimen/_2sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_20sdp"
+                        android:layout_height="@dimen/_20sdp"
+                        android:layout_gravity="end|center"
+                        android:layout_marginEnd="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </FrameLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/start_meter_reading" />
+
+                <EditText
+                    android:id="@+id/etStartMeterReading"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_5sdp"
+                    android:layout_weight="1"
+                    android:background="@drawable/edittext_background"
+                    android:fontFamily="@font/nunito_sans_regular"
+                    android:gravity="start|center"
+                    android:inputType="number"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:paddingEnd="@dimen/_5sdp"
+                    android:textSize="@dimen/_12ssp" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/start_meter_reading_photo" />
+
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardStartImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/_100sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="@dimen/_3sdp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/dashed_background_primary"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:id="@+id/imgStartImageFile"
+                            android:layout_width="@dimen/_140sdp"
+                            android:layout_height="@dimen/_80sdp"
+                            android:padding="@dimen/_3sdp"
+                            android:src="@drawable/ic_upload" />
+
+                        <TextView
+                            android:id="@+id/tvRecapturePAN"
+                            style="@style/TextViewLabelBold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/capture_photo" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:id="@+id/llEndTrip"
+                    style="@style/LinearLayoutVertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/TextViewLabelBold"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:text="@string/end_meter_reading" />
+
+                    <EditText
+                        android:id="@+id/etEndMeterReading"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edittext_background"
+                        android:fontFamily="@font/nunito_sans_regular"
+                        android:gravity="start|center"
+                        android:inputType="number"
+                        android:paddingStart="@dimen/_7sdp"
+                        android:paddingEnd="@dimen/_5sdp"
+                        android:textSize="@dimen/_12ssp" />
+
+                    <TextView
+                        style="@style/TextViewLabelBold"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:text="@string/end_meter_reading_photo" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/cardEndTripImage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/_100sdp"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="@dimen/_10sdp"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="@dimen/_3sdp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/dashed_background_primary"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:id="@+id/imgEndImageFile"
+                                android:layout_width="@dimen/_140sdp"
+                                android:layout_height="@dimen/_80sdp"
+                                android:padding="@dimen/_3sdp"
+                                android:src="@drawable/ic_upload" />
+
+                            <TextView
+                                style="@style/TextViewLabelBold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/capture_photo" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        style="@style/TextViewLabelBold"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/_20sdp"
+                        android:text="@string/remark" />
+
+                    <EditText
+                        android:id="@+id/etRemarks"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_40sdp"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edittext_background"
+                        android:fontFamily="@font/nunito_sans_regular"
+                        android:gravity="start|center"
+                        android:inputType="text"
+                        android:paddingStart="@dimen/_7sdp"
+                        android:paddingEnd="@dimen/_5sdp"
+                        android:textSize="@dimen/_12ssp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_marginTop="@dimen/_20sdp">
+
+                    <TextView
+                        android:id="@+id/tvStartTrip"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_marginEnd="@dimen/_10sdp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_background_primary"
+                        android:gravity="center"
+                        android:text="@string/start_trip" />
+
+                    <TextView
+                        android:id="@+id/tvEndTrip"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_marginStart="@dimen/_10sdp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_background_primary"
+                        android:gravity="center"
+                        android:text="@string/end_trip" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
+</layout>

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:layout_marginStart="@dimen/_5sdp"
+    android:layout_marginEnd="@dimen/_5sdp"
+    android:layout_marginTop="@dimen/_5sdp"
+    app:cardElevation="@dimen/_5sdp"
+    app:cardCornerRadius="@dimen/_5sdp">
+
+    <LinearLayout
+        style="@style/LinearLayoutVertical"
+        android:background="@color/colorPrimary"
+        android:padding="@dimen/_10sdp">
+
+        <LinearLayout
+            style="@style/LinearLayoutHorizontal"
+            android:background="@color/colorPrimary">
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.4"
+                android:text="@string/report_group_by"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" :  "
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:id="@+id/tvReportGroupBy"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.6"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LinearLayoutHorizontal"
+            android:background="@color/colorPrimary">
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.4"
+                android:text="@string/filter"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" :  "
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:id="@+id/tvFilter"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.6"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LinearLayoutHorizontal"
+            android:background="@color/colorPrimary">
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.4"
+                android:text="@string/date_option"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" :  "
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:id="@+id/tvDateOption"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.6"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/LinearLayoutHorizontal"
+            android:background="@color/colorPrimary">
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.4"
+                android:text="@string/date_range"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" :  "
+                android:textColor="@color/white" />
+
+            <TextView
+                android:textSize="@dimen/_12ssp"
+                android:id="@+id/tvDateRange"
+                style="@style/CommonTextViewNormalLatoStyle"
+                android:layout_width="0dp"
+                android:layout_weight="0.6"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHeaderColumn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

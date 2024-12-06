@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <LinearLayout
+            android:id="@+id/llTripReportLayout"
+            style="@style/LinearLayoutVertical"
+            android:layout_below="@id/toolbar">
+
+            <include
+                android:id="@+id/llTripReportHeader"
+                layout="@layout/report_header_layout" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimary"
+                android:orientation="horizontal"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:weightSum="10"
+                android:paddingTop="@dimen/_10sdp"
+                android:paddingBottom="@dimen/_10sdp">
+
+                <TextView
+                    android:id="@+id/tvDateLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/date"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvInTimeLabel"
+                    android:layout_width="0dp"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@string/type"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvOutTimeLable"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="Visit \n Count"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvTypeLabel"
+                    android:layout_width="0dp"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:text="@string/map_km"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvActualKMLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:text="@string/actual_km"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:id="@+id/tvMapLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/lato_bold"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:layout_gravity="center"
+                    android:text="@string/map"
+                    android:textColor="@color/white" />
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/llTripReportLayout">
+
+            <LinearLayout style="@style/LinearLayoutVertical">
+
+                <TextView
+                    android:id="@+id/tvNoData"
+                    style="@style/NoDataFound"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:textStyle="bold"
+                    android:text="@string/no_data_found"
+                    android:layout_marginTop="@dimen/_30sdp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvTripReport"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_marginEnd="@dimen/_5sdp" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
+</layout>

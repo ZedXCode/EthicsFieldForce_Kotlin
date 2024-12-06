@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <LinearLayout
+            style="@style/LinearLayoutVertical"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar"
+            android:orientation="vertical">
+
+            <include
+                android:id="@+id/tourPlanHeader"
+                layout="@layout/report_header_layout" />
+
+            <LinearLayout
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_5sdp"
+                android:layout_height="match_parent"
+                style="@style/LinearLayoutVertical">
+
+                <LinearLayout
+                    android:weightSum="10"
+                    android:layout_height="@dimen/_40sdp"
+                    android:background="@color/colorPrimary"
+                    style="@style/LinearLayoutHorizontal">
+                    <TextView
+                        android:layout_weight="2"
+                        android:layout_width="0dp"
+                        android:text="@string/date"
+                        android:textSize="@dimen/_13ssp"
+                        android:textColor="@color/white"
+                        style="@style/CommonTextViewBoldStyle"
+                        android:gravity="center"
+                        android:layout_height="match_parent"/>
+                    <TextView
+                        android:layout_weight="2"
+                        android:layout_width="0dp"
+                        android:text="@string/day"
+                        android:textSize="@dimen/_13ssp"
+                        android:textColor="@color/white"
+                        style="@style/CommonTextViewBoldStyle"
+                        android:gravity="center"
+                        android:layout_height="match_parent"/>
+                    <TextView
+                        android:layout_weight="6"
+                        android:layout_width="0dp"
+                        android:text="@string/plan_details"
+                        android:textColor="@color/white"
+                        style="@style/CommonTextViewBoldStyle"
+                        android:gravity="center"
+                        android:textSize="@dimen/_13ssp"
+                        android:layout_height="match_parent"/>
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvTourPlan"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</layout>

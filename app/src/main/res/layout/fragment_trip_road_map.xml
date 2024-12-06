@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <LinearLayout
+            android:layout_below="@id/toolbar"
+            android:background="@color/colorPrimary"
+            android:layout_margin="@dimen/_5sdp"
+            android:padding="@dimen/_10sdp"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:id="@+id/llTourPlanHeader"
+            style="@style/LinearLayoutVertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/trip_date"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvTripDate"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    style="@style/LinearLayoutHorizontal"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/vehicle"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvVehicle"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/start_time"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvStartTime"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    style="@style/LinearLayoutHorizontal"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/end_time"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvEndTime"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layout_height="wrap_content">
+                <LinearLayout
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_weight="1"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/start_reading"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvStartReading"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    style="@style/LinearLayoutHorizontal"
+                    android:background="@color/colorPrimary">
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:text="@string/end_reading"
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" :  "
+                        android:textColor="@color/white" />
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:id="@+id/tvEndReading"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:textColor="@color/white" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_marginTop="@dimen/_5sdp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imgStartImage"
+                        android:layout_width="@dimen/_80sdp"
+                        android:layout_height="@dimen/_60sdp"/>
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:text="Start Image"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/imgEndImage"
+                        android:layout_width="@dimen/_80sdp"
+                        android:layout_height="@dimen/_60sdp"/>
+
+                    <TextView
+                        android:textSize="@dimen/_10ssp"
+                        android:text="@string/end_image"
+                        android:textColor="@color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/llTourPlanRoadMapHeader"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_below="@id/llTourPlanHeader"
+            android:layout_height="wrap_content">
+
+            <View
+                android:layout_width="@dimen/_30sdp"
+                android:layout_height="match_parent"/>
+            <TextView
+                android:textSize="@dimen/_10ssp"
+                android:text="@string/time"
+                android:layout_weight="0.4"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:textSize="@dimen/_10ssp"
+                android:layout_weight="0.6"
+                android:text="@string/location"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:textSize="@dimen/_10ssp"
+            android:id="@+id/tvNoData"
+            android:layout_below="@id/llTourPlanHeader"
+            style="@style/NoDataFound"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:visibility="gone"
+            android:textStyle="bold"
+            android:text="@string/no_data_found"
+            android:layout_marginTop="@dimen/_30sdp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTripRoadMap"
+            android:layout_margin="@dimen/_5sdp"
+            android:layout_below="@id/llTourPlanRoadMapHeader"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </RelativeLayout>
+</layout>

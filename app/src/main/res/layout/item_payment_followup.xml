@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/white"
+    android:layout_marginStart="@dimen/_5sdp"
+    android:layout_marginEnd="@dimen/_5sdp"
+    android:layout_marginTop="@dimen/_2sdp"
+    android:layout_marginBottom="@dimen/_2sdp"
+    style="@style/LinearLayoutHorizontal">
+
+    <TextView
+        android:textSize="@dimen/_10ssp"
+        android:id="@+id/tvDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:padding="@dimen/_3sdp"
+        style="@style/ListItemValue"
+        android:gravity="center"
+        android:text="@string/date"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:textSize="@dimen/_10ssp"
+        android:id="@+id/tvExpectedDate"
+        android:layout_width="0dp"
+        android:padding="@dimen/_3sdp"
+        style="@style/ListItemValue"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/expected_date"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:textSize="@dimen/_10ssp"
+        android:id="@+id/tvAmount"
+        android:layout_width="0dp"
+        android:padding="@dimen/_3sdp"
+        style="@style/ListItemValue"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/amount"
+        android:textColor="@color/black" />
+
+    <TextView
+        android:textSize="@dimen/_10ssp"
+        android:id="@+id/tvRemarks"
+        android:layout_width="0dp"
+        android:padding="@dimen/_3sdp"
+        style="@style/ListItemValue"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/remark"
+        android:textColor="@color/black" />
+
+</LinearLayout>

@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_10sdp"
+                android:layout_marginEnd="@dimen/_10sdp"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center">
+
+                    <de.hdodenhof.circleimageview.CircleImageView
+                        android:id="@+id/imgProfile"
+                        android:layout_width="@dimen/_120sdp"
+                        android:layout_height="@dimen/_120sdp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/ic_profile"
+                        android:scaleType="centerCrop"
+                        app:civ_border_color="@color/colorPrimary"
+                        app:civ_border_width="@dimen/_3sdp" />
+
+                    <ImageView
+                        android:id="@+id/imgEditProfile"
+                        android:layout_width="@dimen/_27sdp"
+                        android:layout_height="@dimen/_27sdp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginEnd="@dimen/_2sdp"
+                        android:background="@drawable/circle_background_primary"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_edit" />
+                </FrameLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_14sdp"
+                    android:text="@string/first_name" />
+
+                <EditText
+                    android:id="@+id/etFirstName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="text" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/middle_name" />
+
+                <EditText
+                    android:id="@+id/etMiddleName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="text" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/last_name" />
+
+                <EditText
+                    android:id="@+id/etLastName"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="text" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/address" />
+
+                <EditText
+                    android:id="@+id/etAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="text" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/country" />
+
+                <LinearLayout
+                    android:id="@+id/llSelectCountry"
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvSelectCountry"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:drawablePadding="@dimen/_5sdp"
+                        android:gravity="start|center"
+                        android:hint="@string/select_country"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:textSize="@dimen/_12ssp"
+                        android:paddingEnd="@dimen/_3sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/state" />
+
+                <LinearLayout
+                    android:id="@+id/llSelectState"
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvSelectState"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:drawablePadding="@dimen/_5sdp"
+                        android:gravity="start|center"
+                        android:hint="@string/select_state"
+                        android:textSize="@dimen/_12ssp"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:paddingEnd="@dimen/_3sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/city" />
+
+                <LinearLayout
+                    android:id="@+id/llSelectCity"
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvSelectCity"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:drawablePadding="@dimen/_5sdp"
+                        android:gravity="start|center"
+                        android:hint="@string/select_city"
+                        android:textSize="@dimen/_12ssp"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:paddingEnd="@dimen/_3sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/zone_region" />
+
+                <LinearLayout
+                    android:id="@+id/llSelectZone"
+                    style="@style/LinearLayoutHorizontal"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="start|center">
+
+                    <TextView
+                        android:id="@+id/tvSelectZone"
+                        style="@style/CommonTextViewNormalStyle"
+                        android:layout_width="0dp"
+                        android:textSize="@dimen/_12ssp"
+                        android:layout_weight="1"
+                        android:drawablePadding="@dimen/_5sdp"
+                        android:gravity="start|center"
+                        android:hint="@string/select_city"
+                        android:paddingStart="@dimen/_3sdp"
+                        android:paddingEnd="@dimen/_3sdp"
+                        android:singleLine="true"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/black" />
+
+                    <ImageView
+                        android:layout_width="@dimen/_30sdp"
+                        android:layout_height="@dimen/_30sdp"
+                        android:padding="@dimen/_5sdp"
+                        android:src="@drawable/ic_drop_down" />
+                </LinearLayout>
+
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/pincode" />
+
+                <EditText
+                    android:id="@+id/etPincode"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="number" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/personal_mobile_no" />
+
+                <EditText
+                    android:id="@+id/etMobileNo"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="number" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:text="@string/personal_email" />
+
+                <EditText
+                    android:id="@+id/etMail"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/_40sdp"
+                    android:layout_marginTop="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:layout_marginBottom="@dimen/_10sdp"
+                    android:textSize="@dimen/_12ssp"
+                    android:background="@drawable/edittext_background"
+                    android:inputType="text" />
+
+                <TextView
+                    android:id="@+id/tvUpdate"
+                    android:layout_gravity="center"
+                    android:paddingStart="@dimen/_7sdp"
+                    android:layout_marginTop="@dimen/_7sdp"
+                    android:layout_marginBottom="@dimen/_5sdp"
+                    style="@style/CommonButtonStyle"
+                    android:gravity="center"
+                    android:text="@string/change"/>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </RelativeLayout>
+</layout>

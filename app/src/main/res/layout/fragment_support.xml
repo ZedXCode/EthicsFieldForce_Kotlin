@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_header" />
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/toolbar">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_10sdp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_10sdp"
+                    android:background="@drawable/edittext_background"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="@dimen/_5sdp">
+
+                    <TextView
+                        style="@style/TextViewLabelNormal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="@dimen/_5sdp"
+                        android:text="@string/if_you_required_n_support_click_on_call_button"/>
+
+                    <TextView
+                        android:id="@+id/tvCall"
+                        style="@style/CommonButtonStyleSmall"
+                        android:layout_width="@dimen/_100sdp"
+                        android:layout_height="@dimen/_40sdp"
+                        android:backgroundTint="@color/colorPrimary"
+                        android:text="@string/call_now" />
+
+                </LinearLayout>
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/full_name" />
+
+                <EditText
+                    android:id="@+id/etFullName"
+                    android:inputType="text"
+                    style="@style/CommonEditTextViewStyle"
+                    android:layout_marginTop="@dimen/_10sdp" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/mobile_number" />
+
+                <EditText
+                    android:id="@+id/etMobileNumber"
+                    android:inputType="number"
+                    style="@style/CommonEditTextViewStyle"
+                    android:layout_marginTop="@dimen/_10sdp" />
+
+                <TextView
+                    style="@style/TextViewLabelBold"
+                    android:layout_marginTop="@dimen/_20sdp"
+                    android:text="@string/your_feedback" />
+
+                <EditText
+                    android:id="@+id/etFeedback"
+                    android:layout_height="@dimen/_60sdp"
+                    android:inputType="text"
+                    style="@style/CommonEditTextViewStyle"
+                    android:layout_marginTop="@dimen/_10sdp" />
+
+                <TextView
+                    android:id="@+id/tvSubmit"
+                    android:layout_marginTop="@dimen/_14sdp"
+                    android:layout_gravity="center"
+                    style="@style/CommonButtonStyle"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:text="@string/submit"/>
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
+</layout>
