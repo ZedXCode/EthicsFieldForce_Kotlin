@@ -1058,7 +1058,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         } else {
             objReq.addProperty("FilePath", base64Image.ifEmpty { "" })
         }
-        objReq.addProperty("OrderStatusId", "1")
+        objReq.addProperty("OrderStatusId", 1)
         objReq.addProperty("UserId", loginData.userId)
 
         val objDetailsArray = JsonArray()

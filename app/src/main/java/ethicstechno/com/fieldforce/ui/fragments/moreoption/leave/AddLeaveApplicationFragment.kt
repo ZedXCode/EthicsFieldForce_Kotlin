@@ -556,7 +556,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
 
         val expenseListReq = JsonObject()
         expenseListReq.addProperty("UserId", loginData.userId)
-        expenseListReq.addProperty("LeaveApplicationId", leaveApplicationId)
+        expenseListReq.addProperty("LeaveApplicationId", leaveApplicationId.toInt())
         expenseListReq.addProperty(
             "LeaveApprovalStatus",
             if (isLeaveApprove) APPROVE_STATUS else REJECT_STATUS

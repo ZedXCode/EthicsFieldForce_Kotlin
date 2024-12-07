@@ -205,8 +205,8 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         val loginData = appDao.getLoginData()
 
         val placeListReq = JsonObject()
-        placeListReq.addProperty("StateId", "0")
-        placeListReq.addProperty("CityId", "0")
+        placeListReq.addProperty("StateId", 0)
+        placeListReq.addProperty("CityId", 0)
         placeListReq.addProperty("UserId", loginData.userId)
         placeListReq.addProperty("ExpenseDate", binding.tvDate.text.toString())
 
@@ -426,6 +426,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
+        val expenseAmount = if(binding.etExpenseAmount.text.toString().isEmpty()) 0 else binding.etExpenseAmount.text.toString().trim().toDouble()
 
         val addUpdateExpenseReq = JsonObject()
         addUpdateExpenseReq.addProperty(
@@ -433,7 +434,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             if (isForUpdate) expenseDataForUpdate.expenseId else 0
         )
         addUpdateExpenseReq.addProperty("UserId", loginData.userId)
-        addUpdateExpenseReq.addProperty("ExpenseAmount", binding.etExpenseAmount.text.toString())
+        addUpdateExpenseReq.addProperty("ExpenseAmount", expenseAmount)
         addUpdateExpenseReq.addProperty("Remarks", binding.etRemarks.text.toString())
         addUpdateExpenseReq.addProperty("DocumentPath", base64Image.ifEmpty { "" })
 
@@ -460,8 +461,8 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                 binding.tvEligibleAmount.text.toString()
             )
             addUpdateExpenseReq.addProperty("CreateBy", loginData.userId)
-            addUpdateExpenseReq.addProperty("TripId", "0")
-            addUpdateExpenseReq.addProperty("StatusId", "1")
+            addUpdateExpenseReq.addProperty("TripId", 0)
+            addUpdateExpenseReq.addProperty("StatusId", 1)
             if (selectedExpenseType.controlModeId == CONTROL_TYPE_FIX_PER_KM) {
                 addUpdateExpenseReq.addProperty(
                     "MapKm",

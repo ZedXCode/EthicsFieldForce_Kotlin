@@ -307,7 +307,7 @@ class TripReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         val appRegistrationData = appDao.getAppRegistration()
 
         val tripListReq = JsonObject()
-        tripListReq.addProperty("TripId", "0")
+        tripListReq.addProperty("TripId", 0)
         tripListReq.addProperty("UserId", selectedUser.userId)
         tripListReq.addProperty("StartDate", startDate)
         tripListReq.addProperty("EndDate", endDate)

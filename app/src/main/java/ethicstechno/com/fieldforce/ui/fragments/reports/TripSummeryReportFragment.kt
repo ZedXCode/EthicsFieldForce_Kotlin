@@ -188,7 +188,7 @@ class TripSummeryReportFragment : HomeBaseFragment(), View.OnClickListener, Filt
         val appRegistrationData = appDao.getAppRegistration()
 
         val tripSummeryListReq = JsonObject()
-        tripSummeryListReq.addProperty("TripId", "0")
+        tripSummeryListReq.addProperty("TripId", 0)
         tripSummeryListReq.addProperty("UserId", selectedUser.userId)
         tripSummeryListReq.addProperty("StartDate", startDate)
         tripSummeryListReq.addProperty("EndDate", endDate)

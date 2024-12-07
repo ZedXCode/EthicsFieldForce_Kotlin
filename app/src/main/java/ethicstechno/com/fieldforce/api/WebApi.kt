@@ -266,7 +266,4 @@ interface WebApi {
     @POST("api/Order/OrderDelete")
     fun deleteOrderEntry(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
-    @GET("api/v1/companylist/get")
-    fun getCompanyList(): Call<CompanySelectionResponse>
-
 }

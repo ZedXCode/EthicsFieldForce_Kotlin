@@ -5,7 +5,7 @@ const val DATE_FORMAT = "MM/dd/yyyy"
 const val DATE_FORMAT_FOR_SERVICE = "dd/MM/yyyy hh:mm:ss a"
 
 const val PRESENT_DAY = "P"
-const val ID_ZERO = "0"
+const val ID_ZERO = 0
 
 
 const val APP_SHARED_PREFS = "FIELD_FORCE_PREF"
@@ -94,8 +94,8 @@ const val DIALOG_ACCOUNT_MASTER = 3
 const val LEAVE_RAISED_STATUS = 1
 const val LEAVE_APPROVED_STATUS = 2
 const val LEAVE_REJECTED_STATUS = 3
-const val APPROVE_STATUS = "2"
-const val REJECT_STATUS = "3"
+const val APPROVE_STATUS = 2
+const val REJECT_STATUS = 3
 
 const val PAGE_ABOUT_US = 1
 const val PAGE_TERMS_CONDITION = 2

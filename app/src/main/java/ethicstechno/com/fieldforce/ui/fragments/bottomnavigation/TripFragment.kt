@@ -678,16 +678,17 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
-        val startMeterReading = binding.etStartMeterReading.text.toString().ifEmpty { "" }
+        val startMeterReading = binding.etStartMeterReading.text.toString().ifEmpty { "0" }
+
         val startTripReq = JsonObject()
-        startTripReq.addProperty("TripId", "0")
+        startTripReq.addProperty("TripId", 0)
         startTripReq.addProperty("UserId", loginData.userId)
         startTripReq.addProperty("VehicleTypeId", selectedVehicleType?.vehicleTypeId)
         startTripReq.addProperty("FromPlace", currentAddress)
         startTripReq.addProperty("FromPlaceLatitude", currentLatitude)
         startTripReq.addProperty("FromPlaceLongitude", currentLongitude)
         startTripReq.addProperty(
-            "StartMeterReading", startMeterReading
+            "StartMeterReading", startMeterReading.toDouble()
         )
         startTripReq.addProperty("StartMeterReadingPhoto", base64String)
         startTripReq.addProperty("ToPlace", "")
@@ -780,18 +781,19 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
         val endTripReq = JsonObject()
+        val endMeterReading = if(binding.etEndMeterReading.text.toString().trim().isEmpty()) 0 else binding.etEndMeterReading.text.toString().trim().toDouble()
 
         endTripReq.addProperty("TripId", visitFromPlaceData?.tripId)
         endTripReq.addProperty("UserId", loginData.userId)
         endTripReq.addProperty("EndTripLatitude", currentLatitude)
         endTripReq.addProperty("EndTripLongitude", currentLongitude)
         endTripReq.addProperty("EndTripLocation", currentAddress)
-        endTripReq.addProperty("EndMeterReading", binding.etEndMeterReading.text.trim().toString())
-        endTripReq.addProperty("ActualKM", "0")
-        endTripReq.addProperty("TotalTripKm", totalDistance.toString())
+        endTripReq.addProperty("EndMeterReading", endMeterReading)
+        endTripReq.addProperty("ActualKM", 0)
+        endTripReq.addProperty("TotalTripKm", totalDistance)
         endTripReq.addProperty("Remarks", binding.etRemarks.text.trim().toString())
         endTripReq.addProperty("EndMeterReadingPhoto", base64String)
-        endTripReq.addProperty("IsActive", true.toString())
+        endTripReq.addProperty("IsActive", true)
         endTripReq.addProperty("UpdateBy", loginData.userId)
         endTripReq.addProperty("IsTripCompleted", true.toString())
 

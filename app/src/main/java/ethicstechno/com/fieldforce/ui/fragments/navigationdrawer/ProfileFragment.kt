@@ -395,7 +395,7 @@ class ProfileFragment : HomeBaseFragment(), View.OnClickListener,
         profileUpdateReq.addProperty("Address", binding.etAddress.text.toString().trim())
         profileUpdateReq.addProperty("PersonalEmailId", binding.etMail.text.toString().trim())
         profileUpdateReq.addProperty("PersonalMobileNo", binding.etMobileNo.text.toString().trim())
-        profileUpdateReq.addProperty("IsActive", true.toString())
+        profileUpdateReq.addProperty("IsActive", true)
         profileUpdateReq.addProperty("UpdateBy", loginData.userId)
         profileUpdateReq.addProperty("Photo", base64Image.ifEmpty { "" })
 

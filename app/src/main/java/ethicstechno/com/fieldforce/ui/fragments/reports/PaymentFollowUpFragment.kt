@@ -354,6 +354,10 @@ class PaymentFollowUpFragment : HomeBaseFragment(), View.OnClickListener {
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
+        val amount1 = if(binding.etAmount1.text.toString().isEmpty()) 0 else binding.etAmount1.text.toString().toDouble()
+        val amount2 = if(binding.etAmount2.text.toString().isEmpty()) 0 else binding.etAmount2.text.toString().toDouble()
+        val amount3 = if(binding.etAmount3.text.toString().isEmpty()) 0 else binding.etAmount3.text.toString().toDouble()
+        val amount4 = if(binding.etAmount4.text.toString().isEmpty()) 0 else binding.etAmount4.text.toString().toDouble()
 
         val addPaymentFollowUpReq = JsonObject()
         addPaymentFollowUpReq.addProperty("PaymentFollowUpId", 0)
@@ -365,10 +369,10 @@ class PaymentFollowUpFragment : HomeBaseFragment(), View.OnClickListener {
         addPaymentFollowUpReq.addProperty("ExpectedDate2", binding.tvDate2.text.toString())
         addPaymentFollowUpReq.addProperty("ExpectedDate3", binding.tvDate3.text.toString())
         addPaymentFollowUpReq.addProperty("ExpectedDate4", binding.tvDate4.text.toString())
-        addPaymentFollowUpReq.addProperty("ExpectedAmount1", binding.etAmount1.text.toString())
-        addPaymentFollowUpReq.addProperty("ExpectedAmount2", binding.etAmount2.text.toString())
-        addPaymentFollowUpReq.addProperty("ExpectedAmount3", binding.etAmount3.text.toString())
-        addPaymentFollowUpReq.addProperty("ExpectedAmount4", binding.etAmount4.text.toString())
+        addPaymentFollowUpReq.addProperty("ExpectedAmount1", amount1)
+        addPaymentFollowUpReq.addProperty("ExpectedAmount2", amount2)
+        addPaymentFollowUpReq.addProperty("ExpectedAmount3", amount3)
+        addPaymentFollowUpReq.addProperty("ExpectedAmount4", amount4)
         addPaymentFollowUpReq.addProperty("Remarks", binding.etRemarks.text.toString())
 
         val addPaymentFollowUpCall = WebApiClient.getInstance(mActivity)
