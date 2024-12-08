@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CheckUserMobileResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.CompanySelectionResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceResponse
@@ -39,6 +40,7 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface WebApi {
@@ -266,4 +268,9 @@ interface WebApi {
     @POST("api/Order/OrderDelete")
     fun deleteOrderEntry(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
+    @GET("api/v1/dropdownmasterdetails/get")
+    fun getDropDownMasterDetails(
+        @Query("dropdownName") dropdownName: String,
+        @Query("searchCriteria") searchCriteria: String
+    ): Call<CommonDropDownResponse>
 }

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import ethicstechno.com.fieldforce.R
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
@@ -37,6 +38,7 @@ class UserSearchDialogUtil(
     private var stateList: ArrayList<StateListResponse> = arrayListOf(),
     private var zoneList: ArrayList<ZoneListResponse> = arrayListOf(),
     private var expenseTypeList: ArrayList<ExpenseTypeListResponse> = arrayListOf(),
+    private var commonDropDownList: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew> = arrayListOf(),
 
     userDialogInterfaceDetect: UserSearchDialogDetect? = null,
     placeDialogInterfaceDetect: PlaceSearchDialogDetect? = null,
@@ -44,12 +46,16 @@ class UserSearchDialogUtil(
     countryInterfaceDetect: CountrySearchDialogDetect? = null,
     stateInterfaceDetect: StateSearchDialogDetect? = null,
     zoneInterfaceDetect: ZoneSearchDialogDetect? = null,
-    expenseTypeInterfaceDetect: ExpenseTypeDialogDetect? = null
-) : UserAdapterForSearchViewDialog.UserItemClick, PlaceAdapterForSearchViewDialog.PlaceItemClick,
+    expenseTypeInterfaceDetect: ExpenseTypeDialogDetect? = null,
+    commonDropDownInterfaceDetect: CommonDropDownDialogDetect? = null
+) : UserAdapterForSearchViewDialog.UserItemClick,
+    PlaceAdapterForSearchViewDialog.PlaceItemClick,
     PartyDealerAdapterForSearchViewDialog.PartyDealerItemClick,
     CountryAdapterForSearchViewDialog.CountryItemClick,
-    StateAdapterForSearchViewDialog.StateItemClick, ZoneAdapterForSearchViewDialog.ZoneItemClick,
-    ExpenseTypeAdapterForSearchViewDialog.ExpenseTypeItemClick {
+    StateAdapterForSearchViewDialog.StateItemClick,
+    ZoneAdapterForSearchViewDialog.ZoneItemClick,
+    ExpenseTypeAdapterForSearchViewDialog.ExpenseTypeItemClick,
+    CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick {
     private lateinit var userDialog: AlertDialog
     private var dialogInterfaceDetect: UserSearchDialogDetect? = userDialogInterfaceDetect
     private var placeDialogInterfaceDetect: PlaceSearchDialogDetect? = placeDialogInterfaceDetect
@@ -58,6 +64,7 @@ class UserSearchDialogUtil(
     private var stateInterfaceDetect: StateSearchDialogDetect? = stateInterfaceDetect
     private var zoneInterfaceDetect: ZoneSearchDialogDetect? = zoneInterfaceDetect
     private var expenseTypeInterfaceDetect: ExpenseTypeDialogDetect? = expenseTypeInterfaceDetect
+    private var commonDropDownInterfaceDetect: CommonDropDownDialogDetect? = commonDropDownInterfaceDetect
     lateinit var userSearchViewAdapter: UserAdapterForSearchViewDialog
     lateinit var placeAdapterForSearchView: PlaceAdapterForSearchViewDialog
     lateinit var partyDealerAdapterForSearchViewDialog: PartyDealerAdapterForSearchViewDialog
@@ -65,6 +72,7 @@ class UserSearchDialogUtil(
     lateinit var stateAdapterForSearchViewDialog: StateAdapterForSearchViewDialog
     lateinit var zoneAdapterForSearchViewDialog: ZoneAdapterForSearchViewDialog
     lateinit var expenseTypeAdapterForSearchViewDialog: ExpenseTypeAdapterForSearchViewDialog
+    lateinit var commonDropDownAdapterNewForSearchViewDialog: CommonDropDownAdapterNewForSearchViewDialog
 
     fun showUserSearchDialog() {
         try {
@@ -140,129 +148,173 @@ class UserSearchDialogUtil(
                 )
                 rvUser.layoutManager = LinearLayoutManager(activity)
                 rvUser.adapter = expenseTypeAdapterForSearchViewDialog
+            }else if(type == FOR_REGION_TYPE){
+                tvTitle.text = activity.getString(R.string.region_list)
+                commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
+                    commonDropDownList,
+                    this as CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
+                    DROP_DOWN_REGION
+                )
+                rvUser.layoutManager = LinearLayoutManager(activity)
+                rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
+            }else if(type == FOR_INDUSTRY_TYPE){
+                tvTitle.text = activity.getString(R.string.indstry_type_list)
+                commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
+                    commonDropDownList,
+                    this as CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
+                    DROP_DOWN_INDUSTRY
+                )
+                rvUser.layoutManager = LinearLayoutManager(activity)
+                rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
             }
 
             imgClose.setOnClickListener { userDialog.dismiss() }
 
-            if (type == FOR_USER) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
-
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + userList.size)
-                        val filteredList = userList.filter { item ->
-                            item.userName.contains(newText.orEmpty(), ignoreCase = true)
+            when (type) {
+                FOR_USER -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
                         }
-                        userSearchViewAdapter.refreshAdapter(
-                            filteredList as ArrayList<UserListResponse>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_PLACE) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + placeList.size)
-                        val filteredList = placeList.filter { item ->
-                            item.cityName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + userList.size)
+                            val filteredList = userList.filter { item ->
+                                item.userName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            userSearchViewAdapter.refreshAdapter(
+                                filteredList as ArrayList<UserListResponse>,
+                            )
+                            return true
                         }
-                        placeAdapterForSearchView.refreshAdapter(
-                            filteredList as ArrayList<ExpenseCityListResponse>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_PARTY_DEALER) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
+                    })
+                }
+                FOR_PLACE -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + partyDealerList.size)
-                        val filteredList = partyDealerList.filter { item ->
-                            item.accountName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + placeList.size)
+                            val filteredList = placeList.filter { item ->
+                                item.cityName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            placeAdapterForSearchView.refreshAdapter(
+                                filteredList as ArrayList<ExpenseCityListResponse>,
+                            )
+                            return true
                         }
-                        partyDealerAdapterForSearchViewDialog.refreshAdapter(
-                            filteredList as ArrayList<AccountMasterList>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_COUNTRY) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
+                    })
+                }
+                FOR_PARTY_DEALER -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + countryList.size)
-                        val filteredList = countryList.filter { item ->
-                            item.countryName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + partyDealerList.size)
+                            val filteredList = partyDealerList.filter { item ->
+                                item.accountName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            partyDealerAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<AccountMasterList>,
+                            )
+                            return true
                         }
-                        countryAdapterForSearchViewDialog.refreshAdapter(
-                            filteredList as ArrayList<CountryListResponse>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_STATE) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
+                    })
+                }
+                FOR_COUNTRY -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + stateList.size)
-                        val filteredList = stateList.filter { item ->
-                            item.stateName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + countryList.size)
+                            val filteredList = countryList.filter { item ->
+                                item.countryName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            countryAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<CountryListResponse>,
+                            )
+                            return true
                         }
-                        stateAdapterForSearchViewDialog.refreshAdapter(
-                            filteredList as ArrayList<StateListResponse>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_ZONE) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
+                    })
+                }
+                FOR_STATE -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + zoneList.size)
-                        val filteredList = zoneList.filter { item ->
-                            item.zoneName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + stateList.size)
+                            val filteredList = stateList.filter { item ->
+                                item.stateName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            stateAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<StateListResponse>,
+                            )
+                            return true
                         }
-                        zoneAdapterForSearchViewDialog.refreshAdapter(
-                            filteredList as ArrayList<ZoneListResponse>,
-                        )
-                        return true
-                    }
-                })
-            } else if (type == FOR_EXPENSE_TYPE) {
-                svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                    override fun onQueryTextSubmit(query: String?): Boolean {
-                        return false
-                    }
+                    })
+                }
+                FOR_ZONE -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
 
-                    override fun onQueryTextChange(newText: String?): Boolean {
-                        Log.e("TAG", "onQueryTextChange: " + expenseTypeList.size)
-                        val filteredList = expenseTypeList.filter { item ->
-                            item.expenseTypeName.contains(newText.orEmpty(), ignoreCase = true)
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + zoneList.size)
+                            val filteredList = zoneList.filter { item ->
+                                item.zoneName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            zoneAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<ZoneListResponse>,
+                            )
+                            return true
                         }
-                        expenseTypeAdapterForSearchViewDialog.refreshAdapter(
-                            filteredList as ArrayList<ExpenseTypeListResponse>,
-                        )
-                        return true
-                    }
-                })
+                    })
+                }
+                FOR_EXPENSE_TYPE -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + expenseTypeList.size)
+                            val filteredList = expenseTypeList.filter { item ->
+                                item.expenseTypeName.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            expenseTypeAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<ExpenseTypeListResponse>,
+                            )
+                            return true
+                        }
+                    })
+                }
+                FOR_REGION_TYPE, FOR_INDUSTRY_TYPE -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            Log.e("TAG", "onQueryTextChange: " + commonDropDownList.size)
+                            val filteredList = commonDropDownList.filter { item ->
+                                item.dropdownValue.contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            commonDropDownAdapterNewForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<CommonDropDownResponse.CommonDropDownListModelNew>,
+                            )
+                            return true
+                        }
+                    })
+                }
             }
 
             userDialog.setView(layout, 0, 0, 0, 0)
@@ -302,6 +354,10 @@ class UserSearchDialogUtil(
         fun expenseSelect(expenseTypeData: ExpenseTypeListResponse)
     }
 
+    interface CommonDropDownDialogDetect {
+        fun dropDownSelect(dropDownData: CommonDropDownResponse.CommonDropDownListModelNew, dropDownType:String)
+    }
+
     override fun onUserOnClick(userData: UserListResponse) {
         userDialog.dismiss()
         dialogInterfaceDetect?.userSelect(userData)
@@ -335,5 +391,10 @@ class UserSearchDialogUtil(
     override fun onZoneClick(expenseTypeData: ExpenseTypeListResponse) {
         userDialog.dismiss()
         expenseTypeInterfaceDetect?.expenseSelect(expenseTypeData)
+    }
+
+    override fun onDropDownItemClick(dropDownData: CommonDropDownResponse.CommonDropDownListModelNew, dropDownType: String) {
+        userDialog.dismiss()
+        commonDropDownInterfaceDetect?.dropDownSelect(dropDownData, dropDownType)
     }
 }

@@ -38,6 +38,8 @@ const val CUSTOM_RANGE = "Custom Range"
 
 const val ORDER_MODE = "Order/OrderMode"
 const val ORDER_CATEGORY = "Order/Category"
+const val DROP_DOWN_REGION = "Region"
+const val DROP_DOWN_INDUSTRY = "IndustryType"
 
 const val CONTROL_TYPE_FIX_PER_KM = 3
 
@@ -59,6 +61,8 @@ const val FOR_COUNTRY = 4
 const val FOR_STATE = 5
 const val FOR_ZONE = 6
 const val FOR_EXPENSE_TYPE = 7
+const val FOR_REGION_TYPE = 8
+const val FOR_INDUSTRY_TYPE = 9
 
 const val STATUS_ALL = "All"
 const val STATUS_RAISED = "Raised"

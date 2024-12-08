@@ -26,6 +26,7 @@ import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddPartyDealerBinding
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
@@ -43,15 +44,19 @@ import retrofit2.Response
 
 class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
     UserSearchDialogUtil.PlaceSearchDialogDetect,
-    LeaveTypeAdapter.TypeSelect, UserAdapterForSpinner.UserSelect {
+    LeaveTypeAdapter.TypeSelect, UserAdapterForSpinner.UserSelect, UserSearchDialogUtil.CommonDropDownDialogDetect {
 
     lateinit var binding: FragmentAddPartyDealerBinding
     val placeList: ArrayList<ExpenseCityListResponse> = arrayListOf()
     val categoryList: ArrayList<LeaveTypeListResponse> = arrayListOf()
     val userList: ArrayList<UserListResponse> = arrayListOf()
+    val regionList: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew> = arrayListOf()
+    val industryList: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew> = arrayListOf()
     private var selectedPlace: ExpenseCityListResponse? = null
     private var selectedCategory: LeaveTypeListResponse? = null
     private var selectedUser: UserListResponse? = null
+    private var selectedRegion: CommonDropDownResponse.CommonDropDownListModelNew? = null
+    private var selectedIndustry: CommonDropDownResponse.CommonDropDownListModelNew? = null
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
@@ -120,6 +125,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             if (isUpdate) getString(R.string.party_dealer) else getString(R.string.add_party_dealer)
         binding.toolbar.imgBack.setOnClickListener(this)
         binding.llSelectPlace.setOnClickListener(this)
+        binding.llSelectRegion.setOnClickListener(this)
+        binding.llSelectIndustryType.setOnClickListener(this)
         binding.tvSubmit.setOnClickListener(this)
         binding.imgFetchCurrentLocation.setOnClickListener(this)
         binding.tvLiveLocation.setHorizontallyScrolling(true)
@@ -143,10 +150,14 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                     val categoryList = async { callCategoryListApi() }
                     val placeList = async { callPlaceListApi() }
                     val userList = async { callUserListApi() }
+                    val regionList = async { callCommonDropDownListApi(DROP_DOWN_REGION) }
+                    val industryTypeList = async { callCommonDropDownListApi(DROP_DOWN_INDUSTRY) }
                     // Await all deferred results concurrently
                     categoryList.await()
                     placeList.await()
                     userList.await()
+                    regionList.await()
+                    industryTypeList.await()
                     // Process the results as needed
                     // ...
                 } catch (e: Exception) {
@@ -223,6 +234,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.etAddress.isEnabled = flag
         binding.etZipcode.isEnabled = flag
         binding.llSelectPlace.isEnabled = flag
+        binding.llSelectRegion.isEnabled = flag
         binding.etPhone.isEnabled = flag
         binding.etEmail.isEnabled = flag
         binding.etContactPerson.isEnabled = flag
@@ -292,6 +304,30 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         type = FOR_PLACE,
                         placeList = placeList,
                         placeDialogInterfaceDetect = this as UserSearchDialogUtil.PlaceSearchDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                }
+            }
+            R.id.llSelectRegion -> {
+                if (regionList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_REGION_TYPE,
+                        commonDropDownList = regionList,
+                        commonDropDownInterfaceDetect = this as UserSearchDialogUtil.CommonDropDownDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                }
+            }
+            R.id.llSelectIndustryType -> {
+                if (industryList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_INDUSTRY_TYPE,
+                        commonDropDownList = industryList,
+                        commonDropDownInterfaceDetect = this as UserSearchDialogUtil.CommonDropDownDialogDetect,
                         userDialogInterfaceDetect = null
                     )
                     userDialog.showUserSearchDialog()
@@ -672,6 +708,80 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         })
 
     }
+    private fun callCommonDropDownListApi(dropDownType:String) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showAlertDialog(
+                mActivity,
+                getString(R.string.network_error),
+                getString(R.string.network_error_msg),
+                null,
+                isCancelVisibility = false
+            )
+            return
+        }
+
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val regionCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)?.getDropDownMasterDetails(dropDownType, "")
+
+        regionCall?.enqueue(object : Callback<CommonDropDownResponse> {
+            override fun onResponse(
+                call: Call<CommonDropDownResponse>,
+                response: Response<CommonDropDownResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.data.isNotEmpty()) {
+                            when (dropDownType) {
+                                DROP_DOWN_REGION -> {
+                                    regionList.clear()
+                                    regionList.addAll(it.data)
+                                }
+                                DROP_DOWN_INDUSTRY -> {
+                                    industryList.clear()
+                                    industryList.addAll(it.data)
+                                }
+                                else -> {
+
+                                }
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.something_went_wrong)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<CommonDropDownResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+        })
+
+    }
 
     private fun setupUserSpinner() {
         val adapter = UserAdapterForSpinner(
@@ -863,6 +973,20 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         selectedUser = userData
     }
 
+    override fun dropDownSelect(dropDownData: CommonDropDownResponse.CommonDropDownListModelNew, dropdDownType:String) {
+        when(dropdDownType){
+            DROP_DOWN_REGION -> {
+                binding.tvSelectRegion.text= dropDownData.dropdownValue
+                selectedRegion = dropDownData
+            }
+            DROP_DOWN_INDUSTRY -> {
+                binding.tvSelectIndustry.text= dropDownData.dropdownValue
+                selectedIndustry = dropDownData
+            }else ->{}
+        }
+
+    }
+
     private fun locationEnableDialog() {
         try {
             if (!appDao.getLoginData().todayClockInDone) {
@@ -977,4 +1101,6 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             e.printStackTrace()
         }
     }
+
+
 }
