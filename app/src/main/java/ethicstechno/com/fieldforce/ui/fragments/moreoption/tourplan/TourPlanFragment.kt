@@ -35,6 +35,7 @@ import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResp
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.tourplan.TourPlanListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.*
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
@@ -214,7 +215,7 @@ class TourPlanFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogL
 
         val partyDealerCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getAccountMasterList(partyDealerListReq)
+            ?.getPartyDealerList(partyDealerListReq)
 
         partyDealerCall?.enqueue(object : Callback<List<AccountMasterList>> {
             override fun onResponse(
@@ -580,7 +581,7 @@ class TourPlanFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogL
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

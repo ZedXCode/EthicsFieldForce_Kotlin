@@ -33,6 +33,7 @@ import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.ui.adapter.CommonStringListAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.PaymentFollowUpFragment
@@ -556,7 +557,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         statusPosition: Int,
         filterStringFromSubmit: FilterListResponse,
         reportGroupByStringFromSubmit: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

@@ -11,7 +11,7 @@ import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import kotlin.collections.ArrayList
 
 class CommonDropDownAdapterNewForSearchViewDialog(
-    var dropDownList: List<CommonDropDownResponse.CommonDropDownListModelNew>,
+    var dropDownList: List<CommonDropDownResponse>,
     onClickDetect: CommonDropDownItemClick,
     val dropDownType:String
 ) :
@@ -20,7 +20,7 @@ class CommonDropDownAdapterNewForSearchViewDialog(
     var onCommonDropDownItemClick: CommonDropDownItemClick = onClickDetect
 
 
-    fun refreshAdapter(listdata: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew>) {
+    fun refreshAdapter(listdata: ArrayList<CommonDropDownResponse>) {
         dropDownList = arrayListOf()
         dropDownList = listdata
         notifyDataSetChanged()
@@ -32,7 +32,7 @@ class CommonDropDownAdapterNewForSearchViewDialog(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item: CommonDropDownResponse.CommonDropDownListModelNew = dropDownList[position]
+        val item: CommonDropDownResponse = dropDownList[position]
         holder.bind(item)
     }
 
@@ -48,7 +48,7 @@ class CommonDropDownAdapterNewForSearchViewDialog(
                 itemView.findViewById<TextView>(R.id.tvUserName)
         }
 
-        fun bind(item: CommonDropDownResponse.CommonDropDownListModelNew) {
+        fun bind(item: CommonDropDownResponse) {
             try {
                 txtBankName.text = item.dropdownValue
                 txtBankName.setOnClickListener {
@@ -63,7 +63,7 @@ class CommonDropDownAdapterNewForSearchViewDialog(
     }
 
     interface CommonDropDownItemClick {
-        fun onDropDownItemClick(countryData: CommonDropDownResponse.CommonDropDownListModelNew, dropDownType:String)
+        fun onDropDownItemClick(countryData: CommonDropDownResponse, dropDownType:String)
     }
 
 }

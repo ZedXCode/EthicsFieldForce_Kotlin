@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.listener.ItemClickListener
+import ethicstechno.com.fieldforce.models.DropDownItem
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.ui.adapter.GenericAdapter
@@ -88,8 +89,8 @@ class SearchDialogUtil<T>(
                                     }
                                 }
                                 DIALOG_PRODUCT_TYPE -> {
-                                    if (item is ProductGroupResponse) {
-                                        item.productName!!.contains(searchText, ignoreCase = true)
+                                    if (item is DropDownItem) {
+                                        item.dropdownValue!!.contains(searchText, ignoreCase = true)
                                     } else {
                                         false
                                     }

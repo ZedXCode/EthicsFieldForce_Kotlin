@@ -8,13 +8,14 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 
 class LeaveTypeAdapter(
     private val context: Context,
     private val spinnerLayout: Int,
-    private var leaveTypeListResponse: ArrayList<LeaveTypeListResponse>,
+    private var leaveTypeListResponse: ArrayList<CategoryMasterResponse>,
     onTypeSelect: TypeSelect
-) : ArrayAdapter<LeaveTypeListResponse>(context, spinnerLayout, leaveTypeListResponse) {
+) : ArrayAdapter<CategoryMasterResponse>(context, spinnerLayout, leaveTypeListResponse) {
     private val mContext: Context = context
     private val typeSelect = onTypeSelect
 
@@ -40,6 +41,6 @@ class LeaveTypeAdapter(
     }
 
     interface TypeSelect {
-        fun onTypeSelect(typeData: LeaveTypeListResponse)
+        fun onTypeSelect(typeData: CategoryMasterResponse)
     }
 }

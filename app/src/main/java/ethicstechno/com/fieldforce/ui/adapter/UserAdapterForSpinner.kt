@@ -27,7 +27,8 @@ class UserAdapterForSpinner(
         val name: TextView = listItem!!.findViewById(android.R.id.text1)
         val userData = userList[position]
         name.text = userData.userName
-
+        val currentSupervisor = userList[position]
+        userSelect.onUserSelect(currentSupervisor)
         return listItem
     }
 
@@ -38,7 +39,6 @@ class UserAdapterForSpinner(
         val name: TextView = listItem!!.findViewById(android.R.id.text1)
         val currentSupervisor = userList[position]
         name.text = currentSupervisor.userName
-        userSelect.onUserSelect(currentSupervisor)
         return listItem
     }
 

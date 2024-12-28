@@ -14,7 +14,6 @@ import androidx.appcompat.widget.SearchView
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.gms.common.internal.service.Common
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
@@ -22,11 +21,10 @@ import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
@@ -45,18 +43,16 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     var startDate = ""
     var endDate = ""
     private var selectedDateOptionPosition = 4 // THIS MONTH
-    private var selectedPartyDealer : AccountMasterList? = null
+    private var selectedPartyDealer: AccountMasterList? = null
     var leaveApplicationAdapter = OrderEntryListAdapter(orderList)
     private var accountMasterList: ArrayList<AccountMasterList> = arrayListOf()
-
 
     companion object {
 
         fun newInstance(
-            isForApproval: Boolean
+            isFromInquiry: Boolean
         ): OrderEntryListFragment {
             val args = Bundle()
-            args.putBoolean(ARG_PARAM1, isForApproval)
             val fragment = OrderEntryListFragment()
             fragment.arguments = args
             return fragment
@@ -78,9 +74,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        /*arguments?.let {
-            isForApproval = it.getBoolean(ARG_PARAM1, false)
-        }*/
+        arguments?.let {
+        }
         initView()
 
     }
@@ -100,6 +95,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
+        orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_order_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.llBottom.visibility = View.VISIBLE
@@ -109,9 +105,9 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (isAdded && !hidden) {
-            Log.e("TAG", "onHiddenChanged: "+ IS_DATA_UPDATE )
+            Log.e("TAG", "onHiddenChanged: " + IS_DATA_UPDATE)
             if (AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE)) {
-                Log.e("TAG", "onHiddenChanged: API CALLED" )
+                Log.e("TAG", "onHiddenChanged: API CALLED")
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
                 orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
                 orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
@@ -198,7 +194,10 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val expenseListReq = JsonObject()
         expenseListReq.addProperty("OrderId", 0)
         expenseListReq.addProperty("UserId", loginData.userId)
-        expenseListReq.addProperty("AccountMasterId", if(selectedPartyDealer != null) selectedPartyDealer?.accountMasterId else 0)
+        expenseListReq.addProperty(
+            "AccountMasterId",
+            if (selectedPartyDealer != null) selectedPartyDealer?.accountMasterId else 0
+        )
         expenseListReq.addProperty("FromDate", startDate)
         expenseListReq.addProperty("ToDate", endDate)
 
@@ -286,7 +285,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             fun bind(orderData: OrderListResponse) {
 
                 binding.tvOrderDate.text = "Order Date : " + orderData.orderDate
-                binding.tvCategory.text = "Category : " + orderData.categoryName
+                binding.tvOrderNo.text = "Order No : " + orderData.documentNo
                 binding.tvParty.text = "Party : " + orderData.accountName
                 binding.tvAmount.text = "Amount : " + orderData.orderAmount
                 binding.tvPlace.text = "Place : " + orderData.cityName
@@ -338,6 +337,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.tvAddOrderEntry -> {
                 CommonMethods.selectedPartyDealer = AccountMasterList()
                 mActivity.addFragment(
@@ -349,9 +349,9 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.imgFilter -> {
-                if(accountMasterList.size > 0){
+                if (accountMasterList.size > 0) {
                     showFilterDialog()
-                }else{
+                } else {
                     orderEntryListBinding.llFetchPartyDealer.visibility = View.VISIBLE
                     startAnimation()
                     callAccountMasterList()
@@ -359,6 +359,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
         }
     }
+
     private fun startAnimation() {
         val a: Animation = AnimationUtils.loadAnimation(mActivity, R.anim.blink_animation)
         a.reset()
@@ -375,8 +376,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             endDate,
             selectedDateOptionPosition,
             isPartyDealerVisible = true,
-            partyDealerList= accountMasterList,
-            selectedPartyDealerObj = if(selectedPartyDealer == null) AccountMasterList() else selectedPartyDealer!!
+            partyDealerList = accountMasterList,
+            selectedPartyDealerObj = if (selectedPartyDealer == null) AccountMasterList() else selectedPartyDealer!!
         )
     }
 
@@ -388,7 +389,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {
@@ -396,7 +397,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         endDate = endDateFromListener
         selectedDateOptionPosition = dateOptionPosition
         selectedPartyDealer = partyDealer
-        Log.e("TAG", "onFilterSubmitClick: "+selectedPartyDealer?.accountMasterId )
+        Log.e("TAG", "onFilterSubmitClick: " + selectedPartyDealer?.accountMasterId)
         callOrderListApi()
     }
 

@@ -1,13 +1,12 @@
 package ethicstechno.com.fieldforce.api
 
-import ethicstechno.com.fieldforce.models.LoginResponse
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CheckUserMobileResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
-import ethicstechno.com.fieldforce.models.CompanySelectionResponse
-import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
+import ethicstechno.com.fieldforce.models.CommonProductFilterResponse
+import ethicstechno.com.fieldforce.models.LoginResponse
 import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceResponse
 import ethicstechno.com.fieldforce.models.attendance.PunchInResponse
 import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
@@ -16,6 +15,7 @@ import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.dynamiccontent.DynamicPageContentList
+import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.DynamicMenuListResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.*
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationListResponse
@@ -23,9 +23,13 @@ import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationRespo
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.tourplan.TourPlanListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.InquiryResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
 import ethicstechno.com.fieldforce.models.orderentry.OrderDetailsResponse
-import ethicstechno.com.fieldforce.models.orderentry.OrderEntryResponse
 import ethicstechno.com.fieldforce.models.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.models.profile.CountryListResponse
@@ -47,6 +51,7 @@ interface WebApi {
 
     companion object {
         const val BASE_URL = "http://ffms.ethicstechno.com:41422/"
+        //const val BASE_URL = "http://194.163.165.14:41422/"
     }
 
     @POST("api/values/GetAppRegistration")
@@ -151,28 +156,38 @@ interface WebApi {
     @POST("api/AccountMaster/GetCityStateCountryList")
     fun getCityStateCountryList(@Body jsonObject: JsonObject): Call<List<ExpenseCityListResponse>>
 
-    @POST("api/AccountMaster/GetAccountMaster")
-    fun getAccountMasterList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
+    /*@POST("api/AccountMaster/GetAccountMaster")
+    fun getAccountMasterList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>*/
+
+    @POST("api/AccountMaster/GetPartyDealerList")
+    fun getPartyDealerList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
+
+    @POST("api/AccountMaster/GetPartyDealerDetails")
+    fun getPartyDealerDetails(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
+
 
     @POST("api/AccountMaster/GetCategoryMasterList")
-    fun getPartyDealerCategoriesList(): Call<List<LeaveTypeListResponse>>
+    fun getPartyDealerCategoriesList(@Body jsonObject: JsonObject): Call<List<LeaveTypeListResponse>>
 
-    @POST("api/AccountMaster/AccountMasterAdd")
+    /*@POST("api/AccountMaster/AccountMasterAdd")
     fun addPartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @POST("api/AccountMaster/AccountMasterUpdate")
-    fun updatePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+    fun updatePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>*/
 
-    @POST("api/AccountMaster/AccountMasterDelete")
+    @POST("api/AccountMaster/PartyDealerInsertUpdate")
+    fun addUpdatePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/AccountMaster/PartyDealerDelete")
     fun deletePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @POST("api/Visit/GetVisitAccountMaster")
     fun getVisitList(@Body jsonObject: JsonObject): Call<List<VisitListResponse>>
 
     @POST("api/Visit/GetCategoryMasterList")
-    fun getVisitTypeList(): Call<List<LeaveTypeListResponse>>
+    fun getVisitTypeList(@Body jsonObject: JsonObject): Call<List<LeaveTypeListResponse>>
 
-    @POST("api/Visit/visitAdd")
+    @POST("api/Visit/VisitInsertUpdate") //api/Visit/visitAdd
     fun addVisit(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @POST("api/Trip/TourPlanGet")
@@ -256,8 +271,14 @@ interface WebApi {
     @POST("api/Order/GetOrderList")
     fun getOrderList(@Body jsonObject: JsonObject): Call<List<OrderListResponse>>
 
+    @POST("api/Inquiry/GetInquiryList")//added
+    fun getInquiryList(@Body jsonObject: JsonObject): Call<List<OrderListResponse>>
+
     @POST("api/Order/GetOrderDetails")
     fun getOrderDetails(@Body jsonObject: JsonObject): Call<List<OrderDetailsResponse>>
+
+    @POST("api/Inquiry/GetInquiryDetails")
+    fun getInquiryDetails(@Body jsonObject: JsonObject): Call<List<OrderDetailsResponse>>
 
     @POST("api/Order/OrderDetailsDelete")
     fun deleteOrderDetails(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
@@ -271,6 +292,24 @@ interface WebApi {
     @GET("api/v1/dropdownmasterdetails/get")
     fun getDropDownMasterDetails(
         @Query("dropdownName") dropdownName: String,
-        @Query("searchCriteria") searchCriteria: String
-    ): Call<CommonDropDownResponse>
+        @Query("ParameterString") searchCriteria: String
+    ): Call<List<CommonDropDownResponse>>
+
+    @POST("api/CompanyMaster/CompanyMasterGet")
+    fun getCompanyMasterList(@Body jsonObject: JsonObject): Call<List<CompanyMasterResponse>>
+    @POST("api/BranchMaster/BranchMasterGet")
+    fun getBranchMasterList(@Body jsonObject: JsonObject): Call<List<BranchMasterResponse>>
+    @POST("api/DivisionMaster/DivisionMasterGet")
+    fun getDivisionMasterList(@Body jsonObject: JsonObject): Call<List<DivisionMasterResponse>>
+
+    @POST("api/CategoryMaster/GetCategoryMasterList")
+    fun getCategoryMasterList(@Body jsonObject: JsonObject): Call<List<CategoryMasterResponse>>
+
+    @POST("api/Visit/ListofInquiryGet")
+    fun getVisitInquiryList(@Body jsonObject: JsonObject): Call<List<InquiryResponse>>
+
+    @POST("api/DropDown/GetProductSearchListGet")
+    fun getCommonProductFilterList(@Body jsonObject: JsonObject): Call<CommonProductFilterResponse>
+
+
 }

@@ -4,13 +4,10 @@ import android.Manifest
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -23,18 +20,20 @@ import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import avoidDoubleClicks
-import com.bumptech.glide.Glide
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.groundworksapp.utility.DecimalDigitsInputFilter
@@ -47,9 +46,15 @@ import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
 import ethicstechno.com.fieldforce.models.orderentry.OrderDetailsResponse
 import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.ui.adapter.GenericSpinnerAdapter
+import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
+import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.OrderDetailsAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
@@ -62,34 +67,43 @@ import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_ACCOUNT_MASTER
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
+import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.FOR_BRANCH
+import ethicstechno.com.fieldforce.utils.FOR_COMPANY
+import ethicstechno.com.fieldforce.utils.FOR_DIVISION
+import ethicstechno.com.fieldforce.utils.ID_ZERO
 import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.ImagePreviewCommonDialog
-import ethicstechno.com.fieldforce.utils.ImageUtils
-import ethicstechno.com.fieldforce.utils.ORDER_CATEGORY
-import ethicstechno.com.fieldforce.utils.ORDER_MODE
 import ethicstechno.com.fieldforce.utils.PermissionUtil
 import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
+import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.math.BigDecimal
 import java.util.Calendar
-import java.util.concurrent.Executors
 
 class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
-    OrderDetailsAdapter.ProductItemClickListener, AddProductDialogFragment.OnOrderDetailsListener{
+    OrderDetailsAdapter.ProductItemClickListener, AddProductDialogFragment.OnOrderDetailsListener,
+    UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
+    UserSearchDialogUtil.BranchDialogDetect, LeaveTypeAdapter.TypeSelect {
 
     lateinit var binding: FragmentAddOrderEntryBinding
-    private var orderModeList: ArrayList<CommonDropDownListModel> = arrayListOf()
-    private var orderCategoryList: ArrayList<CommonDropDownListModel> = arrayListOf()
+
+    //private var orderModeList: ArrayList<CommonDropDownListModel> = arrayListOf()
     private var accountMasterList: ArrayList<AccountMasterList> = arrayListOf()
     private var distributorList: ArrayList<AccountMasterList> = arrayListOf()
     private var groupList: ArrayList<ProductGroupResponse> = arrayListOf()
     private var productList: ArrayList<ProductGroupResponse> = arrayListOf()
     private var selectedPartyDealerId: Int = -1
-    private var selectedCategoryId: Int = -1
-    private var selectedOrderModeId: Int = -1
+
+    //private var selectedCategoryId: Int = -1
+    //private var selectedOrderModeId: Int = -1
     private var selectedDistributorId: Int = -1
     private var selectedGroupId: Int = 0
     private lateinit var selectedProduct: ProductGroupResponse
@@ -108,15 +122,24 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     lateinit var etPrice: EditText
     var isUpdating = false
     lateinit var tvUnit: TextView
-    private var imageFile: File? = null
-    private var base64Image = ""
     private var orderId: Int = 0
     private var userId = 0
     private var imageUrl = ""
     var isReadOnly = true
     private lateinit var productDialogFragment: AddProductDialogFragment
     val isExitFromAddOrder = false
-
+    val companyMasterList: ArrayList<CompanyMasterResponse> = arrayListOf()
+    val branchMasterList: ArrayList<BranchMasterResponse> = arrayListOf()
+    val divisionMasterList: ArrayList<DivisionMasterResponse> = arrayListOf()
+    val categoryList: ArrayList<CategoryMasterResponse> = arrayListOf()
+    private var imageAnyList: ArrayList<Any> = arrayListOf()
+    private var imageAdapter: ImageAdapter? = null
+    var selectedCompany: CompanyMasterResponse? = null
+    var selectedBranch: BranchMasterResponse? = null
+    var selectedDivision: DivisionMasterResponse? = null
+    var selectedCategory: CategoryMasterResponse? = null
+    private var selectedModeOfCommunication = 0
+    private var isExpanded = false
 
     private val partyDealerItemClickListener =
         object : ItemClickListener<AccountMasterList> {
@@ -211,7 +234,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.tvDate.text = CommonMethods.getCurrentDate()
         binding.toolbar.imgBack.setOnClickListener(this)
         binding.tvSubmit.setOnClickListener(this)
-        binding.cardImage.setOnClickListener(this)
+        binding.cardImageCapture.setOnClickListener(this)
+        setupImageUploadRecyclerView()
+
         setOrderDetailsAdapter()
         if (orderId > 0) {
             binding.toolbar.imgEdit.visibility = View.VISIBLE
@@ -225,35 +250,185 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
+    private suspend fun executeAPIsAndSetupData() {
+        withContext(Dispatchers.IO) {
+            try {
+                //val categoryListDeferred = async { callCategoryListApi() }
+                val companyListDeferred = async { callCompanyListApi() }
+                //val branchListDeferred = async { callBranchListApi() }
+                //val divisionListDeferred = async { callDivisionListApi() }
+
+                //categoryListDeferred.await()
+                companyListDeferred.await()
+                //branchListDeferred.await()
+                //divisionListDeferred.await()
+
+            } catch (e: Exception) {
+                FirebaseCrashlytics.getInstance().recordException(e)
+                Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
+            }
+        }
+    }
+
     private fun formViewMode(isViewOnly: Boolean) {
         isReadOnly = isViewOnly
         if (isViewOnly) {
-            binding.tvOrderMode.visibility = View.VISIBLE
-            binding.spOrderMode.visibility = View.GONE
-            binding.tvOrderCategory.visibility = View.VISIBLE
-            binding.spOrderCategory.visibility = View.GONE
+            //binding.tvOrderMode.visibility = View.VISIBLE
+            //binding.spOrderMode.visibility = View.GONE
+            binding.tvCategory.visibility = View.VISIBLE
+            binding.spCategory.visibility = View.GONE
             binding.etContactPersonName.visibility = View.GONE
             binding.tvContactPerson.visibility = View.VISIBLE
             binding.tvRemarks.visibility = View.VISIBLE
             binding.etRemarks.visibility = View.GONE
             binding.llBottom.visibility = View.GONE
         } else {
-            binding.tvOrderMode.visibility = View.GONE
-            binding.spOrderMode.visibility = View.VISIBLE
-            binding.tvOrderCategory.visibility = View.GONE
-            binding.spOrderCategory.visibility = View.VISIBLE
+            //binding.tvOrderMode.visibility = View.GONE
+            //binding.spOrderMode.visibility = View.VISIBLE
+            binding.tvCategory.visibility = View.GONE
+            binding.spCategory.visibility = View.VISIBLE
             binding.etContactPersonName.visibility = View.VISIBLE
             binding.tvContactPerson.visibility = View.GONE
             binding.tvRemarks.visibility = View.GONE
             binding.etRemarks.visibility = View.VISIBLE
             binding.llBottom.visibility = View.VISIBLE
-            binding.tvDate.setOnClickListener(this)
             binding.flPartyDealer.setOnClickListener(this)
             binding.flSelectDistributor.setOnClickListener(this)
             binding.tvDate.setOnClickListener(this)
             binding.btnAddOrderDetails.setOnClickListener(this)
-            callCommonDropDownListApi(ORDER_MODE)
+            binding.llSelectCompany.setOnClickListener(this)
+            binding.llSelectBranch.setOnClickListener(this)
+            binding.llSelectDivision.setOnClickListener(this)
+
+            binding.radioGroupModeOfCom.setOnCheckedChangeListener { group, checkedId ->
+                val radioButton = view?.findViewById<RadioButton>(checkedId)
+                when (radioButton?.text) {
+                    mActivity.getString(R.string.personally) -> selectedModeOfCommunication = 1
+                    mActivity.getString(R.string.phone) -> selectedModeOfCommunication = 2
+                    mActivity.getString(R.string.email) -> selectedModeOfCommunication = 3
+                }
+            }
+
+            binding.llHeader.setOnClickListener {
+                toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
+            }
+
+            //callCommonDropDownListApi(ORDER_MODE)
+            callProductGroupListApi(true, -1)
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    executeAPIsAndSetupData()
+                } catch (e: Exception) {
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    e.printStackTrace()
+                }
+            }
         }
+    }
+
+    private fun toggleSectionVisibility(view: View, toggleIcon: ImageView) {
+        if (isExpanded) {
+            CommonMethods.collapse(view)
+            toggleIcon.setImageResource(R.drawable.ic_add_circle)
+        } else {
+            CommonMethods.expand(view)
+            toggleIcon.setImageResource(R.drawable.ic_remove_circle)
+        }
+        isExpanded = !isExpanded
+    }
+
+    private fun askCameraGalleryPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val arrListOfPermission = arrayListOf<String>(
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                openAlbumForList()
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val arrListOfPermission = arrayListOf<String>(
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                openAlbumForList()
+            }
+        } else {
+            val arrListOffPermission = arrayListOf<String>(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOffPermission) {
+                openAlbumForList()
+            }
+        }
+
+    }
+
+    private fun setupImageUploadRecyclerView() {
+        val apiUrl = appDao.getAppRegistration().apiHostingServer
+        binding.rvImages.layoutManager =
+            LinearLayoutManager(mActivity, LinearLayoutManager.HORIZONTAL, false)
+        imageAdapter = ImageAdapter(mActivity, apiUrl)
+        binding.rvImages.adapter = imageAdapter
+        handleAssetRVView(0)
+
+        imageAdapter?.setOnClick(object : ImageAdapter.OnAssetImageCancelClick {
+            override fun onImageCancel(position: Int) {
+                if (!isReadOnly && position != RecyclerView.NO_POSITION && imageAnyList.size > 0) {
+                    imageAnyList.removeAt(position)
+                    imageAdapter?.addImage(imageAnyList, false)
+                    handleAssetRVView(imageAnyList.size)
+                }
+            }
+
+            override fun onImagePreview(position: Int) {
+                if (imageAnyList[position] is String) {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer + imageAnyList[position]
+                    )
+                } else {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity, imageAnyList[position]
+                    )
+                }
+            }
+        })
+    }
+
+    fun handleAssetRVView(imageList: Int) {
+        try {
+            binding.txtNoFilePathImages.visibility = if (imageList == 0) View.VISIBLE else View.GONE
+            binding.rvImages.visibility = if (imageList == 0) View.GONE else View.VISIBLE
+        } catch (e: java.lang.Exception) {
+            Log.e("TAG", "handleAssetRVView: *ERROR* IN \$submitDALPaper$ :: error = " + e.message)
+        }
+    }
+
+    private fun openAlbumForList() {
+        AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
+            onImagesSelected = { selectedFiles ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val modifiedImageFiles = selectedFiles.mapNotNull { file ->
+                        CommonMethods.addDateAndTimeToFile(
+                            file, CommonMethods.createImageFile(mActivity) ?: return@mapNotNull null
+                        )
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        if (modifiedImageFiles.isNotEmpty()) {
+                            imageAnyList.addAll(modifiedImageFiles)
+                            imageAdapter?.addImage(imageAnyList, false)
+                            handleAssetRVView(imageAnyList.size)
+                        }
+                    }
+                }
+            },
+            onError = {
+                CommonMethods.showToastMessage(mActivity, it)
+            }
+        )
     }
 
     private fun setOrderDetailsAdapter() {
@@ -263,7 +438,118 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.rvProduct.adapter = orderDetailsAdapter
     }
 
-    private fun callCommonDropDownListApi(type: String) {
+    private fun callCategoryListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.please_select_branch)
+            )
+            return;
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val jsonReq = JsonObject()
+        jsonReq.addProperty("UserId", loginData.userId)
+        jsonReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_ORDER_ENTRY"
+        )
+
+        val visitTypeCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getCategoryMasterList(jsonReq)
+
+        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<CategoryMasterResponse>>,
+                response: Response<List<CategoryMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            categoryList.clear()
+                            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+                            categoryList.addAll(it)
+                            setupCategorySpinner()
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CategoryMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
+    private fun setupCategorySpinner() {
+        val adapter = LeaveTypeAdapter(
+            mActivity,
+            R.layout.simple_spinner_item,
+            categoryList,
+            this,
+        )
+        binding.spCategory.adapter = adapter
+        if (categoryList.size == 2) {
+            selectedCategory = CategoryMasterResponse(
+                categoryMasterId = categoryList[1].categoryMasterId,
+                categoryName = categoryList[1].categoryName
+            )
+            binding.spCategory.setSelection(1)
+            categoryList[1]
+        } else {
+            binding.spCategory.setSelection(0)
+            categoryList[0]
+        }
+        /*selectedCategory = if (isReadOnly) {
+            val categoryData = CategoryMasterResponse(
+                categoryMasterId = visitReportData.categoryMasterId,
+                categoryName = visitReportData.categoryName
+            )
+            val pos =
+                categoryList.indexOfFirst { it.categoryMasterId == categoryData.categoryMasterId }
+            binding.spCategory.setSelection(pos)
+            categoryData
+        } else {
+            if (categoryList.size == 2) {
+                selectedCategory = CategoryMasterResponse(
+                    categoryMasterId = categoryList[1].categoryMasterId,
+                    categoryName = categoryList[1].categoryName
+                )
+                binding.spCategory.setSelection(1)
+                categoryList[1]
+            } else {
+                binding.spCategory.setSelection(0)
+                categoryList[0]
+            }
+        }*/
+
+
+    }
+
+
+    /*private fun callCommonDropDownListApi(type: String) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -303,8 +589,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                     orderModeList,
                                     binding.spOrderMode
                                 ) { it -> selectedOrderModeId = it.dropDownValueId }
-                                callCommonDropDownListApi(ORDER_CATEGORY)
-                            } else if (type == ORDER_CATEGORY) {
+                            }*//* else if (type == ORDER_CATEGORY) {
                                 orderCategoryList.clear()
                                 orderCategoryList.add(
                                     CommonDropDownListModel(
@@ -316,10 +601,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 orderCategoryList.addAll(it)
                                 setupCommonSpinner(
                                     orderCategoryList,
-                                    binding.spOrderCategory
+                                    binding.spCategory
                                 ) { it -> selectedCategoryId = it.dropDownValueId }
-                                callProductGroupListApi(true, -1)
-                            }
+                            }*//*
+
 
                         }
                     }
@@ -346,7 +631,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
         })
 
-    }
+    }*/
 
     private fun callAccountMasterList(isForPartyDealer: Boolean) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
@@ -361,9 +646,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             CommonMethods.convertDateStringForOrderEntry(binding.tvDate.text.toString())
 
         val parameterString = if (isForPartyDealer) {
-            "FieldName=Order/Party and EntryDate=$orderDateString and OrderMode=$selectedOrderModeId and CategoryMasterId=$selectedCategoryId"
+            "FieldName=Order/Party and EntryDate=$orderDateString and CategoryMasterId=${selectedCategory?.categoryMasterId}"
         } else {
-            "FieldName=Order/Distributor and EntryDate=$orderDateString and OrderMode=$selectedOrderModeId and CategoryMasterId=$selectedCategoryId"
+            "FieldName=Order/Distributor and EntryDate=$orderDateString and CategoryMasterId=${selectedCategory?.categoryMasterId}"
         }
 
         val jsonReq = JsonObject()
@@ -457,9 +742,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                         if (it.isNotEmpty() && it.size > 0) {
                             if (isForProductGroup) {
                                 groupList.clear()
-                                groupList.add(ProductGroupResponse(orderId = 0, orderDetailsId = 0, productGroupId= 0, productGroupName = "All Group"))
+                                groupList.add(
+                                    ProductGroupResponse(
+                                        orderId = 0,
+                                        orderDetailsId = 0,
+                                        productGroupId = 0,
+                                        productGroupName = "All Group"
+                                    )
+                                )
                                 groupList.addAll(it)
-                                if (!isReadOnly) {
+                                if (orderId > 0 && !isReadOnly) {
                                     callOrderDetailsApi()
                                 }
                             } else {
@@ -513,6 +805,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         })
 
     }
+
 
     private fun callOrderDetailsApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
@@ -696,16 +989,18 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         appRegistrationData: AppRegistrationResponse
     ) {
         binding.tvDate.text = orderDetails.orderDate
-        selectedOrderModeId = orderDetails.orderMode ?: -1
-        val selectedOrderModeIndex =
-            orderModeList.indexOfFirst { it.dropDownValueId == orderDetails.orderMode }
-        binding.spOrderMode.setSelection(selectedOrderModeIndex)
+        //selectedOrderModeId = orderDetails.orderMode ?: -1
+        //val selectedOrderModeIndex = orderModeList.indexOfFirst { it.dropDownValueId == orderDetails.orderMode }
+        //binding.spOrderMode.setSelection(selectedOrderModeIndex)
         binding.tvOrderMode.text = orderDetails.orderModeName
-        selectedCategoryId = orderDetails.categoryMasterId ?: -1
+        selectedCategory = CategoryMasterResponse(
+            categoryMasterId = orderDetails.categoryMasterId,
+            categoryName = orderDetails.categoryName
+        )
         val selectedCategoryIndex =
-            orderCategoryList.indexOfFirst { it.dropDownValueId == selectedCategoryId }
-        binding.spOrderCategory.setSelection(selectedCategoryIndex)
-        binding.tvOrderCategory.text = orderDetails.categoryName
+            categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+        binding.spCategory.setSelection(selectedCategoryIndex)
+        binding.tvCategory.text = orderDetails.categoryName
         binding.etContactPersonName.setText(orderDetails.contactPersonName)
         binding.tvContactPerson.text = orderDetails.contactPersonName
         binding.tvPartyDealer.text = orderDetails.accountName
@@ -721,13 +1016,24 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderDetailsAdapter.refreshAdapter(orderDetailsList)
             handleOrderDetailsRVVisibility(orderDetailsList)
         }
+        if ((orderDetails.filePath ?: "").isNotEmpty()) {
+            imageAnyList.add((orderDetails.filePath) ?: "")
+        }
+        if ((orderDetails.filePath2 ?: "").isNotEmpty()) {
+            imageAnyList.add((orderDetails.filePath2) ?: "")
+        }
+        if ((orderDetails.filePath3 ?: "").isNotEmpty()) {
+            imageAnyList.add((orderDetails.filePath3) ?: "")
+        }
+        if ((orderDetails.filePath4 ?: "").isNotEmpty()) {
+            imageAnyList.add((orderDetails.filePath4) ?: "")
+        }
 
-        ImageUtils().loadImageUrl(
-            mActivity,
-            appRegistrationData.apiHostingServer + orderDetails.filePath,
-            binding.imgOrder
-        )
-        binding.imgOrder.scaleType = ImageView.ScaleType.CENTER_CROP
+        Log.e("TAG", "setupDataForUpdate:BEFORE " + imageAnyList.toString())
+
+        imageAdapter?.addImage(imageAnyList, true)
+        handleAssetRVView(imageAnyList.size)
+
         imageUrl = orderDetails.filePath ?: ""
         calculateTotalOrderAmount()
     }
@@ -759,8 +1065,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (isAdded && !hidden) {
-            Log.e("TAG", "onHiddenChanged: LISTING CALLED" )
-           // callOrderDetailsApi()
+            Log.e("TAG", "onHiddenChanged: LISTING CALLED")
+            // callOrderDetailsApi()
         }
     }
 
@@ -773,11 +1079,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             R.id.flPartyDealer -> {
                 avoidDoubleClicks(binding.flPartyDealer)
-                if (selectedOrderModeId <= 0) {
-                    showToastMessage(mActivity, "Please select order mode")
-                    return
-                }
-                if (selectedCategoryId <= 0) {
+                if (selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
                 }
@@ -786,11 +1088,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             R.id.flSelectDistributor -> {
                 avoidDoubleClicks(binding.flSelectDistributor)
-                if (selectedOrderModeId <= 0) {
-                    showToastMessage(mActivity, "Please select order mode")
-                    return
-                }
-                if (selectedCategoryId <= 0) {
+                if (selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
                 }
@@ -810,22 +1108,15 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 requestValidate()
             }
 
-            R.id.cardImage -> {
-                avoidDoubleClicks(binding.cardImage)
-                if (isReadOnly) {
-                    Log.e("TAG", "onClick: preview image")
-                    if (imageUrl.isNotEmpty()) {
-                        ImagePreviewCommonDialog.showImagePreviewDialog(
-                            mActivity,
-                            appDatabase.appDao()
-                                .getAppRegistration().apiHostingServer + imageUrl
-                        )
-                    } else {
-                        showToastMessage(mActivity, getString(R.string.no_image_found))
-                    }
-                } else {
-                    askCameraGalleryPermission()
+            R.id.cardImageCapture -> {
+                if (imageAnyList.size == 4) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.photo_upload_limit_reached)
+                    )
+                    return
                 }
+                askCameraGalleryPermission()
             }
 
             R.id.tvDate -> {
@@ -863,6 +1154,75 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 )
 
             }
+
+            R.id.llSelectCompany -> {
+                if (companyMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_COMPANY,
+                        companyList = companyMasterList,
+                        companyInterfaceDetect = this as UserSearchDialogUtil.CompanyDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.company_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectBranch -> {
+                if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        mActivity.getString(R.string.please_select_company)
+                    )
+                    return;
+                }
+                if (branchMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_BRANCH,
+                        branchList = branchMasterList,
+                        branchInterfaceDetect = this as UserSearchDialogUtil.BranchDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.branch_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectDivision -> {
+                if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        mActivity.getString(R.string.please_select_branch)
+                    )
+                    return;
+                }
+                if (divisionMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_DIVISION,
+                        divisionList = divisionMasterList,
+                        divisionInterfaceDetect = this as UserSearchDialogUtil.DivisionDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.branch_list_not_found)
+                    )
+                }
+            }
+
         }
     }
 
@@ -875,10 +1235,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         productDialogFragment.setStyle(DialogFragment.STYLE_NO_TITLE, R.style.MyAppTheme)
         productDialogFragment.setOrderDetailsListener(this)
         productDialogFragment.show(mActivity.supportFragmentManager, "AddProductDialogFragment")
-        productDialogFragment.setDialogDismissListener(object: AddProductDialogFragment.DialogDismissListener{
+        productDialogFragment.setDialogDismissListener(object :
+            AddProductDialogFragment.DialogDismissListener {
             override fun onDialogDismissed(isCartClicked: Boolean) {
-                Log.e("TAG", "onDialogDismissed: "+isCartClicked)
-                if(!isCartClicked){
+                Log.e("TAG", "onDialogDismissed: " + isCartClicked)
+                if (!isCartClicked) {
                     orderDetailsList.clear()
                     orderDetailsList.addAll(holdDetailsDataList)
                     setOrderDetailsAdapter()
@@ -919,84 +1280,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         companyDialog.show()
     }
 
-
-    private fun askCameraGalleryPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val arrListOfPermission = arrayListOf<String>(
-                Manifest.permission.CAMERA
-            )
-            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-                openAlbum()
-            }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val arrListOfPermission = arrayListOf<String>(
-                Manifest.permission.CAMERA
-            )
-            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-                openAlbum()
-            }
-        } else {
-            val arrListOffPermission = arrayListOf<String>(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.CAMERA
-            )
-            PermissionUtil(mActivity).requestPermissions(arrListOffPermission) {
-                openAlbum()
-            }
-        }
-
-    }
-
-    private fun openAlbum() {
-        AlbumUtility(mActivity, true).openAlbumAndHandleImageSelection(
-            onImageSelected = {
-                imageFile = it
-
-                val executor = Executors.newSingleThreadExecutor()
-                val handler = Handler(Looper.getMainLooper())
-                executor.execute {
-                    // This code runs on a background thread
-                    val modifiedImageFile: File = CommonMethods.addDateAndTimeToFile(
-                        it,
-                        CommonMethods.createImageFile(mActivity)!!
-                    )
-
-                    if (modifiedImageFile != null) {
-
-                        // Simulate a time-consuming task
-                        Thread.sleep(1000)
-
-                        // Update the UI on the main thread using runOnUiThread
-                        handler.post {
-                            Glide.with(mActivity)
-                                .load(modifiedImageFile)
-                                .into(binding.imgOrder)
-                            base64Image =
-                                CommonMethods.convertImageFileToBase64(modifiedImageFile)
-                                    .toString()
-                            binding.imgOrder.scaleType = ImageView.ScaleType.CENTER_CROP
-                        }
-                    }
-                }
-            },
-            onError = {
-                showToastMessage(mActivity, it)
-            }
-        )
-
-    }
-
-
     private fun requestValidate() {
-        if (binding.spOrderMode.selectedItemPosition == 0) {
+        /*if (binding.spOrderMode.selectedItemPosition == 0) {
             showToastMessage(
                 mActivity,
                 getString(R.string.please_selected_order_mode)
             )
             return
-        }
+        }*/
 
-        if (binding.spOrderCategory.selectedItemPosition == 0) {
+        if (binding.spCategory.selectedItemPosition == 0) {
             showToastMessage(
                 mActivity,
                 getString(R.string.please_select_order_category)
@@ -1027,6 +1320,229 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     }
 
+    private fun callCompanyListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("companyMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty("ParameterString", FORM_ID_ORDER_ENTRY)
+
+        val companyCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getCompanyMasterList(objReq)
+
+        companyCall?.enqueue(object : Callback<List<CompanyMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<CompanyMasterResponse>>,
+                response: Response<List<CompanyMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            companyMasterList.clear()
+                            companyMasterList.add(
+                                CompanyMasterResponse(
+                                    companyMasterId = 0,
+                                    companyName = mActivity.getString(R.string.select_company),
+                                )
+                            )
+                            companyMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedCompany = CompanyMasterResponse(
+                                    companyMasterId = companyMasterList[1].companyMasterId,
+                                    companyName = companyMasterList[1].companyName
+                                )
+                                binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+                            }
+                            callBranchListApi()
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CompanyMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callBranchListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("BranchMasterId", ID_ZERO)
+        objReq.addProperty("UserId", loginData.userId)
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_ORDER_ENTRY"
+        )
+
+        val branchCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getBranchMasterList(objReq)
+
+        branchCall?.enqueue(object : Callback<List<BranchMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<BranchMasterResponse>>,
+                response: Response<List<BranchMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            branchMasterList.clear()
+                            branchMasterList.add(
+                                BranchMasterResponse(
+                                    branchMasterId = 0,
+                                    branchName = mActivity.getString(R.string.select_branch)
+                                )
+                            )
+                            branchMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedBranch = BranchMasterResponse(
+                                    branchMasterId = branchMasterList[1].branchMasterId,
+                                    branchName = branchMasterList[1].branchName
+                                )
+                                binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
+                                callDivisionListApi()
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.branch_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<BranchMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callDivisionListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("divisionMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_ORDER_ENTRY"
+        )
+
+        val divisionCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDivisionMasterList(objReq)
+
+        divisionCall?.enqueue(object : Callback<List<DivisionMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<DivisionMasterResponse>>,
+                response: Response<List<DivisionMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            divisionMasterList.clear()
+                            divisionMasterList.add(
+                                DivisionMasterResponse(
+                                    divisionMasterId = 0,
+                                    divisionName = mActivity.getString(R.string.select_division)
+                                )
+                            )
+                            divisionMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedDivision = DivisionMasterResponse(
+                                    divisionMasterId = divisionMasterList[1].divisionMasterId,
+                                    divisionName = divisionMasterList[1].divisionName
+                                )
+                                binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+                                callCategoryListApi()
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.division_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<DivisionMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
     private fun createOrderRequest() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
@@ -1041,25 +1557,68 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             "OrderDate",
             CommonMethods.convertToAppDateFormat(binding.tvDate.text.toString(), "MM/dd/yyyy")
         )
-        objReq.addProperty("OrderMode", selectedOrderModeId)
-        objReq.addProperty("CategoryMasterId", selectedCategoryId)
+
+        objReq.addProperty("OrderMode", 0)
+        objReq.addProperty("CategoryMasterId", selectedCategory?.categoryMasterId)
         objReq.addProperty("AccountMasterId", selectedPartyDealerId)
         objReq.addProperty("ContactPersonName", binding.etContactPersonName.text.toString().trim())
         objReq.addProperty("DistributorAccountMasterId", selectedDistributorId)
         objReq.addProperty("Remarks", binding.etRemarks.text.toString().trim())
-        if (orderId > 0) {
-            if (base64Image.isEmpty() && imageUrl.isEmpty()) {
-                objReq.addProperty("FilePath", "")
-            } else if (base64Image.isNotEmpty()) {
-                objReq.addProperty("FilePath", base64Image)
-            } else {
-                objReq.addProperty("FilePath", imageUrl)
-            }
-        } else {
-            objReq.addProperty("FilePath", base64Image.ifEmpty { "" })
-        }
+        objReq.addProperty("CompanyMasterId", selectedCompany?.companyMasterId)
+        objReq.addProperty("BranchMasterId", selectedBranch?.branchMasterId)
+        objReq.addProperty("DivisionMasterId", selectedDivision?.divisionMasterId)
+        objReq.addProperty("CategoryMasterId", selectedCategory?.categoryMasterId)
         objReq.addProperty("OrderStatusId", 1)
         objReq.addProperty("UserId", loginData.userId)
+        objReq.addProperty("ModeOfCommunication", selectedModeOfCommunication)
+
+        if (imageAnyList.size > 0) {
+            if (CommonMethods.isHttpUrl(imageAnyList[0].toString())) {
+                objReq.addProperty("FilePath", imageAnyList[0].toString())
+            } else {
+                val imageBase64 =
+                    CommonMethods.convertImageFileToBase64(imageAnyList[0] as File).toString()
+                objReq.addProperty("FilePath", imageBase64)
+            }
+            if (imageAnyList.size > 1) {
+                if (CommonMethods.isHttpUrl(imageAnyList[1].toString())) {
+                    objReq.addProperty("FilePath2", imageAnyList[1].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[1] as File).toString()
+                    objReq.addProperty("FilePath2", imageBase64)
+                }
+            } else {
+                objReq.addProperty("FilePath2", "")
+            }
+            if (imageAnyList.size > 2) {
+                if (CommonMethods.isHttpUrl(imageAnyList[2].toString())) {
+                    objReq.addProperty("FilePath3", imageAnyList[2].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[2] as File).toString()
+                    objReq.addProperty("FilePath3", imageBase64)
+                }
+            } else {
+                objReq.addProperty("FilePath3", "")
+            }
+            if (imageAnyList.size > 3) {
+                if (CommonMethods.isHttpUrl(imageAnyList[3].toString())) {
+                    objReq.addProperty("FilePath4", imageAnyList[3].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[3] as File).toString()
+                    objReq.addProperty("FilePath4", imageBase64)
+                }
+            } else {
+                objReq.addProperty("FilePath4", "")
+            }
+        } else {
+            objReq.addProperty("FilePath", "")
+            objReq.addProperty("FilePath2", "")
+            objReq.addProperty("FilePath3", "")
+            objReq.addProperty("FilePath4", "")
+        }
 
         val objDetailsArray = JsonArray()
         for (i in orderDetailsList) {
@@ -1223,8 +1782,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             if (orderId == 0 && orderDetailsList.size > 0) {
-                tvSelectGroup.text = if(selectedGroup == null) "" else selectedGroup?.productGroupName
-                selectedGroupId = if(selectedGroup == null) 0 else selectedGroup?.productGroupId ?: 0
+                tvSelectGroup.text =
+                    if (selectedGroup == null) "" else selectedGroup?.productGroupName
+                selectedGroupId =
+                    if (selectedGroup == null) 0 else selectedGroup?.productGroupId ?: 0
             }
 
             tvSelectGroup.setOnClickListener {
@@ -1409,13 +1970,20 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             val totalAmount = orderDetailsList.map { it.amount ?: BigDecimal.ZERO }
                 .reduce { acc, amount -> acc.add(amount) }
 
+            // Calculate the total quantity using BigDecimal
+            val totalQty = orderDetailsList.map { it.qty ?: BigDecimal.ZERO }
+                .reduce { acc, qty -> acc.add(qty) }
+
             // Check if totalAmount is greater than BigDecimal.ZERO
-            if (totalAmount > BigDecimal.ZERO) {
+            if (totalQty > BigDecimal.ZERO) {
                 binding.lylTotalOrderAmount.visibility = View.VISIBLE
-                binding.tvTotalOrderAmount.text = totalAmount.toString()
+                // Format the text to display amount + qty
+                binding.tvTotalOrderAmount.text = "$totalAmount"
+                binding.tvTotalOrderQty.text = "$totalQty"
             }
         }
     }
+
 
     fun calculateAmount() {
         if (isUpdating) return
@@ -1490,5 +2058,76 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
         calculateTotalOrderAmount()
     }
+
+    override fun companySelect(dropDownData: CompanyMasterResponse) {
+        selectedCompany = dropDownData
+        binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+        resetSelection(
+            resetBranch = true,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if ((selectedCompany?.companyMasterId ?: 0) > 0) {
+            callBranchListApi()
+        }
+    }
+
+    override fun branchSelect(dropDownData: BranchMasterResponse) {
+        selectedBranch = dropDownData
+        binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if ((selectedBranch?.branchMasterId ?: 0) > 0) {
+            callDivisionListApi()
+        }
+    }
+
+    override fun divisionSelect(dropDownData: DivisionMasterResponse) {
+        selectedDivision = dropDownData
+        binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = false,
+            resetCategory = true
+        )
+        if ((selectedDivision?.divisionMasterId ?: 0) > 0) {
+            callCategoryListApi()
+        }
+    }
+
+    override fun onTypeSelect(typeData: CategoryMasterResponse) {
+        selectedCategory = typeData
+    }
+
+    private fun resetSelection(
+        resetBranch: Boolean,
+        resetDivision: Boolean,
+        resetCategory: Boolean
+    ) {
+        if (resetBranch) {
+            selectedBranch = null
+            binding.tvSelectBranch.hint = mActivity.getString(R.string.select_branch)
+            binding.tvSelectBranch.text = ""
+            branchMasterList.clear()
+        }
+        if (resetDivision) {
+            selectedDivision = null
+            binding.tvSelectDivision.hint = mActivity.getString(R.string.select_division)
+            binding.tvSelectDivision.text = ""
+            divisionMasterList.clear()
+        }
+        if (resetCategory) {
+            selectedCategory = null
+            binding.tvCategory.hint = mActivity.getString(R.string.select_category)
+            binding.tvCategory.text = ""
+            categoryList.clear()
+            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+            setupCategorySpinner()
+        }
+    }
+
 
 }

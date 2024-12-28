@@ -17,6 +17,9 @@
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">106.201.234.74</domain>
     </domain-config>
+    <!--<domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">194.163.165.14</domain>
+    </domain-config>-->
 
     <!-- Default base configuration with system trust anchors -->
     <base-config cleartextTrafficPermitted="false">

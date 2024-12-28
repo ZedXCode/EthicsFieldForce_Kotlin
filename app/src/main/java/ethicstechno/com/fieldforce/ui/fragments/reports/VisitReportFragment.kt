@@ -18,6 +18,7 @@ import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
@@ -38,9 +39,9 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
     lateinit var binding: FragmentVisitReportBinding
     var visitReportList: ArrayList<VisitReportListResponse> = arrayListOf()
     var userList: ArrayList<UserListResponse> = arrayListOf()
-    var visitTypeList: ArrayList<LeaveTypeListResponse> = arrayListOf()
+    var visitTypeList: ArrayList<CategoryMasterResponse> = arrayListOf()
     private var selectedUser = UserListResponse()
-    private var selectedVisitType: LeaveTypeListResponse = LeaveTypeListResponse()
+    private var selectedVisitType: CategoryMasterResponse = CategoryMasterResponse()
     var startDate = ""
     var endDate = ""
     private var selectedDateOptionPosition = 4 // This MONTH
@@ -153,14 +154,19 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
 
         val appRegistrationData = appDao.getAppRegistration()
 
+        val jsonReq = JsonObject()
+        jsonReq.addProperty("UserId", loginData.userId)
+        jsonReq.addProperty("parameterString", FORM_ID_VISIT)
+
+
         val visitTypeCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getVisitTypeList()
+            ?.getCategoryMasterList(jsonReq)
 
-        visitTypeCall?.enqueue(object : Callback<List<LeaveTypeListResponse>> {
+        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
             override fun onResponse(
-                call: Call<List<LeaveTypeListResponse>>,
-                response: Response<List<LeaveTypeListResponse>>
+                call: Call<List<CategoryMasterResponse>>,
+                response: Response<List<CategoryMasterResponse>>
             ) {
                 CommonMethods.hideLoading()
                 when {
@@ -168,7 +174,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                         response.body()?.let {
                             if (it.isNotEmpty()) {
                                 visitTypeList.clear()
-                                visitTypeList.add(LeaveTypeListResponse(0,0,"All", 0.0))
+                                visitTypeList.add(CategoryMasterResponse(categoryMasterId = 0, categoryName = "All"))
                                 visitTypeList.addAll(it)
                                 selectedVisitType = visitTypeList[0]
                                 callVisitReportListApi(startDate, endDate)
@@ -178,7 +184,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                 }
             }
 
-            override fun onFailure(call: Call<List<LeaveTypeListResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<CategoryMasterResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if(mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -365,7 +371,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                 binding.tvParty.text = " : "+report.accountName
                 binding.tvPlace.text = " : "+report.cityName
                 binding.llMain.setOnClickListener{
-                    mActivity.addFragment(AddVisitFragment.newInstance(VisitListResponse(), report, true), true, true, AnimationType.fadeInfadeOut)
+                    mActivity.addFragment(AddVisitFragment.newInstance(AccountMasterList(), report, true), true, true, AnimationType.fadeInfadeOut)
                 }
             }
         }
@@ -379,7 +385,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

@@ -7,16 +7,16 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 
 class VisitTypeAdapter(
     context: Context,
     spinnerLayout: Int,
-    visitType: List<LeaveTypeListResponse>?
+    visitType: List<CategoryMasterResponse>?
     ) :
-        ArrayAdapter<LeaveTypeListResponse>(context, spinnerLayout, visitType!!) {
+        ArrayAdapter<CategoryMasterResponse>(context, spinnerLayout, visitType!!) {
         private val mContext: Context = context
-        private var visitTypeList: List<LeaveTypeListResponse> = ArrayList()
+        private var visitTypeList: List<CategoryMasterResponse> = ArrayList()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             var listItem = convertView

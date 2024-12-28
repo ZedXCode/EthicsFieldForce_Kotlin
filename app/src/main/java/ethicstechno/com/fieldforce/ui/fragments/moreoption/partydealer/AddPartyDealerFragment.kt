@@ -1,24 +1,39 @@
 package ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
+import android.text.InputFilter
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonObject
@@ -29,40 +44,83 @@ import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
+import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.UserAdapterForSpinner
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.ARG_PARAM2
+import ethicstechno.com.fieldforce.utils.AlbumUtility
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_INDUSTRY
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_REFERENCE_SOURCE
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_REGION
+import ethicstechno.com.fieldforce.utils.FORM_ID_PARTY_DEALER
+import ethicstechno.com.fieldforce.utils.FOR_INDUSTRY_TYPE
+import ethicstechno.com.fieldforce.utils.FOR_PLACE
+import ethicstechno.com.fieldforce.utils.FOR_REFERENCE_SOURCE
+import ethicstechno.com.fieldforce.utils.FOR_REGION_TYPE
+import ethicstechno.com.fieldforce.utils.IMAGE_FILE_1
+import ethicstechno.com.fieldforce.utils.IMAGE_FILE_2
+import ethicstechno.com.fieldforce.utils.IMAGE_FILE_3
+import ethicstechno.com.fieldforce.utils.IMAGE_FILE_4
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.IS_VALID
+import ethicstechno.com.fieldforce.utils.ImagePreviewCommonDialog
+import ethicstechno.com.fieldforce.utils.MobileAndLandLineInputFilter
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
+import java.util.concurrent.Executors
 
 class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
     UserSearchDialogUtil.PlaceSearchDialogDetect,
-    LeaveTypeAdapter.TypeSelect, UserAdapterForSpinner.UserSelect, UserSearchDialogUtil.CommonDropDownDialogDetect {
+    LeaveTypeAdapter.TypeSelect, UserAdapterForSpinner.UserSelect,
+    UserSearchDialogUtil.CommonDropDownDialogDetect {
 
     lateinit var binding: FragmentAddPartyDealerBinding
     val placeList: ArrayList<ExpenseCityListResponse> = arrayListOf()
-    val categoryList: ArrayList<LeaveTypeListResponse> = arrayListOf()
+    val categoryList: ArrayList<CategoryMasterResponse> = arrayListOf()
     val userList: ArrayList<UserListResponse> = arrayListOf()
-    val regionList: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew> = arrayListOf()
-    val industryList: ArrayList<CommonDropDownResponse.CommonDropDownListModelNew> = arrayListOf()
+    val regionList: ArrayList<CommonDropDownResponse> = arrayListOf()
+    val industryList: ArrayList<CommonDropDownResponse> = arrayListOf()
+    val referenceSourceList: ArrayList<CommonDropDownResponse> = arrayListOf()
     private var selectedPlace: ExpenseCityListResponse? = null
-    private var selectedCategory: LeaveTypeListResponse? = null
+    private var selectedCategory: CategoryMasterResponse? = null
     private var selectedUser: UserListResponse? = null
-    private var selectedRegion: CommonDropDownResponse.CommonDropDownListModelNew? = null
-    private var selectedIndustry: CommonDropDownResponse.CommonDropDownListModelNew? = null
+    private var selectedRegion: CommonDropDownResponse? = null
+    private var selectedIndustry: CommonDropDownResponse? = null
+    private var selectedReferenceSource: CommonDropDownResponse? = null
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
     var currentAddress = ""
     var isUpdate = false
     private var partyDealerDataForUpdate: AccountMasterList = AccountMasterList()
+    private var base64Image1 = ""
+    private var imageFile1: File? = null
+    private var base64Image2 = ""
+    private var imageFile2: File? = null
+    private var base64Image3 = ""
+    private var imageFile3: File? = null
+    private var base64Image4 = ""
+    private var imageFile4: File? = null
+    private var imageAnyList: ArrayList<Any> = arrayListOf()
+    private var imageAdapter: ImageAdapter? = null
+    var isEditClick = false
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -127,11 +185,21 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.llSelectPlace.setOnClickListener(this)
         binding.llSelectRegion.setOnClickListener(this)
         binding.llSelectIndustryType.setOnClickListener(this)
+        binding.llSelectReferenceSource.setOnClickListener(this)
         binding.tvSubmit.setOnClickListener(this)
         binding.imgFetchCurrentLocation.setOnClickListener(this)
         binding.tvLiveLocation.setHorizontallyScrolling(true)
         binding.tvLiveLocation.movementMethod = ScrollingMovementMethod()
         binding.tvLiveLocation.setTextIsSelectable(true)
+        binding.cardImage1.setOnClickListener(this)
+        binding.cardImage2.setOnClickListener(this)
+        binding.cardImage3.setOnClickListener(this)
+        binding.cardImage4.setOnClickListener(this)
+        binding.cardImageCapture.setOnClickListener(this)
+        binding.etPhone.filters = arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
+        binding.etContactPersonPhone.filters = arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
+
+        setupImageUploadRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -140,6 +208,60 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                 FirebaseCrashlytics.getInstance().recordException(e)
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun setupImageUploadRecyclerView() {
+        val apiUrl = appDao.getAppRegistration().apiHostingServer
+        binding.rvImages.layoutManager =
+            LinearLayoutManager(mActivity, LinearLayoutManager.HORIZONTAL, false)
+        Log.e("TAG", "setupRecyclerView:API URL : :  " + apiUrl)
+        imageAdapter = ImageAdapter(mActivity, apiUrl)
+        binding.rvImages.adapter = imageAdapter
+        handleAssetRVView(0)
+
+        imageAdapter?.setOnClick(object : ImageAdapter.OnAssetImageCancelClick {
+            override fun onImageCancel(position: Int) {
+                if (isUpdate) {
+                    if (!binding.toolbar.imgEdit.isVisible) {
+                        if (position != RecyclerView.NO_POSITION && imageAnyList.size > 0) {
+                            imageAnyList.removeAt(position)
+                            imageAdapter?.addImage(imageAnyList, false)
+                            handleAssetRVView(imageAnyList.size)
+                        }
+                    }
+                } else {
+                    if (position != RecyclerView.NO_POSITION && imageAnyList.size > 0) {
+                        imageAnyList.removeAt(position)
+                        imageAdapter?.addImage(imageAnyList, false)
+                        handleAssetRVView(imageAnyList.size)
+                    }
+                }
+
+            }
+
+            override fun onImagePreview(position: Int) {
+                if (imageAnyList[position] is String) {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer + imageAnyList[position]
+                    )
+                } else {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity, imageAnyList[position]
+                    )
+                }
+            }
+        })
+    }
+
+    fun handleAssetRVView(imageList: Int) {
+        try {
+            binding.txtNoFilePathImages.visibility = if (imageList == 0) View.VISIBLE else View.GONE
+            binding.rvImages.visibility = if (imageList == 0) View.GONE else View.VISIBLE
+        } catch (e: java.lang.Exception) {
+            Log.e("TAG", "handleAssetRVView: *ERROR* IN \$submitDALPaper$ :: error = " + e.message)
         }
     }
 
@@ -152,12 +274,15 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                     val userList = async { callUserListApi() }
                     val regionList = async { callCommonDropDownListApi(DROP_DOWN_REGION) }
                     val industryTypeList = async { callCommonDropDownListApi(DROP_DOWN_INDUSTRY) }
+                    val referenceSourceList =
+                        async { callCommonDropDownListApi(DROP_DOWN_REFERENCE_SOURCE) }
                     // Await all deferred results concurrently
                     categoryList.await()
                     placeList.await()
                     userList.await()
                     regionList.await()
                     industryTypeList.await()
+                    referenceSourceList.await()
                     // Process the results as needed
                     // ...
                 } catch (e: Exception) {
@@ -174,7 +299,6 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             withContext(Dispatchers.IO) {
                 val locationDeferred = async { askLocationPermission() }
                 locationDeferred.await()
-
             }
         }
     }
@@ -195,23 +319,37 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.tvAccountHandleBy.text = partyDealerDataForUpdate.handledByUserName
         binding.tvCategory.text = partyDealerDataForUpdate.categoryName
 
-        selectedCategory = LeaveTypeListResponse(
-            0,
-            partyDealerDataForUpdate.categoryMasterId,
-            partyDealerDataForUpdate.categoryName,
-            0.0
+        selectedCategory = CategoryMasterResponse(
+            categoryMasterId = partyDealerDataForUpdate.categoryMasterId,
+            categoryName = partyDealerDataForUpdate.categoryName,
         )
         selectedPlace = ExpenseCityListResponse(
             0,
             partyDealerDataForUpdate.cityId,
-            partyDealerDataForUpdate.cityName,
+            partyDealerDataForUpdate.cityName ?: "",
             0,
             ""
         )
         selectedUser = UserListResponse(
             partyDealerDataForUpdate.handledByUserId,
-            partyDealerDataForUpdate.handledByUserName
+            partyDealerDataForUpdate.handledByUserName ?: ""
         )
+
+        selectedRegion = CommonDropDownResponse(
+            dropdownKeyId = partyDealerDataForUpdate.ddmRegionId.toString(),
+            dropdownName = partyDealerDataForUpdate.regionName
+        )
+
+        selectedReferenceSource = CommonDropDownResponse(
+            dropdownKeyId = partyDealerDataForUpdate.ddmReferenceSourceId.toString(),
+            dropdownName = partyDealerDataForUpdate.referenceSourceName
+        )
+
+        selectedIndustry = CommonDropDownResponse(
+            dropdownKeyId = partyDealerDataForUpdate.ddmIndustryTypeId.toString(),
+            dropdownName = partyDealerDataForUpdate.industryTypeName
+        )
+        //selectedReferenceSource = CommonDropDownResponse()
 
         binding.etPartyAccountName.setText(partyDealerDataForUpdate.accountName)
         binding.etAddress.setText(partyDealerDataForUpdate.address)
@@ -223,7 +361,30 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.etContactPersonEmail.setText(partyDealerDataForUpdate.contactPersonEmail)
         binding.etContactPersonPhone.setText(partyDealerDataForUpdate.contactPersonPhoneNo)
         binding.etRemarks.setText(partyDealerDataForUpdate.remarks)
-        setWidgetsClickability(false)
+        binding.tvSelectIndustry.text = partyDealerDataForUpdate.industryTypeName
+        binding.tvSelectRegion.text = partyDealerDataForUpdate.regionName
+        binding.tvSelectReferenceResource.text = partyDealerDataForUpdate.referenceSourceName
+
+        if ((partyDealerDataForUpdate.filePath1 ?: "").isNotEmpty()) {
+            imageAnyList.add((partyDealerDataForUpdate.filePath1) ?: "")
+        }
+        if ((partyDealerDataForUpdate.filePath2 ?: "").isNotEmpty()) {
+            imageAnyList.add((partyDealerDataForUpdate.filePath2) ?: "")
+        }
+        if ((partyDealerDataForUpdate.filePath3 ?: "").isNotEmpty()) {
+            imageAnyList.add((partyDealerDataForUpdate.filePath3) ?: "")
+        }
+        if ((partyDealerDataForUpdate.filePath4 ?: "").isNotEmpty()) {
+            imageAnyList.add((partyDealerDataForUpdate.filePath4) ?: "")
+        }
+
+        Log.e("TAG", "setupDataForUpdate:BEFORE " + imageAnyList.toString())
+
+        imageAdapter?.addImage(imageAnyList, true)
+        handleAssetRVView(imageAnyList.size)
+
+
+        setWidgetsClickability(isEditClick)
     }
 
     private fun setWidgetsClickability(flag: Boolean) {
@@ -235,6 +396,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.etZipcode.isEnabled = flag
         binding.llSelectPlace.isEnabled = flag
         binding.llSelectRegion.isEnabled = flag
+        binding.llSelectIndustryType.isEnabled = flag
+        binding.llSelectReferenceSource.isEnabled = flag
+        binding.cardImageCapture.isEnabled = flag
         binding.etPhone.isEnabled = flag
         binding.etEmail.isEnabled = flag
         binding.etContactPerson.isEnabled = flag
@@ -254,6 +418,10 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             callPlaceListApi()
             callCategoryListApi()
             callUserListApi()
+            callCommonDropDownListApi(DROP_DOWN_REGION)
+            callCommonDropDownListApi(DROP_DOWN_INDUSTRY)
+            callCommonDropDownListApi(DROP_DOWN_REFERENCE_SOURCE)
+
         }
     }
 
@@ -271,8 +439,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun askLocationPermission() {
         val arrListOfPermission = arrayListOf<String>(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
         )
         PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
             val locationManager =
@@ -297,6 +465,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.llSelectPlace -> {
                 if (placeList.size > 0) {
                     val userDialog = UserSearchDialogUtil(
@@ -307,8 +476,14 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         userDialogInterfaceDetect = null
                     )
                     userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.place_list_not_found)
+                    )
                 }
             }
+
             R.id.llSelectRegion -> {
                 if (regionList.size > 0) {
                     val userDialog = UserSearchDialogUtil(
@@ -319,8 +494,14 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         userDialogInterfaceDetect = null
                     )
                     userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.region_list_not_found)
+                    )
                 }
             }
+
             R.id.llSelectIndustryType -> {
                 if (industryList.size > 0) {
                     val userDialog = UserSearchDialogUtil(
@@ -331,11 +512,36 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         userDialogInterfaceDetect = null
                     )
                     userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.industry_list_not_found)
+                    )
                 }
             }
+
+            R.id.llSelectReferenceSource -> {
+                if (referenceSourceList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_REFERENCE_SOURCE,
+                        commonDropDownList = referenceSourceList,
+                        commonDropDownInterfaceDetect = this as UserSearchDialogUtil.CommonDropDownDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.reference_source_list_not_found)
+                    )
+                }
+            }
+
             R.id.tvSubmit -> {
                 partyDealerValidation()
             }
+
             R.id.imgEdit -> {
                 CommonMethods.showAlertDialog(
                     mActivity,
@@ -345,6 +551,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                     negativeButtonText = getString(R.string.no),
                     okListener = object : PositiveButtonListener {
                         override fun okClickListener() {
+                            isEditClick = true
                             setWidgetsClickability(true)
                             CommonMethods.showToastMessage(
                                 mActivity,
@@ -355,6 +562,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                 )
 
             }
+
             R.id.imgDelete -> {
                 CommonMethods.showAlertDialog(
                     mActivity,
@@ -368,11 +576,254 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         }
                     })
             }
+
             R.id.imgFetchCurrentLocation -> {
                 askLocationPermission()
             }
+
+            R.id.cardImage1 -> {
+                if (partyDealerDataForUpdate.accountMasterId > 0) {
+                    if (partyDealerDataForUpdate.filePath1 == null) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            mActivity.getString(R.string.no_image_found)
+                        )
+                        return
+                    }
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDao.getAppRegistration().apiHostingServer + partyDealerDataForUpdate.filePath1
+                    )
+                } else {
+                    askCameraGalleryPermission()
+                }
+            }
+
+            R.id.cardImage2 -> {
+                if (partyDealerDataForUpdate.accountMasterId > 0) {
+                    if (partyDealerDataForUpdate.filePath2 == null) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            mActivity.getString(R.string.no_image_found)
+                        )
+                        return
+                    }
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDao.getAppRegistration().apiHostingServer + partyDealerDataForUpdate.filePath2
+                    )
+                } else {
+                    askCameraGalleryPermission()
+                }
+            }
+
+            R.id.cardImage3 -> {
+                if (partyDealerDataForUpdate.accountMasterId > 0) {
+                    if (partyDealerDataForUpdate.filePath3 == null) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            mActivity.getString(R.string.no_image_found)
+                        )
+                        return
+                    }
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDao.getAppRegistration().apiHostingServer + partyDealerDataForUpdate.filePath3
+                    )
+                } else {
+                    askCameraGalleryPermission()
+                }
+            }
+
+            R.id.cardImage4 -> {
+                if (partyDealerDataForUpdate.accountMasterId > 0) {
+                    if (partyDealerDataForUpdate.filePath4 == null) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            mActivity.getString(R.string.no_image_found)
+                        )
+                        return
+                    }
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDao.getAppRegistration().apiHostingServer + partyDealerDataForUpdate.filePath4
+                    )
+                } else {
+                    askCameraGalleryPermission()
+                }
+            }
+
+            R.id.cardImageCapture -> {
+                if (imageAnyList.size == 4) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.photo_upload_limit_reached)
+                    )
+                    return
+                }
+                askCameraGalleryPermission()
+            }
+
         }
     }
+
+    private fun askCameraGalleryPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val arrListOfPermission = arrayListOf<String>(
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                openAlbumForList()
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val arrListOfPermission = arrayListOf<String>(
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                openAlbumForList()
+            }
+        } else {
+            val arrListOffPermission = arrayListOf<String>(
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOffPermission) {
+                openAlbumForList()
+            }
+        }
+
+    }
+
+    /*private fun openAlbumForList() {
+        AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
+            onImageSelected = {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val modifiedImageFile = CommonMethods.addDateAndTimeToFile(
+                        it, CommonMethods.createImageFile(mActivity) ?: return@launch
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        if (modifiedImageFile != null) {
+                            imageAnyList.add(modifiedImageFile)
+                            imageAdapter?.addImage(imageAnyList, false)
+                            handleAssetRVView(imageAnyList.size)
+                        }
+                    }
+                }
+            },
+            onError = {
+                CommonMethods.showToastMessage(mActivity, it)
+            }
+        )
+    }*/
+    private fun openAlbumForList() {
+        AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
+            onImagesSelected = { selectedFiles ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val modifiedImageFiles = selectedFiles.mapNotNull { file ->
+                        CommonMethods.addDateAndTimeToFile(
+                            file, CommonMethods.createImageFile(mActivity) ?: return@mapNotNull null
+                        )
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        if (modifiedImageFiles.isNotEmpty()) {
+                            imageAnyList.addAll(modifiedImageFiles)
+                            imageAdapter?.addImage(imageAnyList, false)
+                            handleAssetRVView(imageAnyList.size)
+                        }
+                    }
+                }
+            },
+            onError = {
+                CommonMethods.showToastMessage(mActivity, it)
+            }
+        )
+    }
+
+    private fun openAlbum(imageType: Int) {
+        AlbumUtility(mActivity, true).openAlbumAndHandleImageSelection(
+            onImageSelected = {
+                when (imageType) {
+                    IMAGE_FILE_1 -> imageFile1 = it
+                    IMAGE_FILE_2 -> imageFile2 = it
+                    IMAGE_FILE_3 -> imageFile3 = it
+                    IMAGE_FILE_4 -> imageFile4 = it
+                }
+
+                val executor = Executors.newSingleThreadExecutor()
+                val handler = Handler(Looper.getMainLooper())
+                executor.execute {
+                    // This code runs on a background thread
+                    val modifiedImageFile: File = CommonMethods.addDateAndTimeToFile(
+                        it,
+                        CommonMethods.createImageFile(mActivity)!!
+                    )
+
+                    if (modifiedImageFile != null) {
+
+                        // Simulate a time-consuming task
+                        Thread.sleep(1000)
+
+                        // Update the UI on the main thread using runOnUiThread
+                        handler.post {
+                            when (imageType) {
+                                IMAGE_FILE_1 -> {
+                                    Glide.with(mActivity)
+                                        .load(modifiedImageFile)
+                                        .into(binding.imgPartyDealer1)
+                                    base64Image1 =
+                                        CommonMethods.convertImageFileToBase64(modifiedImageFile)
+                                            .toString()
+                                    binding.imgPartyDealer1.scaleType =
+                                        ImageView.ScaleType.CENTER_CROP
+                                }
+
+                                IMAGE_FILE_2 -> {
+                                    Glide.with(mActivity)
+                                        .load(modifiedImageFile)
+                                        .into(binding.imgPartyDealer2)
+                                    base64Image2 =
+                                        CommonMethods.convertImageFileToBase64(modifiedImageFile)
+                                            .toString()
+                                    binding.imgPartyDealer2.scaleType =
+                                        ImageView.ScaleType.CENTER_CROP
+                                }
+
+                                IMAGE_FILE_3 -> {
+                                    Glide.with(mActivity)
+                                        .load(modifiedImageFile)
+                                        .into(binding.imgPartyDealer3)
+                                    base64Image3 =
+                                        CommonMethods.convertImageFileToBase64(modifiedImageFile)
+                                            .toString()
+                                    binding.imgPartyDealer3.scaleType =
+                                        ImageView.ScaleType.CENTER_CROP
+                                }
+
+                                IMAGE_FILE_4 -> {
+                                    Glide.with(mActivity)
+                                        .load(modifiedImageFile)
+                                        .into(binding.imgPartyDealer4)
+                                    base64Image4 =
+                                        CommonMethods.convertImageFileToBase64(modifiedImageFile)
+                                            .toString()
+                                    binding.imgPartyDealer4.scaleType =
+                                        ImageView.ScaleType.CENTER_CROP
+                                }
+                            }
+
+                        }
+                    }
+                }
+            },
+            onError = {
+                CommonMethods.showToastMessage(mActivity, it)
+            }
+        )
+
+    }
+
 
     private fun callDeletePartyDealerApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
@@ -389,7 +840,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             "AccountMasterId",
             partyDealerDataForUpdate.accountMasterId
         )
-        deletePartyDealerReq.addProperty("AccountName", partyDealerDataForUpdate.accountName)
+        deletePartyDealerReq.addProperty("ParameterString", "")
+        //deletePartyDealerReq.addProperty("AccountName", partyDealerDataForUpdate.accountName)
 
         val deletePartyDealerCalll = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -427,7 +879,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
             override fun onFailure(call: Call<CommonSuccessResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -450,6 +902,49 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             CommonMethods.showToastMessage(
                 mActivity,
                 getString(R.string.party_account_name_validate_msg)
+            )
+            return
+        }
+        if (binding.etZipcode.text.isNotEmpty() && binding.etZipcode.text.toString().length != 6) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                getString(R.string.please_enter_valid_zipcode)
+            )
+            return
+        }
+
+        if(binding.etPhone.text.toString().trim().isNotEmpty()){
+            val validationMessage = CommonMethods.validateMobileLandlineNumber(binding.etPhone.text.toString().trim())
+            if(validationMessage != IS_VALID){
+                CommonMethods.showToastMessage(mActivity, validationMessage)
+                return
+            }
+        }
+
+        if (binding.etEmail.text.toString().trim().isNotEmpty() && !(CommonMethods.isEmailValid(
+                binding.etEmail.text.trim().toString()
+            ))
+        ) {
+            CommonMethods.showToastMessage(mActivity, getString(R.string.email_not_valid_msg))
+            return
+        }
+
+        if(binding.etContactPersonPhone.text.toString().trim().isNotEmpty()){
+            val validationMessage = CommonMethods.validateMobileLandlineNumber(binding.etContactPersonPhone.text.toString().trim())
+            if(validationMessage != IS_VALID){
+                CommonMethods.showToastMessage(mActivity, validationMessage)
+                return
+            }
+        }
+
+        if (binding.etContactPersonEmail.text.toString().trim()
+                .isNotEmpty() && !(CommonMethods.isEmailValid(
+                binding.etContactPersonEmail.text.trim().toString()
+            ))
+        ) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                getString(R.string.enter_valid_contact_person_email)
             )
             return
         }
@@ -533,8 +1028,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
 
         val placeListReq = JsonObject()
-        placeListReq.addProperty("StateId", 0)
-        placeListReq.addProperty("CityId", 0)
+        placeListReq.addProperty("UserId", loginData.userId)
+        placeListReq.addProperty("ParameterString", "")
 
         val placeListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -565,7 +1060,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
             override fun onFailure(call: Call<List<ExpenseCityListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -585,17 +1080,21 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             return
         }
         CommonMethods.showLoading(mActivity)
+        val objReq = JsonObject()
+        //objReq.addProperty("categoryMasterId", 0)
+        objReq.addProperty("UserId", loginData.userId)
+        objReq.addProperty("ParameterString", FORM_ID_PARTY_DEALER)
 
         val appRegistrationData = appDao.getAppRegistration()
 
         val categoryCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getPartyDealerCategoriesList()
+            ?.getCategoryMasterList(objReq)
 
-        categoryCall?.enqueue(object : Callback<List<LeaveTypeListResponse>> {
+        categoryCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
             override fun onResponse(
-                call: Call<List<LeaveTypeListResponse>>,
-                response: Response<List<LeaveTypeListResponse>>
+                call: Call<List<CategoryMasterResponse>>,
+                response: Response<List<CategoryMasterResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -603,11 +1102,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         if (it.isNotEmpty()) {
                             categoryList.clear()
                             categoryList.add(
-                                LeaveTypeListResponse(
-                                    -1,
-                                    -1,
-                                    getString(R.string.select_category),
-                                    0.0
+                                CategoryMasterResponse(
+                                    categoryName = getString(R.string.select_category),
                                 )
                             )
                             categoryList.addAll(it)
@@ -626,9 +1122,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
             }
 
-            override fun onFailure(call: Call<List<LeaveTypeListResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<CategoryMasterResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -677,7 +1173,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
-                                getString(R.string.something_went_wrong)
+                                "User List not found"
                             )
                         }
                     }
@@ -694,7 +1190,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
             override fun onFailure(call: Call<List<UserListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -708,7 +1204,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         })
 
     }
-    private fun callCommonDropDownListApi(dropDownType:String) {
+
+    private fun callCommonDropDownListApi(dropDownType: String) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showAlertDialog(
                 mActivity,
@@ -724,26 +1221,34 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
 
         val regionCall = WebApiClient.getInstance(mActivity)
-            .webApi_without(appRegistrationData.apiHostingServer)?.getDropDownMasterDetails(dropDownType, "")
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDropDownMasterDetails(dropDownType, "")
 
-        regionCall?.enqueue(object : Callback<CommonDropDownResponse> {
+        regionCall?.enqueue(object : Callback<List<CommonDropDownResponse>> {
             override fun onResponse(
-                call: Call<CommonDropDownResponse>,
-                response: Response<CommonDropDownResponse>
+                call: Call<List<CommonDropDownResponse>>,
+                response: Response<List<CommonDropDownResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
-                        if (it.data.isNotEmpty()) {
+                        if (it.isNotEmpty()) {
                             when (dropDownType) {
                                 DROP_DOWN_REGION -> {
                                     regionList.clear()
-                                    regionList.addAll(it.data)
+                                    regionList.addAll(it)
                                 }
+
                                 DROP_DOWN_INDUSTRY -> {
                                     industryList.clear()
-                                    industryList.addAll(it.data)
+                                    industryList.addAll(it)
                                 }
+
+                                DROP_DOWN_REFERENCE_SOURCE -> {
+                                    referenceSourceList.clear()
+                                    referenceSourceList.addAll(it)
+                                }
+
                                 else -> {
 
                                 }
@@ -751,7 +1256,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                         } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
-                                getString(R.string.something_went_wrong)
+                                "$dropDownType List not found"
                             )
                         }
                     }
@@ -766,9 +1271,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
 
-            override fun onFailure(call: Call<CommonDropDownResponse>, t: Throwable) {
+            override fun onFailure(call: Call<List<CommonDropDownResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -792,18 +1297,26 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         )
         binding.spAccountHandleBy.adapter = adapter
         if (isUpdate) {
-            selectedUser = UserListResponse(partyDealerDataForUpdate.handledByUserId, partyDealerDataForUpdate.handledByUserName)
-            val userPos = userList.indexOfFirst { it.userId == selectedUser?.userId ?: 0 }//(selectedUser)
+            selectedUser = UserListResponse(
+                partyDealerDataForUpdate.handledByUserId,
+                (partyDealerDataForUpdate.handledByUserName ?: "")
+            )
+            val userPos =
+                userList.indexOfFirst { it.userId == selectedUser?.userId ?: 0 }//(selectedUser)
             if (userPos != -1) {
                 binding.spAccountHandleBy.setSelection(userPos)
             }
         } else {
             selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
-            val userPos = userList.indexOfFirst { it.userId == selectedUser?.userId ?: 0 }//(selectedUser)
+            val userPos =
+                userList.indexOfFirst { it.userId == selectedUser?.userId ?: 0 }//(selectedUser)
             if (userPos != -1) {
                 binding.spAccountHandleBy.setSelection(userPos)
             }
-            Log.e("TAG", "setupUserSpinner:USER LIST SIZE :: "+userList.size+" USER POSITION :: "+userPos)
+            Log.e(
+                "TAG",
+                "setupUserSpinner:USER LIST SIZE :: " + userList.size + " USER POSITION :: " + userPos
+            )
             binding.spAccountHandleBy.setSelection(userPos)
             //selectedUser = userList[userPosition]
         }
@@ -819,8 +1332,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.spCategory.adapter = adapter
 
         if (isUpdate) {
-            val categoryPos = categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId ?: 0 }
-            if(categoryPos != -1) {
+            val categoryPos =
+                categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId ?: 0 }
+            if (categoryPos != -1) {
                 binding.spCategory.setSelection(categoryPos)
             }
         } else {
@@ -851,7 +1365,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             binding.etPartyAccountName.text.toString().trim()
         )
         addPartyDealerReq.addProperty("Address", binding.etAddress.text.toString().trim())
-        addPartyDealerReq.addProperty("PinCode", binding.etZipcode.text.toString().trim())
+        addPartyDealerReq.addProperty(
+            "PinCode", binding.etZipcode.text.toString().trim().ifEmpty { "0" }
+        )
         addPartyDealerReq.addProperty("CityId", selectedPlace?.cityId ?: 0)
         addPartyDealerReq.addProperty("CityName", selectedPlace?.cityName ?: "")
         addPartyDealerReq.addProperty("PhoneNo", binding.etPhone.text.toString().trim())
@@ -888,19 +1404,69 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         addPartyDealerReq.addProperty("Success", false)
         addPartyDealerReq.addProperty("ReturnMessage", "")
         addPartyDealerReq.addProperty("UserId", loginData.userId)
+        addPartyDealerReq.addProperty("DDMRegionId", selectedRegion?.dropdownKeyId)
+        addPartyDealerReq.addProperty("DDMIndustryTypeId", selectedIndustry?.dropdownKeyId)
+        addPartyDealerReq.addProperty(
+            "DDMReferenceSourceId",
+            selectedReferenceSource?.dropdownKeyId
+        )
+        if (imageAnyList.size > 0) {
+            if (imageAnyList[0] is String) {
+                addPartyDealerReq.addProperty("FilePath1", imageAnyList[0].toString())
+            } else {
+                val imageBase64 =
+                    CommonMethods.convertImageFileToBase64(imageAnyList[0] as File).toString()
+                addPartyDealerReq.addProperty("FilePath1", imageBase64)
+            }
+            if (imageAnyList.size > 1) {
+                if (imageAnyList[1] is String) {
+                    addPartyDealerReq.addProperty("FilePath2", imageAnyList[1].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[1] as File).toString()
+                    addPartyDealerReq.addProperty("FilePath2", imageBase64)
+                }
+            } else {
+                addPartyDealerReq.addProperty("FilePath2", "")
+            }
+            if (imageAnyList.size > 2) {
+                if (imageAnyList[2] is String) {
+                    addPartyDealerReq.addProperty("FilePath3", imageAnyList[2].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[2] as File).toString()
+                    addPartyDealerReq.addProperty("FilePath3", imageBase64)
+                }
+            } else {
+                addPartyDealerReq.addProperty("FilePath3", "")
+            }
+            if (imageAnyList.size > 3) {
+                if (imageAnyList[3] is String) {
+                    addPartyDealerReq.addProperty("FilePath4", imageAnyList[3].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[3] as File).toString()
+                    addPartyDealerReq.addProperty("FilePath4", imageBase64)
+                }
+            } else {
+                addPartyDealerReq.addProperty("FilePath4", "")
+            }
+        } else {
+            addPartyDealerReq.addProperty("FilePath1", "")
+            addPartyDealerReq.addProperty("FilePath2", "")
+            addPartyDealerReq.addProperty("FilePath3", "")
+            addPartyDealerReq.addProperty("FilePath4", "")
+        }
+
 
 
         print("MY REQ ::::::: " + addPartyDealerReq)
         Log.e("TAG", "callAddExpenseApi: ADD EXPENSE REQ :: " + addPartyDealerReq)
-        val partyDealerCall: Call<CommonSuccessResponse>? = if (isUpdate) {
-            WebApiClient.getInstance(mActivity)
-                .webApi_without(appRegistrationData.apiHostingServer)
-                ?.updatePartyDealer(addPartyDealerReq)
-        } else {
-            WebApiClient.getInstance(mActivity)
-                .webApi_without(appRegistrationData.apiHostingServer)
-                ?.addPartyDealer(addPartyDealerReq)
-        }
+
+        val partyDealerCall: Call<CommonSuccessResponse>? = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.addUpdatePartyDealer(addPartyDealerReq)
+
         partyDealerCall?.enqueue(object : Callback<CommonSuccessResponse> {
             override fun onResponse(
                 call: Call<CommonSuccessResponse>,
@@ -945,7 +1511,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
             override fun onFailure(call: Call<CommonSuccessResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -965,7 +1531,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         selectedPlace = placeDataFromSelect
     }
 
-    override fun onTypeSelect(typeData: LeaveTypeListResponse) {
+    override fun onTypeSelect(typeData: CategoryMasterResponse) {
         selectedCategory = typeData
     }
 
@@ -973,16 +1539,24 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         selectedUser = userData
     }
 
-    override fun dropDownSelect(dropDownData: CommonDropDownResponse.CommonDropDownListModelNew, dropdDownType:String) {
-        when(dropdDownType){
+    override fun dropDownSelect(dropDownData: CommonDropDownResponse, dropdDownType: String) {
+        when (dropdDownType) {
             DROP_DOWN_REGION -> {
-                binding.tvSelectRegion.text= dropDownData.dropdownValue
+                binding.tvSelectRegion.text = dropDownData.dropdownValue
                 selectedRegion = dropDownData
             }
+
             DROP_DOWN_INDUSTRY -> {
-                binding.tvSelectIndustry.text= dropDownData.dropdownValue
+                binding.tvSelectIndustry.text = dropDownData.dropdownValue
                 selectedIndustry = dropDownData
-            }else ->{}
+            }
+
+            DROP_DOWN_REFERENCE_SOURCE -> {
+                binding.tvSelectReferenceResource.text = dropDownData.dropdownValue
+                selectedReferenceSource = dropDownData
+            }
+
+            else -> {}
         }
 
     }
@@ -1020,6 +1594,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }

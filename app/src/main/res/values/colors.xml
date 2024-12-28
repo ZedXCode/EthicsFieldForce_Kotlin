@@ -25,4 +25,13 @@
     <color name="colorProductBG">#FFF9C4</color>
     <color name="colorSelectedProductBG">#009688</color>
 
+
+    <color name="checkboxColor">#4CAF50</color> <!-- Green for checkbox -->
+    <color name="entryTextColor">#333333</color> <!-- Dark gray for entry details -->
+    <color name="dividerColor">#DDDDDD</color> <!-- Light gray for divider -->
+    <color name="productTextColor">#1E88E5</color> <!-- Blue for product name -->
+    <color name="labelColor">#757575</color> <!-- Subtle gray for labels -->
+    <color name="valueTextColor">#000000</color> <!-- Black for values -->
+
+
 </resources>

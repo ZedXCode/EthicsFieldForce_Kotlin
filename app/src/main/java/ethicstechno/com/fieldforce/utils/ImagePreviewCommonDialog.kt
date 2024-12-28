@@ -17,7 +17,7 @@ import ethicstechno.com.fieldforce.utils.PhotoView.PhotoView
 class ImagePreviewCommonDialog {
 
     companion object{
-        fun showImagePreviewDialog(mActivity: HomeActivity, imageUrl: String) {
+        fun showImagePreviewDialog(mActivity: HomeActivity, imageUrl: Any) {
             val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
             val alertDialog = builder.create().apply {
                 setCancelable(false)

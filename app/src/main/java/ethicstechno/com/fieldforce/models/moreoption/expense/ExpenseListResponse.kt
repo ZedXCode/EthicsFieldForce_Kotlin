@@ -59,6 +59,7 @@ data class ExpenseListResponse(
     @SerializedName("ToDate") val toDate: String,
     @SerializedName("ExpenseStatusName") val expenseStatusName: String,
     @SerializedName("CityName") val cityName: String,
+    @SerializedName("DocumentNo") val doccumentNo: Int,
     var isChecked: Boolean = false
 ) : Parcelable {
     constructor() : this(
@@ -68,6 +69,6 @@ data class ExpenseListResponse(
         0.0, false, "", 0, "",
         false, "", 0, false, "", 0,
         "", "", 0, "", "", "", "", 0, "",
-        false, "", "", "", "", "", "", "", "", "", "", "",false
+        false, "", "", "", "", "", "", "", "", "", "", "",0,false
     )
 }

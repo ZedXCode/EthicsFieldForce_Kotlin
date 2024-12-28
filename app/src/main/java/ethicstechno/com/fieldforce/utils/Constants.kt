@@ -36,10 +36,17 @@ const val LAST_30_DAYS = "Last 30 Days"
 const val THIS_MONTH = "This Month"
 const val CUSTOM_RANGE = "Custom Range"
 
-const val ORDER_MODE = "Order/OrderMode"
+const val ORDER_MODE = "OrderMode"
 const val ORDER_CATEGORY = "Order/Category"
 const val DROP_DOWN_REGION = "Region"
 const val DROP_DOWN_INDUSTRY = "IndustryType"
+const val DROP_DOWN_REFERENCE_SOURCE = "ReferenceSource"
+const val DROP_DOWN_STAGE = "Stage"
+const val DROP_DOWN_VISIT_TYPE = "VisitType"
+
+const val FORM_ID_PARTY_DEALER = "FormId=204"
+const val FORM_ID_VISIT = "FormId=205"
+const val FORM_ID_ORDER_ENTRY = "FormId=214"
 
 const val CONTROL_TYPE_FIX_PER_KM = 3
 
@@ -51,7 +58,8 @@ const val MORE_VISIT = 4
 const val MORE_LEAVE_APPLICATION = 5
 const val MORE_LEAVE_APPROVAL = 6
 const val MORE_TOUR_PLAN = 7
-const val MORE_ORDER_ENTRY = 7
+const val MORE_ORDER_ENTRY = 8
+const val MORE_INQUIRY_ENTRY = 9
 
 
 const val FOR_USER = 1
@@ -63,6 +71,12 @@ const val FOR_ZONE = 6
 const val FOR_EXPENSE_TYPE = 7
 const val FOR_REGION_TYPE = 8
 const val FOR_INDUSTRY_TYPE = 9
+const val FOR_REFERENCE_SOURCE = 10
+const val FOR_COMPANY = 11
+const val FOR_BRANCH = 12
+const val FOR_DIVISION = 13
+const val FOR_STAGE = 14
+const val FOR_VISIT_TYPE = 15
 
 const val STATUS_ALL = "All"
 const val STATUS_RAISED = "Raised"
@@ -83,6 +97,7 @@ const val KEY_LAST_LOCATION_UPDATE_DATE = "key_last_location_update_date"
 const val LOCATION_LIST = "location_list"
 const val IS_TRIP_START = "is_trip_start"
 const val IS_DATA_UPDATE = "is_data_update"
+const val IS_VALID = "Valid"
 
 const val VEHICLE_TYPE_NA = 13
 
@@ -104,3 +119,14 @@ const val REJECT_STATUS = 3
 const val PAGE_ABOUT_US = 1
 const val PAGE_TERMS_CONDITION = 2
 const val PAGE_PRIVACY_POLICY = 3
+
+const val FOR_LOCATION_REDIRECT = 1;
+const val FOR_DASHBOARD_REPORT_REDIRECT = 2
+const val FOR_PARTY_DEALER_VISIT = 3
+const val FOR_PARTY_DEALER_LIST = 4
+const val FOR_PARTY_DEALER_UPDATE = 5
+
+const val IMAGE_FILE_1 = 1
+const val IMAGE_FILE_2 = 2
+const val IMAGE_FILE_3 = 3
+const val IMAGE_FILE_4 = 4

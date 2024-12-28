@@ -128,5 +128,9 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-crashlytics")
 
+    //google face detection added
+    implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.2.0'
+
+
 
 }

@@ -47,6 +47,7 @@ import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.TripSummeryReportResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.service.EthicsBackgroundService
@@ -898,7 +899,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

@@ -27,6 +27,7 @@ import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.TripReportResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
@@ -484,7 +485,7 @@ class TripReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

@@ -1,5 +1,7 @@
 package ethicstechno.com.fieldforce.utils
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.DatePickerDialog
@@ -23,6 +25,7 @@ import android.provider.Settings.Secure
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -45,12 +48,10 @@ import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
-import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.ui.activities.HomeActivity
-import ethicstechno.com.fieldforce.ui.adapter.GenericSpinnerAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.FilterAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.VisitTypeAdapter
@@ -66,7 +67,6 @@ import java.text.DecimalFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -372,7 +372,7 @@ class CommonMethods {
             isPartyDealerVisible:Boolean = false,
             filterList: ArrayList<FilterListResponse> = arrayListOf(),
             reportGroupByList: ArrayList<FilterListResponse> = arrayListOf(),
-            visitTypeList: ArrayList<LeaveTypeListResponse> = arrayListOf(),
+            visitTypeList: ArrayList<CategoryMasterResponse> = arrayListOf(),
             partyDealerList:ArrayList<AccountMasterList> = arrayListOf(),
             selectedVisitPosition: Int = 0,
             selectedStatusPosition: Int = 0,
@@ -470,7 +470,7 @@ class CommonMethods {
                     if (isStatusVisible) spStatus.selectedItemPosition else 0,
                     if (isFilterVisible) filterList[spFilter.selectedItemPosition] else FilterListResponse(),
                     if (isReportGroupByVisible) reportGroupByList[spReportGroupBy.selectedItemPosition] else FilterListResponse(),
-                    if (isVisitTypeVisible) visitTypeList[spVisitType.selectedItemPosition] else LeaveTypeListResponse(),
+                    if (isVisitTypeVisible) visitTypeList[spVisitType.selectedItemPosition] else CategoryMasterResponse(),
                     if(isPartyDealerVisible) selectedPartyDealer else AccountMasterList(),
                     if (isVisitTypeVisible) spVisitType.selectedItemPosition else 0
                 )
@@ -621,6 +621,7 @@ class CommonMethods {
         fun openDatePickerDialog(
             listener: DatePickerListener,
             mActivity: HomeActivity,
+            isPastDateHide: Boolean = false
         ): String {
             val newDate = Calendar.getInstance()
             var dateString = ""
@@ -635,6 +636,10 @@ class CommonMethods {
                     Calendar.DAY_OF_MONTH
                 )
             )
+            // Set min date to current date if past dates are to be hidden
+            if (isPastDateHide) {
+                datePickerDialog.datePicker.minDate = newDate.timeInMillis
+            }
             //datePickerDialog.datePicker.minDate = newCalendar.timeInMillis
             datePickerDialog.show()
             return dateString
@@ -690,7 +695,7 @@ class CommonMethods {
 
 
 
-            finalBitmap?.compress(Bitmap.CompressFormat.JPEG, 60, fileOutputStream)
+            finalBitmap?.compress(Bitmap.CompressFormat.JPEG, 40, fileOutputStream)
             fileOutputStream.close()
             return outputBitmapFile
         }
@@ -783,6 +788,24 @@ class CommonMethods {
             return phoneNumber.matches(phoneRegex.toRegex())
         }
 
+        fun validateMobileLandlineNumber(input: String): String {
+            val mobileRegex = Regex("^\\d{10}$") // Mobile numbers with exactly 10 digits
+            val landlineRegex = Regex("^\\d{2,5}-\\d{6,8}$") // Landline numbers like 022-1234567
+
+            return when {
+                input.contains("-") -> {
+                    if (landlineRegex.matches(input)) "Valid"
+                    else "Invalid landline number format."
+                }
+                else -> {
+                    if (mobileRegex.matches(input)) "Valid"
+                    else "Invalid mobile number format. Use exactly 10 digits."
+                }
+            }
+        }
+
+
+
         fun formatDateTime(inputDateTime: String): String {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
             val outputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -823,6 +846,23 @@ class CommonMethods {
             val time = timeFormat.format(calendar.time)
 
             return time
+        }
+
+        fun getTodayEndTime(): String {
+            val calendar = Calendar.getInstance()
+            calendar.set(Calendar.HOUR_OF_DAY, 23)
+            calendar.set(Calendar.MINUTE, 59)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+
+            val timeFormat = SimpleDateFormat("hh:mm a", Locale.US)
+            return timeFormat.format(calendar.time)
+        }
+
+        fun getCurrentTimeIn24HrFormat(): String {
+            val calendar = Calendar.getInstance()
+            val timeFormat = SimpleDateFormat("HH:mm", Locale.US)
+            return timeFormat.format(calendar.time)
         }
 
         fun convertToAppDateFormat(inputDate: String, inputFormat: String = "dd/MM/yyyy"): String {
@@ -1037,6 +1077,46 @@ class CommonMethods {
             }
         }
 
+        fun expand(view: View) {
+            view.measure(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            val targetHeight = view.measuredHeight
+
+            view.layoutParams.height = 0
+            view.visibility = View.VISIBLE
+
+            val animation = ValueAnimator.ofInt(0, targetHeight)
+            animation.addUpdateListener { valueAnimator ->
+                view.layoutParams.height = valueAnimator.animatedValue as Int
+                view.requestLayout()
+            }
+            animation.duration = 300
+            animation.interpolator = AccelerateDecelerateInterpolator()
+            animation.start()
+        }
+
+        fun collapse(view: View) {
+            val initialHeight = view.measuredHeight
+
+            val animation = ValueAnimator.ofInt(initialHeight, 0)
+            animation.addUpdateListener { valueAnimator ->
+                view.layoutParams.height = valueAnimator.animatedValue as Int
+                view.requestLayout()
+            }
+            animation.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    view.visibility = View.GONE
+                }
+            })
+            animation.duration = 300
+            animation.interpolator = AccelerateDecelerateInterpolator()
+            animation.start()
+        }
+        fun isHttpUrl(url: String): Boolean {
+            return url.startsWith("http", ignoreCase = true)
+        }
+
+    }
+
     }
 
     /*fun setSpinnerByString(spinner: Spinner, myString: String): Int {
@@ -1048,6 +1128,5 @@ class CommonMethods {
         }
         return 0
     }*/
-}
 
 

@@ -24,7 +24,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonObject
@@ -37,7 +44,16 @@ import ethicstechno.com.fieldforce.models.trip.TripSubmitResponse
 import ethicstechno.com.fieldforce.models.trip.VehicleTypeListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.AlbumUtility
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DistanceCalculatorUtils
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.IS_TRIP_START
+import ethicstechno.com.fieldforce.utils.ImageUtils
+import ethicstechno.com.fieldforce.utils.PermissionUtil
+import ethicstechno.com.fieldforce.utils.VEHICLE_TYPE_NA
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -519,7 +535,6 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                             vehicleTypeList.clear()
                             vehicleTypeList.addAll(it)
                             setupVehicleTypeSpinner()
-                            callGetVisitFromPlaceList()
                         }
                     }
                 } else {
@@ -530,7 +545,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                         null
                     )
                 }
-
+                callGetVisitFromPlaceList()
             }
 
             override fun onFailure(call: Call<List<VehicleTypeListResponse>>, t: Throwable) {
@@ -543,6 +558,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                         null
                     )
                 }
+                callGetVisitFromPlaceList()
             }
         })
 
@@ -560,6 +576,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
         val fromPlaceReq = JsonObject()
         fromPlaceReq.addProperty("UserId", loginData.userId)
+            fromPlaceReq.addProperty("ParameterString", "")
 
         val fromPlaceCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)

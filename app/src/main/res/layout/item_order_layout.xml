@@ -25,24 +25,23 @@
                android:layout_height="wrap_content">
 
                <TextView
-                   android:id="@+id/tvOrderDate"
+                   android:id="@+id/tvOrderNo"
                    android:layout_weight="1"
-                   android:layout_gravity="start|center"
+                   android:layout_width="0dp"
                    android:fontFamily="@font/nunito_sans_regular"
                    android:textColor="@color/black"
-                   android:layout_width="0dp"
+                   android:layout_gravity="start|center"
+                   android:gravity="start"
                    android:layout_height="wrap_content"/>
 
                <TextView
-                   android:id="@+id/tvCategory"
+                   android:id="@+id/tvOrderDate"
                    android:layout_weight="1"
-                   android:layout_width="0dp"
+                   android:layout_gravity="end|center"
                    android:fontFamily="@font/nunito_sans_regular"
                    android:textColor="@color/black"
-                   android:layout_gravity="end|center"
-                   android:gravity="end"
+                   android:layout_width="0dp"
                    android:layout_height="wrap_content"/>
-
 
            </LinearLayout>
 

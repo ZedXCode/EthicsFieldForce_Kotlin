@@ -34,7 +34,7 @@ import ethicstechno.com.fieldforce.databinding.FragmentVisitListBinding
 import ethicstechno.com.fieldforce.databinding.ItemListBinding
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
-import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
+import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
@@ -52,7 +52,7 @@ import retrofit2.Response
 class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
     lateinit var binding: FragmentVisitListBinding
-    val visitList: ArrayList<VisitListResponse> = arrayListOf()
+    val visitList: ArrayList<AccountMasterList> = arrayListOf()
     private var visitListAdapter: VisitListAdapter? = null
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
@@ -196,14 +196,14 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
                 binding.toolbar.imgBack.visibility = View.VISIBLE
                 binding.toolbar.svView.onActionViewCollapsed()
-                callVisitList()
+                callVisitList(0, FOR_PARTY_DEALER_LIST)
             }
             mActivity.bottomHide()
         }
     }
 
 
-    private fun callVisitList() {
+    private fun callVisitList(accountMasterId: Int, apiType: Int) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.network_error_msg))
             return
@@ -213,28 +213,113 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         val appRegistrationData = appDao.getAppRegistration()
 
         val visitListReq = JsonObject()
+        visitListReq.addProperty("AccountMasterId", 0)
         visitListReq.addProperty("UserId", loginData.userId)
-        visitListReq.addProperty("Latitude", currentLatitude)
-        visitListReq.addProperty("Longitude", currentLongitude)
+        visitListReq.addProperty("ParameterString", "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude")
 
-        val partyDealerCall = WebApiClient.getInstance(mActivity)
-            .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getVisitList(visitListReq)
+        val partyDealerCall = when (apiType) {
+            /*FOR_LOCATION_REDIRECT -> {
+                visitListReq.addProperty("parameterString", "")
+                WebApiClient.getInstance(mActivity)
+                    .webApi_without(appRegistrationData.apiHostingServer)
+                    ?.getOrderAccountMasterList(visitListReq)
+            }*/
 
-        partyDealerCall?.enqueue(object : Callback<List<VisitListResponse>> {
+            FOR_DASHBOARD_REPORT_REDIRECT, FOR_PARTY_DEALER_UPDATE, FOR_LOCATION_REDIRECT -> {
+                visitListReq.addProperty("ParameterString", "")
+                WebApiClient.getInstance(mActivity)
+                    .webApi_without(appRegistrationData.apiHostingServer)
+                    ?.getPartyDealerDetails(visitListReq)
+            }
+            else -> {
+                visitListReq.addProperty("ParameterString", "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude")
+                WebApiClient.getInstance(mActivity)
+                    .webApi_without(appRegistrationData.apiHostingServer)
+                    ?.getPartyDealerList(visitListReq)
+            }
+        }
+
+        partyDealerCall?.enqueue(object : Callback<List<AccountMasterList>> {
             override fun onResponse(
-                call: Call<List<VisitListResponse>>,
-                response: Response<List<VisitListResponse>>
+                call: Call<List<AccountMasterList>>,
+                response: Response<List<AccountMasterList>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
-                            binding.rvVisit.visibility = View.VISIBLE
-                            binding.tvNoData.visibility = View.GONE
-                            visitList.clear()
-                            visitList.addAll(it)
-                            setupPartyDealer()
+                            val partyDealerData = it[0]
+                            when (apiType) {
+                                FOR_LOCATION_REDIRECT -> {
+                                    if (partyDealerData.latitude > 0 && partyDealerData.longitude > 0) {
+                                        mActivity.addFragment(
+                                            MapViewFragment.newInstance(
+                                                0,
+                                                0,
+                                                true,
+                                                partyDealerData.latitude,
+                                                partyDealerData.longitude,
+                                                partyDealerData.accountName ?: "",
+                                                partyDealerData.location ?: "",
+                                                0.0,
+                                                0.0,
+                                                "",
+                                                "",
+                                                false,
+                                            ),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    } else {
+                                        CommonMethods.showAlertDialog(
+                                            mActivity,
+                                            mActivity.getString(R.string.party_dealer),
+                                            getString(
+                                                R.string.location_not_found
+                                            ),
+                                            isCancelVisibility = false,
+                                            okListener = null
+                                        )
+                                    }
+                                }
+
+                                FOR_DASHBOARD_REPORT_REDIRECT -> {
+                                    mActivity.addFragment(
+                                        DashboardDrillFragment.newInstance(
+                                            false,
+                                            DashboardListResponse(),
+                                            DashboardDrillResponse(),
+                                            partyDealerData.storeProcedureName ?: "",
+                                            partyDealerData.reportSetupId,
+                                            arrayListOf(),
+                                            partyDealerData.reportName ?: "",
+                                            partyDealerData.filter ?: "",
+                                            partyDealerData.reportGroupBy ?: "",
+                                            true,
+                                            isFromPartyDealerORVisit = true,
+                                            parameterString = partyDealerData.parameterString ?: ""
+                                        ), true, true, AnimationType.fadeInfadeOut
+                                    )
+                                }
+
+                                FOR_PARTY_DEALER_UPDATE -> {
+                                    mActivity.addFragment(
+                                        AddPartyDealerFragment.newInstance(isUpdate = true, partyDealerData),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
+
+                                else -> {
+                                    binding.rvVisit.visibility = View.VISIBLE
+                                    binding.tvNoData.visibility = View.GONE
+                                    visitList.clear()
+                                    visitList.addAll(it)
+                                    setupPartyDealer()
+                                }
+                            }
                         } else {
                             binding.rvVisit.visibility = View.GONE
                             binding.tvNoData.visibility = View.VISIBLE
@@ -250,7 +335,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                 }
             }
 
-            override fun onFailure(call: Call<List<VisitListResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<AccountMasterList>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if(mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -353,7 +438,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
                     Handler(Looper.getMainLooper()).postDelayed({
                         CommonMethods.hideLoading()
-                        callVisitList()
+                        callVisitList(0, FOR_PARTY_DEALER_LIST)
                         setupSearchFilter()
                     }, 1000)
 
@@ -387,9 +472,9 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
 
     inner class VisitListAdapter(
-        partyDealerList: ArrayList<VisitListResponse>
+        partyDealerList: ArrayList<AccountMasterList>
     ) : RecyclerView.Adapter<VisitListAdapter.ViewHolder>() {
-        var filteredItems: List<VisitListResponse> = partyDealerList
+        var filteredItems: List<AccountMasterList> = partyDealerList
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val binding = ItemListBinding.inflate(inflater, parent, false)
@@ -408,10 +493,10 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         fun filter(query: String) {
             filteredItems = visitList.filter { item ->
                 item.accountName.contains(query, ignoreCase = true) ||
-                        item.email.contains(query, ignoreCase = true) ||
-                        item.phoneNo.contains(query, ignoreCase = true) ||
+                        (item.email ?: "").contains(query, ignoreCase = true) ||
+                        (item.phoneNo ?: "").contains(query, ignoreCase = true) ||
                         item.categoryName.contains(query, ignoreCase = true) ||
-                        item.cityName.contains(query, ignoreCase = true)
+                        (item.cityName ?: "").contains(query, ignoreCase = true)
             }
             notifyDataSetChanged()
         }
@@ -419,7 +504,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         inner class ViewHolder(private val binding: ItemListBinding) :
             RecyclerView.ViewHolder(binding.root) {
 
-            fun bind(visitData: VisitListResponse) {
+            fun bind(visitData: AccountMasterList) {
                 binding.llPartyBottom.visibility = View.GONE
                 binding.tvAccountName.text = visitData.accountName
                 binding.tvPlace.text = visitData.cityName
@@ -437,7 +522,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                 }
 
                 binding.imgLocation.setOnClickListener {
-                    mActivity.addFragment(
+                    /*mActivity.addFragment(
                         MapViewFragment.newInstance(
                             0,
                             0,
@@ -445,7 +530,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                             visitData.latitude,
                             visitData.longitude,
                             visitData.accountName,
-                            visitData.location,
+                            visitData.location ?: "",
                             0.0,
                             0.0,
                             "",
@@ -455,7 +540,8 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.fadeInfadeOut
-                    )
+                    )*/
+                    callVisitList(visitData.accountMasterId, FOR_LOCATION_REDIRECT)
                 }
 
                 binding.llAccount.setOnClickListener {
@@ -464,21 +550,9 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                         "bind: VISIT LISTING Data STOREPROCEDURE : " + visitData.storeProcedureName + ", REPORTGROUP BY : " + visitData.reportGroupBy + "" +
                                 ", ParameterString : " + visitData.parameterString + ", FILTER :: " + visitData.filter
                     )
-                    mActivity.addFragment(
-                        DashboardDrillFragment.newInstance(
-                            false,
-                            DashboardListResponse(),
-                            DashboardDrillResponse(),
-                            visitData.storeProcedureName,
-                            visitData.reportSetupId,
-                            arrayListOf(),
-                            visitData.reportName,
-                            visitData.filter,
-                            visitData.reportGroupBy,
-                            true,
-                            isFromPartyDealerORVisit = true,
-                            parameterString = visitData.parameterString
-                        ), true, true, AnimationType.fadeInfadeOut
+                    callVisitList(
+                        visitData.accountMasterId,
+                        FOR_DASHBOARD_REPORT_REDIRECT
                     )
                 }
 

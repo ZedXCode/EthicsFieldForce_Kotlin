@@ -58,10 +58,6 @@
                     android:textColor="@color/black"
                     android:textSize="@dimen/_11ssp" />
 
-                <ImageView
-                    android:src="@drawable/ic_order_entry_colored"
-                    android:layout_width="@dimen/_28sdp"
-                    android:layout_height="@dimen/_28sdp"/>
             </LinearLayout>
 
             <LinearLayout

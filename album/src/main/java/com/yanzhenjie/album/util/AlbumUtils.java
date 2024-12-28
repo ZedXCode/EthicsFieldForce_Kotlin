@@ -116,6 +116,11 @@ public class AlbumUtils {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         Uri uri = getUri(activity, outPath);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+        /*if(isCameraFront){
+            intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+        }else{
+            intent.putExtra("android.intent.extras.CAMERA_FACING", 0);
+        }*/
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         activity.startActivityForResult(intent, requestCode);

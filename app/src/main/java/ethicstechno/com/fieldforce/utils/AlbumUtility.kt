@@ -26,6 +26,26 @@ class AlbumUtility(private val activity: Activity, private val isCamera: Boolean
             .start()
     }
 
+    fun openAlbumAndHandleImageMultipleSelection(
+        onImagesSelected: (List<File>) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        Album.image(activity)
+            .multipleChoice()
+            .selectCount(4)
+            .columnCount(3)
+            .camera(isCamera)
+            .onResult { result ->
+                if (result != null && result.isNotEmpty()) {
+                    val selectedFiles = result.map { File(it.path) }
+                    onImagesSelected(selectedFiles)
+                } else {
+                    onError("No image selected.")
+                }
+            }
+            .onCancel { }
+            .start()
+    }
 
     fun openAlbumAndHandleCameraSelection(
         onImageSelected: (File) -> Unit,

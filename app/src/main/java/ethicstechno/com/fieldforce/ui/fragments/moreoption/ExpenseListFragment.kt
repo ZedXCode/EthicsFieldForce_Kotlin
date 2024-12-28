@@ -30,11 +30,15 @@ import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -470,7 +474,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

@@ -4,42 +4,91 @@ import android.Manifest
 import android.app.Activity
 import android.app.TimePickerDialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RadioButton
+import android.widget.TextView
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddVisitBinding
 import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.InquiryResponse
 import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.models.trip.GetVisitFromPlaceListResponse
+import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.ARG_PARAM2
+import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.AlbumUtility
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_STAGE
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_VISIT_TYPE
+import ethicstechno.com.fieldforce.utils.DistanceCalculatorUtils
+import ethicstechno.com.fieldforce.utils.FORM_ID_VISIT
+import ethicstechno.com.fieldforce.utils.FOR_BRANCH
+import ethicstechno.com.fieldforce.utils.FOR_COMPANY
+import ethicstechno.com.fieldforce.utils.FOR_DIVISION
+import ethicstechno.com.fieldforce.utils.FOR_STAGE
+import ethicstechno.com.fieldforce.utils.FOR_VISIT_TYPE
+import ethicstechno.com.fieldforce.utils.ID_ZERO
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.IS_TRIP_START
+import ethicstechno.com.fieldforce.utils.ImagePreviewCommonDialog
+import ethicstechno.com.fieldforce.utils.PermissionUtil
+import ethicstechno.com.fieldforce.utils.TimeType
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -49,17 +98,37 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
-import java.util.*
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent.Executors
 
 
 class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdapter.TypeSelect,
-    DatePickerListener, UserSearchDialogUtil.PartyDealerDialogDetect {
+    DatePickerListener, UserSearchDialogUtil.PartyDealerDialogDetect,
+    UserSearchDialogUtil.CompanyDialogDetect,
+    UserSearchDialogUtil.DivisionDialogDetect, UserSearchDialogUtil.BranchDialogDetect,
+    UserSearchDialogUtil.CommonDropDownDialogDetect {
 
     lateinit var binding: FragmentAddVisitBinding
-    val visitTypeList: ArrayList<LeaveTypeListResponse> = arrayListOf()
-    var selectedVisitType: LeaveTypeListResponse? = null
+    val visitTypeList: ArrayList<CommonDropDownResponse> = arrayListOf()
+    val categoryList: ArrayList<CategoryMasterResponse> = arrayListOf()
+    val companyMasterList: ArrayList<CompanyMasterResponse> = arrayListOf()
+    val branchMasterList: ArrayList<BranchMasterResponse> = arrayListOf()
+    val divisionMasterList: ArrayList<DivisionMasterResponse> = arrayListOf()
+    val stageList: ArrayList<CommonDropDownResponse> = arrayListOf()
+    val inquiryList: ArrayList<InquiryResponse> = arrayListOf()
+
+    //val stageMasterList: ArrayList<StageMasterResponse> = arrayListOf()
+    //val categoryMasterList: ArrayList<CategoryRe> = arrayListOf()
+    var selectedVisitType: CommonDropDownResponse? = null
+    var selectedCategory: CategoryMasterResponse? = null
     var selectedPartyDealer: AccountMasterList? = null
+
+    var selectedCompany: CompanyMasterResponse? = null
+    var selectedBranch: BranchMasterResponse? = null
+    var selectedDivision: DivisionMasterResponse? = null
+    var selectedStage: CommonDropDownResponse? = null
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
@@ -67,15 +136,24 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     var fromLongitude = 0.0
     var totalDistance = 0.0F
     var currentAddress = ""
-    private var visitData: VisitListResponse = VisitListResponse()
+    private var visitData: AccountMasterList = AccountMasterList()
     private var visitReportData: VisitReportListResponse = VisitReportListResponse()
     var tripId = 0
     var previousVisitId = 0
-    private var base64Image = ""
-    private var imageFile: File? = null
+    private var base64SelfieImage = ""
+    private var selfieImageFile: File? = null
     private var presetDate = ""
     private var presetTime = ""
     private var isReadOnly = false
+    private var isExpanded = false
+    private var selectedModeOfCommunication = 0
+    private var selectedStatus = 0
+    private var imageAnyList: ArrayList<Any> = arrayListOf()
+    private var imageAdapter: ImageAdapter? = null
+    private var inquiryDialog: AlertDialog? = null
+    private var visitDetailsList: List<InquiryResponse> = arrayListOf()
+    var initialTime = ""
+
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -97,7 +175,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     companion object {
         fun newInstance(
-            partyDealerData: VisitListResponse,
+            partyDealerData: AccountMasterList,
             visitReport: VisitReportListResponse,
             readOnly: Boolean
         ): AddVisitFragment {
@@ -124,9 +202,9 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         super.onViewCreated(view, savedInstanceState)
         arguments?.let {
             visitData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getParcelable(ARG_PARAM1, VisitListResponse::class.java) ?: VisitListResponse()
+                it.getParcelable(ARG_PARAM1, AccountMasterList::class.java) ?: AccountMasterList()
             } else {
-                it.getParcelable(ARG_PARAM1) ?: VisitListResponse()
+                it.getParcelable(ARG_PARAM1) ?: AccountMasterList()
             }
 
             visitReportData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -176,18 +254,10 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             if (isReadOnly) visitReportData.nextVisitDate else CommonMethods.getCurrentDate()
         binding.tvNextFollowUpTime.text =
             if (isReadOnly) visitReportData.nextVisitTime else CommonMethods.getCurrentTimeIn12HrFormat()
-        binding.llVisitImage.visibility = if (isReadOnly) View.VISIBLE else View.GONE
-        binding.llVisitImageUpload.visibility = if (isReadOnly) View.GONE else View.VISIBLE
         if (isReadOnly) {
             binding.etVisitDetails.setText(visitReportData.visitDetails)
             binding.etNextVisitSubject.setText(visitReportData.nextVisitSubject)
             binding.etRemarks.setText(visitReportData.remarks)
-            ImageUtils().loadImageUrl(
-                mActivity,
-                appDao.getAppRegistration()?.apiHostingServer + visitReportData.filePath,
-                binding.imgVisitImage
-            )
-            binding.imgVisitImage.scaleType = ImageView.ScaleType.CENTER_CROP
             binding.tvAddVisit.visibility = View.GONE
             /*binding.imgDropDown.visibility = View.GONE
             binding.imgSearch.visibility = View.GONE*/
@@ -195,7 +265,19 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             binding.etNextVisitSubject.isEnabled = false
             binding.etRemarks.isEnabled = false
             binding.etContactPerson.isEnabled = false
-            binding.spVisitType.isEnabled = false
+
+            /*if((visitReportData.filePath1 ?: "").isNotEmpty()){
+                imageAnyList.add((partyDealerDataForUpdate.filePath1) ?: "")
+            }
+            if((partyDealerDataForUpdate.filePath2 ?: "").isNotEmpty()){
+                imageAnyList.add((partyDealerDataForUpdate.filePath2) ?: "")
+            }
+            if((partyDealerDataForUpdate.filePath3 ?: "").isNotEmpty()){
+                imageAnyList.add((partyDealerDataForUpdate.filePath3) ?: "")
+            }
+            if((partyDealerDataForUpdate.filePath4 ?: "").isNotEmpty()){
+                imageAnyList.add((partyDealerDataForUpdate.filePath4) ?: "")
+            }*/
         } else {
             presetDate = CommonMethods.getCurrentDate()
             presetTime = CommonMethods.getCurrentTimeIn12HrFormat()
@@ -203,8 +285,65 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             binding.tvNextVisitFollowUpDate.setOnClickListener(this)
             //binding.llSelectParty.setOnClickListener(this)
             binding.tvAddVisit.setOnClickListener(this)
+            binding.llSelectCompany.setOnClickListener(this)
+            binding.llSelectBranch.setOnClickListener(this)
+            binding.llSelectDivision.setOnClickListener(this)
+            binding.llSelectStage.setOnClickListener(this)
+            binding.llSelectVisitType.setOnClickListener(this)
+            binding.cardImageCapture.setOnClickListener(this)
+            binding.cardAddInquiry.setOnClickListener(this)
+            binding.cardImageSelfieCapture.setOnClickListener(this)
+
+            setupRecyclerView()
+
+            binding.tvStartTime.text = CommonMethods.getCurrentTimeIn12HrFormat()
+            binding.tvEndTime.text = CommonMethods.getCurrentTimeIn12HrFormat()
+            initialTime = CommonMethods.getCurrentTimeIn12HrFormat()
+
+            binding.tvStartTime.setOnClickListener {
+                selectTime(TimeType.FROM_START_TIME, binding.tvStartTime.text.toString()) { time ->
+                    // Handle selected start time
+                    binding.tvStartTime.text = time
+                }
+            }
+            binding.tvEndTime.setOnClickListener {
+                selectTime(TimeType.TO_END_TIME, binding.tvEndTime.text.toString()) { time ->
+                    // Handle selected start time
+                    binding.tvEndTime.text = time
+                }
+            }
+
+            binding.radioGroupModeOfCom.setOnCheckedChangeListener { group, checkedId ->
+                val radioButton = view?.findViewById<RadioButton>(checkedId)
+                when (radioButton?.text) {
+                    mActivity.getString(R.string.personally) -> selectedModeOfCommunication = 1
+                    mActivity.getString(R.string.phone) -> selectedModeOfCommunication = 2
+                    mActivity.getString(R.string.email) -> selectedModeOfCommunication = 3
+                }
+            }
+            binding.radioGroupStatus.setOnCheckedChangeListener { group, checkedId ->
+                val radioButton = view?.findViewById<RadioButton>(checkedId)
+                when (radioButton?.text) {
+                    mActivity.getString(R.string.not_now) -> {
+                        selectedStatus = 1
+                        binding.llNextVisitLayout.visibility = View.GONE
+                    }
+
+                    mActivity.getString(R.string.next_visit) -> {
+                        selectedStatus = 2
+                        binding.llNextVisitLayout.visibility = View.VISIBLE
+                    }
+
+                    mActivity.getString(R.string.close) -> {
+                        selectedStatus = 3
+                        binding.llNextVisitLayout.visibility = View.GONE
+                    }
+                }
+            }
         }
-        binding.cardImage.setOnClickListener(this)
+        binding.llHeader.setOnClickListener {
+            toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 executeAPIsAndSetupData()
@@ -213,14 +352,36 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 e.printStackTrace()
             }
         }
-
     }
+
+    private fun toggleSectionVisibility(view: View, toggleIcon: ImageView) {
+        if (isExpanded) {
+            CommonMethods.collapse(view)
+            toggleIcon.setImageResource(R.drawable.ic_add_circle)
+        } else {
+            CommonMethods.expand(view)
+            toggleIcon.setImageResource(R.drawable.ic_remove_circle)
+        }
+        isExpanded = !isExpanded
+    }
+
 
     private suspend fun executeAPIsAndSetupData() {
         withContext(Dispatchers.IO) {
             try {
-                val categoryListDeferred = async { callVisitTypeListApi() }
-                categoryListDeferred.await()
+                val visitListDeferred = async { callCommonDropDownListApi(DROP_DOWN_VISIT_TYPE) }
+                val companyListDeferred = async { callCompanyListApi() }
+                //val branchListDeferred = async { callBranchListApi() }
+                //val divisionListDeferred = async { callDivisionListApi() }
+                val stageListDeferred = async { callCommonDropDownListApi(DROP_DOWN_STAGE) }
+                //val categoryListDeferred = async { callCateogyListApi() }
+
+                //categoryListDeferred.await()
+                visitListDeferred.await()
+                companyListDeferred.await()
+                //branchListDeferred.await()
+                //divisionListDeferred.await()
+                stageListDeferred.await()
                 if (!isReadOnly) {
                     val visitFromPlaceDeferred = async { callGetVisitFromPlaceApi() }
                     visitFromPlaceDeferred.await()
@@ -231,10 +392,6 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
             }
         }
-
-
-        //locationDeferred.await()
-
     }
 
 
@@ -278,14 +435,17 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.tvAddVisit -> {
                 visitValidation()
             }
+
             R.id.tvNextFollowUpTime -> {
                 showTimePickerDialog()
             }
+
             R.id.tvNextVisitFollowUpDate -> {
-                CommonMethods.openDatePickerDialog(this, mActivity)
+                CommonMethods.openDatePickerDialog(this, mActivity, true)
             }
             /*R.id.llSelectParty -> {
                 if(partyDealerList.size > 0) {
@@ -299,33 +459,153 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                     partyDialog.showUserSearchDialog()
                 }
             }*/
-            R.id.cardImage -> {
+
+            R.id.llSelectCompany -> {
+                if (companyMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_COMPANY,
+                        companyList = companyMasterList,
+                        companyInterfaceDetect = this as UserSearchDialogUtil.CompanyDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.company_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectBranch -> {
+                if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        mActivity.getString(R.string.please_select_company)
+                    )
+                    return;
+                }
+                if (branchMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_BRANCH,
+                        branchList = branchMasterList,
+                        branchInterfaceDetect = this as UserSearchDialogUtil.BranchDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.branch_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectDivision -> {
+                if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        mActivity.getString(R.string.please_select_branch)
+                    )
+                    return;
+                }
+                if (divisionMasterList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_DIVISION,
+                        divisionList = divisionMasterList,
+                        divisionInterfaceDetect = this as UserSearchDialogUtil.DivisionDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.branch_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectStage -> {
+                if (stageList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_STAGE,
+                        commonDropDownList = stageList,
+                        commonDropDownInterfaceDetect = this as UserSearchDialogUtil.CommonDropDownDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.stage_list_not_found)
+                    )
+                }
+            }
+
+            R.id.llSelectVisitType -> {
+                if (visitTypeList.size > 0) {
+                    val userDialog = UserSearchDialogUtil(
+                        mActivity,
+                        type = FOR_VISIT_TYPE,
+                        commonDropDownList = visitTypeList,
+                        commonDropDownInterfaceDetect = this as UserSearchDialogUtil.CommonDropDownDialogDetect,
+                        userDialogInterfaceDetect = null
+                    )
+                    userDialog.showUserSearchDialog()
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.stage_list_not_found)
+                    )
+                }
+            }
+
+            R.id.cardImageCapture -> {
+                if (imageAnyList.size == 4) {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        getString(R.string.photo_upload_limit_reached)
+                    )
+                    return
+                }
+                askCameraGalleryPermission()
+            }
+
+            R.id.cardImageSelfieCapture -> {
                 if (isReadOnly) {
-                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                    /*ImagePreviewCommonDialog.showImagePreviewDialog(
                         mActivity,
                         appDao.getAppRegistration()?.apiHostingServer + visitReportData.filePath
-                    )
+                    )*/
                 } else {
-                    askCameraGalleryPermission()
+                    askCameraGalleryPermission(isOnlyCamera = true)
                 }
+            }
+
+            R.id.cardAddInquiry -> {
+                callInquiryListApi()
             }
         }
     }
 
-    private fun askCameraGalleryPermission() {
+    private fun askCameraGalleryPermission(isOnlyCamera: Boolean = false) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val arrListOfPermission = arrayListOf<String>(
                 Manifest.permission.CAMERA
             )
             PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-                openAlbum()
+                if (isOnlyCamera) openAlbumForSelfie() else openAlbumForList()
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val arrListOfPermission = arrayListOf<String>(
                 Manifest.permission.CAMERA
             )
             PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-                openAlbum()
+                if (isOnlyCamera) openAlbumForSelfie() else openAlbumForList()
             }
         } else {
             val arrListOffPermission = arrayListOf<String>(
@@ -333,16 +613,41 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 Manifest.permission.CAMERA
             )
             PermissionUtil(mActivity).requestPermissions(arrListOffPermission) {
-                openAlbum()
+                if (isOnlyCamera) openAlbumForSelfie() else openAlbumForList()
             }
         }
 
     }
 
-    private fun openAlbum() {
-        AlbumUtility(mActivity, true).openAlbumAndHandleImageSelection(
+    private fun openAlbumForList() {
+        AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
+            onImagesSelected = { selectedFiles ->
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val modifiedImageFiles = selectedFiles.mapNotNull { file ->
+                        CommonMethods.addDateAndTimeToFile(
+                            file, CommonMethods.createImageFile(mActivity) ?: return@mapNotNull null
+                        )
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        if (modifiedImageFiles.isNotEmpty()) {
+                            imageAnyList.addAll(modifiedImageFiles)
+                            imageAdapter?.addImage(imageAnyList, false)
+                            handleAssetRVView(imageAnyList.size)
+                        }
+                    }
+                }
+            },
+            onError = {
+                CommonMethods.showToastMessage(mActivity, it)
+            }
+        )
+    }
+
+    private fun openAlbumForSelfie() {
+        AlbumUtility(mActivity, true).openAlbumAndHandleCameraSelection(
             onImageSelected = {
-                imageFile = it
+                selfieImageFile = it
 
                 val executor = Executors.newSingleThreadExecutor()
                 val handler = Handler(Looper.getMainLooper())
@@ -360,13 +665,18 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
                         // Update the UI on the main thread using runOnUiThread
                         handler.post {
-                            Glide.with(mActivity)
-                                .load(modifiedImageFile)
-                                .into(binding.imgVisit)
-                            base64Image =
+                            base64SelfieImage =
                                 CommonMethods.convertImageFileToBase64(modifiedImageFile)
                                     .toString()
-                            binding.imgVisit.scaleType = ImageView.ScaleType.CENTER_CROP
+                            binding.tvSelfiUploaded.text =
+                                mActivity.getString(R.string.selfie_uploaded)
+                            binding.tvSelfiUploaded.setTextColor(
+                                ContextCompat.getColor(
+                                    mActivity,
+                                    R.color.colorGreen
+                                )
+                            )
+
                         }
                     }
                 }
@@ -378,22 +688,63 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     }
 
+    private fun setupRecyclerView() {
+        val apiUrl = appDao.getAppRegistration().apiHostingServer
+        binding.rvImages.layoutManager =
+            LinearLayoutManager(mActivity, LinearLayoutManager.HORIZONTAL, false)
+        imageAdapter = ImageAdapter(mActivity, apiUrl)
+        binding.rvImages.adapter = imageAdapter
+        handleAssetRVView(0)
+
+        imageAdapter?.setOnClick(object : ImageAdapter.OnAssetImageCancelClick {
+            override fun onImageCancel(position: Int) {
+                if (!isReadOnly && position != RecyclerView.NO_POSITION && imageAnyList.size > 0) {
+                    imageAnyList.removeAt(position)
+                    imageAdapter?.addImage(imageAnyList, false)
+                    handleAssetRVView(imageAnyList.size)
+                }
+            }
+
+            override fun onImagePreview(position: Int) {
+                if (imageAnyList[position] is String) {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer + imageAnyList[position]
+                    )
+                } else {
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity, imageAnyList[position]
+                    )
+                }
+            }
+        })
+    }
+
+    fun handleAssetRVView(imageList: Int) {
+        try {
+            binding.txtNoFilePathImages.visibility = if (imageList == 0) View.VISIBLE else View.GONE
+            binding.rvImages.visibility = if (imageList == 0) View.GONE else View.VISIBLE
+        } catch (e: java.lang.Exception) {
+            Log.e("TAG", "handleAssetRVView: *ERROR* IN \$submitDALPaper$ :: error = " + e.message)
+        }
+    }
 
     private fun visitValidation() {
-        if (binding.spVisitType.selectedItemPosition == 0) {
+        /*if (binding.spVisitType.selectedItemPosition == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.select_visit_type)
             )
             return
-        }
-        if (binding.etContactPerson.text.toString().trim().isEmpty()) {
+        }*/
+        /*if (binding.etContactPerson.text.toString().trim().isEmpty()) {
             CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.enter_contact_person)
             )
             return
-        }
+        }*/
         if (binding.etVisitDetails.text.trim().toString().isEmpty()) {
             CommonMethods.showToastMessage(
                 mActivity,
@@ -402,14 +753,31 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             return
         }
 
-        if ((binding.tvNextVisitFollowUpDate.text.toString() != presetDate || binding.tvNextFollowUpTime.text.toString() != presetTime) && binding.etNextVisitSubject.text.toString()
-                .trim().isEmpty()
-        ) {
-            CommonMethods.showToastMessage(
-                mActivity,
-                mActivity.getString(R.string.enter_next_visit_followup_subject)
-            )
-            return
+        if (selectedStatus == 2) {
+            if (binding.tvNextVisitFollowUpDate.text.toString().trim().isEmpty()) {
+                CommonMethods.showToastMessage(mActivity, "Please select next visit follow-up date")
+                return
+            }
+            if (binding.tvNextFollowUpTime.text.toString().trim().isEmpty()) {
+                CommonMethods.showToastMessage(mActivity, "Please select next visit follow-up time")
+                return
+            }
+            if (binding.etNextVisitSubject.text.toString().trim().isEmpty()) {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    "Please select next visit follow-up subject"
+                )
+                return
+            }
+            if ((binding.tvNextVisitFollowUpDate.text.toString() != presetDate || binding.tvNextFollowUpTime.text.toString() != presetTime) && binding.etNextVisitSubject.text.toString()
+                    .trim().isEmpty()
+            ) {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    mActivity.getString(R.string.enter_next_visit_followup_subject)
+                )
+                return
+            }
         }
 
         callAddVisitApi()
@@ -473,31 +841,44 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     }
 
-    private fun callVisitTypeListApi() {
+    private fun callCategoryListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
+        if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.please_select_branch)
+            )
+            return;
+        }
         CommonMethods.showLoading(mActivity)
 
         val appRegistrationData = appDao.getAppRegistration()
+        val jsonReq = JsonObject()
+        jsonReq.addProperty("UserId", loginData.userId)
+        jsonReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_VISIT"
+        )
 
         val visitTypeCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getVisitTypeList()
+            ?.getCategoryMasterList(jsonReq)
 
-        visitTypeCall?.enqueue(object : Callback<List<LeaveTypeListResponse>> {
+        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
             override fun onResponse(
-                call: Call<List<LeaveTypeListResponse>>,
-                response: Response<List<LeaveTypeListResponse>>
+                call: Call<List<CategoryMasterResponse>>,
+                response: Response<List<CategoryMasterResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
-                            visitTypeList.clear()
-                            visitTypeList.add(LeaveTypeListResponse(0, 0, "Select Visit Type", 0.0))
-                            visitTypeList.addAll(it)
+                            categoryList.clear()
+                            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+                            categoryList.addAll(it)
                             setupCategorySpinner()
                         }
                     }
@@ -511,7 +892,77 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 }
             }
 
-            override fun onFailure(call: Call<List<LeaveTypeListResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<CategoryMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
+    private fun callCompanyListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("companyMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty("searchCriteria", "")
+        objReq.addProperty("ParameterString", FORM_ID_VISIT)
+
+
+        val companyCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getCompanyMasterList(objReq)
+
+        companyCall?.enqueue(object : Callback<List<CompanyMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<CompanyMasterResponse>>,
+                response: Response<List<CompanyMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            companyMasterList.clear()
+                            companyMasterList.add(
+                                CompanyMasterResponse(
+                                    companyMasterId = 0,
+                                    companyName = mActivity.getString(R.string.select_company),
+                                )
+                            )
+                            companyMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedCompany = CompanyMasterResponse(
+                                    companyMasterId = companyMasterList[1].companyMasterId,
+                                    companyName = companyMasterList[1].companyName
+                                )
+                                binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+                                callBranchListApi()
+                            }
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CompanyMasterResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -526,30 +977,435 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     }
 
+    private fun callBranchListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.please_select_company)
+            )
+            return;
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("BranchMasterId", ID_ZERO)
+        objReq.addProperty("UserId", loginData.userId)
+        objReq.addProperty("ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_VISIT")
+
+        val branchCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getBranchMasterList(objReq)
+
+        branchCall?.enqueue(object : Callback<List<BranchMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<BranchMasterResponse>>,
+                response: Response<List<BranchMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            branchMasterList.clear()
+                            branchMasterList.add(
+                                BranchMasterResponse(
+                                    branchMasterId = 0,
+                                    branchName = mActivity.getString(R.string.select_branch)
+                                )
+                            )
+                            branchMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedBranch = BranchMasterResponse(
+                                    branchMasterId = branchMasterList[1].branchMasterId,
+                                    branchName = branchMasterList[1].branchName
+                                )
+                                binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
+                                callDivisionListApi()
+                            }else{
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_BRANCH,
+                                    branchList = branchMasterList,
+                                    branchInterfaceDetect = this@AddVisitFragment as UserSearchDialogUtil.BranchDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
+                            }
+                        }else{
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.branch_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<BranchMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callDivisionListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.please_select_branch)
+            )
+            return;
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("divisionMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty("searchCriteria", "")
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_VISIT"
+        )
+
+        val divisionCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDivisionMasterList(objReq)
+
+        divisionCall?.enqueue(object : Callback<List<DivisionMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<DivisionMasterResponse>>,
+                response: Response<List<DivisionMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            divisionMasterList.clear()
+                            divisionMasterList.add(
+                                DivisionMasterResponse(
+                                    divisionMasterId = 0,
+                                    divisionName = mActivity.getString(R.string.select_division)
+                                )
+                            )
+                            divisionMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedDivision = DivisionMasterResponse(
+                                    divisionMasterId = divisionMasterList[1].divisionMasterId,
+                                    divisionName = divisionMasterList[1].divisionName
+                                )
+                                binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+                                callCategoryListApi()
+                            }else{
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_DIVISION,
+                                    divisionList = divisionMasterList,
+                                    divisionInterfaceDetect = this@AddVisitFragment as UserSearchDialogUtil.DivisionDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
+                                callCategoryListApi()
+                            }
+                        }else{
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.division_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<DivisionMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callCommonDropDownListApi(apiType: String) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showAlertDialog(
+                mActivity,
+                getString(R.string.network_error),
+                getString(R.string.network_error_msg),
+                null,
+                isCancelVisibility = false
+            )
+            return
+        }
+
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val stageCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDropDownMasterDetails(apiType, "")
+
+        stageCall?.enqueue(object : Callback<List<CommonDropDownResponse>> {
+            override fun onResponse(
+                call: Call<List<CommonDropDownResponse>>,
+                response: Response<List<CommonDropDownResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            if (apiType == DROP_DOWN_STAGE) {
+                                stageList.clear()
+                                stageList.addAll(it)
+                            } else {
+                                visitTypeList.clear()
+                                visitTypeList.addAll(it)
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.something_went_wrong)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CommonDropDownResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+        })
+
+    }
+
+    private fun callInquiryListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showAlertDialog(
+                mActivity,
+                getString(R.string.network_error),
+                getString(R.string.network_error_msg),
+                null,
+                isCancelVisibility = false
+            )
+            return
+        }
+
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+        val jsonReq = JsonObject().apply {
+            addProperty("categoryMasterId", selectedCategory?.categoryMasterId)
+            addProperty("companyMasterId", selectedCompany?.companyMasterId)
+            addProperty("branchMasterId", selectedBranch?.branchMasterId)
+            addProperty("divisionMasterId", selectedDivision?.divisionMasterId)
+            addProperty("userId", loginData.userId)
+            addProperty("serachCriteria", "")
+            addProperty("accountMasterId", visitData.accountMasterId)
+        }
+        val inquiryCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getVisitInquiryList(jsonReq)
+
+        inquiryCall?.enqueue(object : Callback<List<InquiryResponse>> {
+            override fun onResponse(
+                call: Call<List<InquiryResponse>>,
+                response: Response<List<InquiryResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            inquiryList.clear()
+                            inquiryList.add(
+                                InquiryResponse(
+                                    documentId = 0,
+                                    productName = mActivity.getString(R.string.select_inquiry),
+                                )
+                            )
+                            inquiryList.addAll(it)
+                            showCustomDialog(it)
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                "Inquiry List not found"
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<InquiryResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+        })
+
+    }
+
+    private fun showCustomDialog(inquiries: List<InquiryResponse>) {
+        val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
+        inquiryDialog = builder.create()
+        inquiryDialog!!.setCancelable(false)
+        inquiryDialog!!.setCanceledOnTouchOutside(false)
+        inquiryDialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        inquiryDialog!!.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val inflater =
+            mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val layout: View = inflater.inflate(R.layout.add_inquiry_dialog, null)
+        val rvInquiry = layout.findViewById<RecyclerView>(R.id.rvInquiry)
+        val cbAll = layout.findViewById<CheckBox>(R.id.cbSelectedItems)
+        val btnSubmit = layout.findViewById<Button>(R.id.btnSubmit)
+        val imgBack = layout.findViewById<ImageView>(R.id.imgBack)
+        val edtSearch = layout.findViewById<EditText>(R.id.edtSearch)
+        val adapter = InquiryAdapter(mActivity, inquiries)
+
+        edtSearch.addTextChangedListener(object : TextWatcher {
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.filter(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        if (visitDetailsList.isNotEmpty()) {
+            adapter.updateCheckedItems(visitDetailsList)
+        }
+        rvInquiry.layoutManager = LinearLayoutManager(mActivity)
+        rvInquiry.adapter = adapter
+
+        imgBack.setOnClickListener {
+            inquiryDialog?.dismiss()
+        }
+        btnSubmit.setOnClickListener {
+            visitDetailsList = adapter.getSelectedItems()
+            if (visitDetailsList.isNotEmpty()) {
+                inquiryDialog?.dismiss()
+                binding.tvTotalSelectedItem.text =
+                    visitDetailsList.size.toString() + " Inquiry/Quotation Selected"
+                binding.tvTotalSelectedItem.setTextColor(
+                    ContextCompat.getColor(
+                        mActivity,
+                        R.color.colorGreen
+                    )
+                )
+            } else {
+                CommonMethods.showToastMessage(mActivity, getString(R.string.no_items_selected))
+            }
+        }
+
+        cbAll.setOnCheckedChangeListener { _, isChecked ->
+            adapter.selectAll(isChecked)
+        }
+
+        inquiryDialog!!.setView(layout)
+        inquiryDialog!!.window!!.setBackgroundDrawableResource(R.drawable.dialog_shape)
+        inquiryDialog!!.show()
+    }
+
     private fun setupCategorySpinner() {
         val adapter = LeaveTypeAdapter(
             mActivity,
             R.layout.simple_spinner_item,
-            visitTypeList,
-            this
+            categoryList,
+            this,
         )
-        binding.spVisitType.adapter = adapter
-
-        selectedVisitType = if (isReadOnly) {
-            val visitType = LeaveTypeListResponse(
-                0,
-                visitReportData.categoryMasterId,
-                visitReportData.categoryName,
-                0.0
+        binding.spCategory.adapter = adapter
+        selectedCategory = if (isReadOnly) {
+            val categoryData = CategoryMasterResponse(
+                categoryMasterId = visitReportData.categoryMasterId,
+                categoryName = visitReportData.categoryName
             )
             val pos =
-                visitTypeList.indexOfFirst { it.categoryMasterId == visitType.categoryMasterId }
-            binding.spVisitType.setSelection(pos)
-            visitType
+                categoryList.indexOfFirst { it.categoryMasterId == categoryData.categoryMasterId }
+            binding.spCategory.setSelection(pos)
+            categoryData
         } else {
-            binding.spVisitType.setSelection(0)
-            visitTypeList[0]
+            if (categoryList.size == 2) {
+                selectedCategory = CategoryMasterResponse(
+                    categoryMasterId = categoryList[1].categoryMasterId,
+                    categoryName = categoryList[1].categoryName
+                )
+                binding.spCategory.setSelection(1)
+                categoryList[1]
+            } else {
+                binding.spCategory.setSelection(0)
+                categoryList[0]
+            }
         }
+
+
     }
 
     private fun callAddVisitApi() {
@@ -566,50 +1422,100 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
         val addVisitReq = JsonObject()
         addVisitReq.addProperty("VisitId", 0)
-        addVisitReq.addProperty("CategoryMasterId", selectedVisitType?.categoryMasterId)
-        addVisitReq.addProperty("CategoryName", selectedVisitType?.categoryName)
+        addVisitReq.addProperty("CategoryMasterId", selectedCategory?.categoryMasterId)
         addVisitReq.addProperty("AccountMasterId", visitData.accountMasterId)
-        addVisitReq.addProperty("AccountName", visitData.accountName)
         addVisitReq.addProperty("CityId", visitData.cityId)
-        addVisitReq.addProperty("CityName", visitData.cityName)
         addVisitReq.addProperty("ContactPersonName", binding.etContactPerson.text.toString())
         addVisitReq.addProperty("VisitDetails", binding.etVisitDetails.text.toString())
         addVisitReq.addProperty("NextVisitDateTime", nextVisitDateTime)
-
         addVisitReq.addProperty(
             "NextVisitSubject",
             binding.etNextVisitSubject.text.trim().toString()
         )
         addVisitReq.addProperty("Remakrs", binding.etRemarks.text.trim().toString())
-        addVisitReq.addProperty(
-            "FilePath",
-            if (base64Image == null || base64Image.isEmpty()) "" else base64Image
-        )
         addVisitReq.addProperty("Latitude", currentLatitude)
         addVisitReq.addProperty("Longitude", currentLongitude)
         addVisitReq.addProperty("Location", currentAddress)
         addVisitReq.addProperty("TripId", tripId)
         addVisitReq.addProperty("PreviousVisitId", previousVisitId)
         addVisitReq.addProperty("MapKM", totalDistance)
-        addVisitReq.addProperty("IsActive", true)
-        addVisitReq.addProperty("CommandId", 0)
-        addVisitReq.addProperty("CreateBy", 0)
-        addVisitReq.addProperty("CreateDateTime", CommonMethods.getCurrentDateTime())
-        addVisitReq.addProperty("UpdateBy", 0)
-        addVisitReq.addProperty("UpdateDateTime", CommonMethods.getCurrentDateTime())
-        addVisitReq.addProperty("Deleteby", 0)
-        addVisitReq.addProperty("DeleteDateTime", CommonMethods.getCurrentDateTime())
+        addVisitReq.addProperty("UserId", loginData.userId)
+        addVisitReq.addProperty("CompanyMasterId", selectedCompany?.companyMasterId)
+        addVisitReq.addProperty("BranchMasterId", selectedBranch?.branchMasterId)
+        addVisitReq.addProperty("DivisionMasterId", selectedDivision?.divisionMasterId)
+        addVisitReq.addProperty("DDMVisitTypeId", selectedVisitType?.dropdownKeyId)
+        addVisitReq.addProperty("ModeOfCommunication", selectedModeOfCommunication)
+        addVisitReq.addProperty("StartTime", binding.tvStartTime.text.toString())
+        addVisitReq.addProperty("EndTime", binding.tvEndTime.text.toString())
+        addVisitReq.addProperty("VisitStatus", selectedStatus)
+        addVisitReq.addProperty("DDMStageId", selectedStage?.dropdownKeyId)
+        addVisitReq.addProperty("SelfiePath", base64SelfieImage)
+
+        if (imageAnyList.size > 0) {
+            if (CommonMethods.isHttpUrl(imageAnyList[0].toString())) {
+                addVisitReq.addProperty("FilePath", imageAnyList[0].toString())
+            } else {
+                val imageBase64 =
+                    CommonMethods.convertImageFileToBase64(imageAnyList[0] as File).toString()
+                addVisitReq.addProperty("FilePath", imageBase64)
+            }
+            if (imageAnyList.size > 1) {
+                if (CommonMethods.isHttpUrl(imageAnyList[1].toString())) {
+                    addVisitReq.addProperty("FilePath2", imageAnyList[1].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[1] as File).toString()
+                    addVisitReq.addProperty("FilePath2", imageBase64)
+                }
+            } else {
+                addVisitReq.addProperty("FilePath2", "")
+            }
+            if (imageAnyList.size > 2) {
+                if (CommonMethods.isHttpUrl(imageAnyList[2].toString())) {
+                    addVisitReq.addProperty("FilePath3", imageAnyList[2].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[2] as File).toString()
+                    addVisitReq.addProperty("FilePath3", imageBase64)
+                }
+            } else {
+                addVisitReq.addProperty("FilePath3", "")
+            }
+            if (imageAnyList.size > 3) {
+                if (CommonMethods.isHttpUrl(imageAnyList[3].toString())) {
+                    addVisitReq.addProperty("FilePath4", imageAnyList[3].toString())
+                } else {
+                    val imageBase64 =
+                        CommonMethods.convertImageFileToBase64(imageAnyList[3] as File).toString()
+                    addVisitReq.addProperty("FilePath4", imageBase64)
+                }
+            } else {
+                addVisitReq.addProperty("FilePath4", "")
+            }
+        } else {
+            addVisitReq.addProperty("FilePath", "")
+            addVisitReq.addProperty("FilePath2", "")
+            addVisitReq.addProperty("FilePath3", "")
+            addVisitReq.addProperty("FilePath4", "")
+        }
+
         addVisitReq.addProperty("Success", false)
         addVisitReq.addProperty("ReturnMessage", "")
-        addVisitReq.addProperty("UserId", loginData.userId)
-        addVisitReq.addProperty("VisitDate", binding.tvNextVisitFollowUpDate.text.toString())
-        addVisitReq.addProperty("VisitTime", binding.tvNextFollowUpTime.text.toString())
-        addVisitReq.addProperty("FromDate", "")
-        addVisitReq.addProperty("ToDate", "")
 
+        val jsonArray = JsonArray()
+        for (i in visitDetailsList) {
+            val jsonObj = JsonObject()
+            jsonObj.addProperty("VisitDetailsId", 0)
+            jsonObj.addProperty("VisitId", 0)
+            jsonObj.addProperty("TableName", i.tableName)//dynamic get from visitdetailslist
+            jsonObj.addProperty("ReferenceId", i.documentDetailsId)
+            jsonObj.addProperty("Remarks", "")
+            jsonObj.addProperty("EditUserMasterId", loginData.userId)
+            jsonObj.addProperty("EditVersion", BuildConfig.VERSION_NAME)
+            jsonArray.add(jsonObj)
+        }
+        addVisitReq.add("visitDetail", jsonArray)
 
-        print("MY REQ ::::::: " + addVisitReq)
-        Log.e("TAG", "callAddExpenseApi: ADD EXPENSE REQ :: " + addVisitReq)
         val expenseTypeCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.addVisit(addVisitReq)
@@ -666,7 +1572,6 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                     )
                 }
             }
-
         })
 
     }
@@ -701,6 +1606,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }
@@ -799,8 +1705,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
     }
 
-    override fun onTypeSelect(typeData: LeaveTypeListResponse) {
-        selectedVisitType = typeData
+    override fun onTypeSelect(typeData: CategoryMasterResponse) {
+        selectedCategory = typeData
     }
 
     private fun showTimePickerDialog() {
@@ -811,25 +1717,24 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         // Create a TimePickerDialog
         val timePickerDialog = TimePickerDialog(
             mActivity,
-            { view, selectedHour, selectedMinute ->
-                // Handle the selected time (hour and minute) here
-                val amPm: String
-                val hour12: Int
-
-                if (selectedHour >= 12) {
-                    amPm = "PM"
-                    hour12 = if (selectedHour > 12) selectedHour - 12 else selectedHour
-                } else {
-                    amPm = "AM"
-                    hour12 = if (selectedHour == 0) 12 else selectedHour
+            { _, selectedHour, selectedMinute ->
+                // Determine AM/PM and convert to 12-hour format
+                val amPm = if (selectedHour >= 12) "PM" else "AM"
+                val hour12 = when {
+                    selectedHour == 0 -> 12 // Midnight case
+                    selectedHour > 12 -> selectedHour - 12 // Convert 24-hour to 12-hour
+                    else -> selectedHour // Morning case
                 }
 
+                // Format time as hh:mm AM/PM
                 val time = String.format("%02d:%02d %s", hour12, selectedMinute, amPm)
+
+                // Update the UI with the selected time
                 binding.tvNextFollowUpTime.text = time
             },
             hour,
             minute,
-            false
+            false // Use 12-hour format
         )
 
         timePickerDialog.show()
@@ -845,5 +1750,275 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.tvSelectParty.text = partyDealerData.accountName
     }
 
+    fun selectTime(
+        timeType: TimeType,
+        selectedTime: String,
+        onTimeSelected: (String) -> Unit
+    ) {
+        val currentTime = CommonMethods.getCurrentTimeIn12HrFormat()
 
+        when (timeType) {
+            TimeType.FROM_START_TIME -> {
+                openTimePicker(timeType, selectedTime) { startTime ->
+                    val endTime = binding.tvEndTime.text.toString()
+
+                    if (!isTimeLessThanCurrent(startTime, currentTime)) {
+                        CommonMethods.showToastMessage(
+                            mActivity, "Start time must be less than current time"
+                        )
+                        return@openTimePicker
+                    }
+
+                    if (endTime.isEmpty() || isEndTimeValid(startTime, endTime)) {
+                        binding.tvStartTime.text = startTime
+                        if (endTime.isEmpty()) {
+                            binding.tvEndTime.text = startTime
+                        }
+                        onTimeSelected(startTime)
+                    } else {
+                        CommonMethods.showToastMessage(
+                            mActivity, "Start time must be less than end time"
+                        )
+                    }
+                }
+            }
+
+            TimeType.TO_END_TIME -> {
+                val startTime = binding.tvStartTime.text.toString()
+
+                if (startTime.isEmpty()) {
+                    CommonMethods.showToastMessage(
+                        mActivity, getString(R.string.please_select_the_start_time_first)
+                    )
+                    return
+                }
+
+                openTimePicker(timeType, selectedTime) { endTime ->
+                    if (!isTimeLessThanCurrent(endTime, currentTime)) {
+                        CommonMethods.showToastMessage(
+                            mActivity, "End time must be less than current time"
+                        )
+                        return@openTimePicker
+                    }
+
+                    if (isEndTimeValid(startTime, endTime)) {
+                        binding.tvEndTime.text = endTime
+                        onTimeSelected(endTime)
+                    } else {
+                        CommonMethods.showToastMessage(
+                            mActivity, "End time must be greater than start time"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun isEndTimeValid(startTime: String, endTime: String): Boolean {
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val startTimeDate = timeFormat.parse(startTime)
+        val endTimeDate = timeFormat.parse(endTime)
+        return endTimeDate.after(startTimeDate)
+    }
+
+    fun isTimeLessThanCurrent(time: String, currentTime: String): Boolean {
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val selectedTimeDate = timeFormat.parse(time)
+        val currentTimeDate = timeFormat.parse(currentTime)
+        return selectedTimeDate.before(currentTimeDate)
+    }
+
+
+    fun openTimePicker(
+        timeType: TimeType,
+        previousSelectedTime: String = "",
+        onTimeSelected: (String) -> Unit
+    ) {
+        val calendar = Calendar.getInstance()
+        val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+
+        // Parse the previous selected time if available
+        if (previousSelectedTime.isNotEmpty()) {
+            try {
+                val parsedDate = timeFormat.parse(previousSelectedTime)
+                parsedDate?.let {
+                    calendar.time = it
+                }
+            } catch (e: Exception) {
+                e.printStackTrace() // Handle parsing error if the time format is invalid
+            }
+        }
+
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        val timePickerDialog = android.app.TimePickerDialog(
+            mActivity,
+            { _, hourOfDay, selectedMinute ->
+                // Set the selected time
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                calendar.set(Calendar.MINUTE, selectedMinute)
+
+                // Format time as hh:mm a (e.g., 11:24 PM)
+                val formattedTime = timeFormat.format(calendar.time)
+                onTimeSelected(formattedTime)
+            },
+            hour,
+            minute,
+            false // Use 12-hour format
+        )
+
+        timePickerDialog.show()
+    }
+
+
+    override fun companySelect(dropDownData: CompanyMasterResponse) {
+        selectedCompany = dropDownData
+        binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+        resetSelection(
+            resetBranch = true,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if((selectedCompany?.companyMasterId ?: 0) > 0) {
+            callBranchListApi()
+        }
+    }
+
+    override fun branchSelect(dropDownData: BranchMasterResponse) {
+        selectedBranch = dropDownData
+        binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if((selectedBranch?.branchMasterId ?: 0) > 0){
+            callDivisionListApi()
+        }
+    }
+
+    override fun divisionSelect(dropDownData: DivisionMasterResponse) {
+        selectedDivision = dropDownData
+        binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = false,
+            resetCategory = true
+        )
+        if((selectedDivision?.divisionMasterId ?: 0) > 0) {
+            callCategoryListApi()
+        }
+    }
+
+    override fun dropDownSelect(dropDownData: CommonDropDownResponse, dropDownType: String) {
+        if (dropDownType == DROP_DOWN_STAGE) {
+            binding.tvSelectStage.text = dropDownData.dropdownValue
+            selectedStage = dropDownData
+        } else {
+            binding.tvSelectVisitType.text = dropDownData.dropdownValue
+            selectedVisitType = dropDownData
+        }
+    }
+
+    class InquiryAdapter(private val context: Context, private val items: List<InquiryResponse>) :
+        RecyclerView.Adapter<InquiryAdapter.ItemViewHolder>() {
+
+        private val checkedStates = BooleanArray(items.size)
+        private var filteredItems: MutableList<InquiryResponse> = items.toMutableList()
+
+        // Method to re-check previously selected items
+        fun updateCheckedItems(selectedItems: List<InquiryResponse>) {
+            for ((index, item) in filteredItems.withIndex()) {
+                checkedStates[index] =
+                    selectedItems.any { it.documentDetailsId == item.documentDetailsId }
+            }
+            notifyDataSetChanged()
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
+            val view =
+                LayoutInflater.from(context).inflate(R.layout.item_inquiry_layout, parent, false)
+            return ItemViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
+            holder.bind(filteredItems[position], checkedStates[position])
+            holder.itemCheckBox.setOnCheckedChangeListener { _, isChecked ->
+                checkedStates[position] = isChecked
+            }
+        }
+
+        override fun getItemCount(): Int = filteredItems.size
+
+        fun selectAll(isChecked: Boolean) {
+            for (i in checkedStates.indices) {
+                checkedStates[i] = isChecked
+            }
+            notifyDataSetChanged()
+        }
+
+        fun getSelectedItems(): List<InquiryResponse> {
+            return filteredItems.filterIndexed { index, _ -> checkedStates[index] }
+        }
+
+        fun filter(query: String) {
+            filteredItems = if (query.isEmpty()) {
+                items.toMutableList()
+            } else {
+                items.filter {
+                    (it.productName ?: "").contains(query, ignoreCase = true) ||
+                            (it.categoryName ?: "").contains(query, ignoreCase = true) ||
+                            it.documentMode.toString().contains(query, ignoreCase = true) ||
+                            it.quantity.toString().contains(query, ignoreCase = true) ||
+                            it.rate.toString().contains(query, ignoreCase = true) ||
+                            it.amount.toString().contains(query, ignoreCase = true)
+                }.toMutableList()
+            }
+            notifyDataSetChanged()
+        }
+
+        class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            lateinit var itemCheckBox: CheckBox
+            fun bind(item: InquiryResponse, isChecked: Boolean) {
+                val tvProductName = itemView.findViewById<TextView>(R.id.tvProductName)
+                val tvEntryNo = itemView.findViewById<TextView>(R.id.tvEntryNo)
+                val tvDate = itemView.findViewById<TextView>(R.id.tvEntryDate)
+                val tvQty = itemView.findViewById<TextView>(R.id.tvQuantity)
+                val tvRate = itemView.findViewById<TextView>(R.id.tvRate)
+                val tvAmount = itemView.findViewById<TextView>(R.id.tvAmount)
+                itemCheckBox = itemView.findViewById(R.id.itemCheckBox)
+                tvProductName.text = item.productName
+                tvEntryNo.text = "${item.categoryName}-${item.documentNo}"
+                tvDate.text = item.documentDate
+                tvQty.text = item.quantity.toString()
+                tvRate.text = item.rate.toString()
+                tvAmount.text = item.amount.toString()
+                itemCheckBox.isChecked = isChecked
+            }
+        }
+    }
+
+    private fun resetSelection(resetBranch: Boolean, resetDivision: Boolean, resetCategory: Boolean) {
+        if (resetBranch) {
+            selectedBranch = null
+            binding.tvSelectBranch.hint = mActivity.getString(R.string.select_branch)
+            binding.tvSelectBranch.text = ""
+            branchMasterList.clear()
+        }
+        if (resetDivision) {
+            selectedDivision = null
+            binding.tvSelectDivision.hint = mActivity.getString(R.string.select_division)
+            binding.tvSelectDivision.text = ""
+            divisionMasterList.clear()
+        }
+        if (resetCategory) {
+            selectedCategory = null
+            binding.tvCategory.hint = mActivity.getString(R.string.select_category)
+            binding.tvCategory.text = ""
+            categoryList.clear()
+            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+            setupCategorySpinner()
+        }
+    }
 }

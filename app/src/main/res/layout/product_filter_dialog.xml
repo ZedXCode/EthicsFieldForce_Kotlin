@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/LinearLayoutVertical"
+    android:layout_margin="@dimen/_10sdp"
+    android:background="@drawable/dialog_background"
+    android:padding="@dimen/_20sdp">
+
+
+    <TextView
+        style="@style/DialogHeader"
+        android:text="@string/filter"
+        android:textColor="@color/colorPrimary" />
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/product_group"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <Spinner
+            android:id="@+id/spProductGroup"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:hint="Select Product Group"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/product_size"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <TextView
+            android:id="@+id/tvFilter2"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:hint="Select Product Size"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/product_design"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <TextView
+            android:id="@+id/tvFilter3"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:hint="Select Product Design"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/product_grade"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <TextView
+            android:id="@+id/tvFilter4"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:paddingStart="@dimen/_5sdp"
+            android:hint="Select Product Grade"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <TextView
+        style="@style/TextViewLabelNormal"
+        android:layout_marginTop="@dimen/_7sdp"
+        android:text="@string/product_series"
+        android:textColor="@color/black" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp">
+
+        <TextView
+            android:id="@+id/tvFilter5"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_40sdp"
+            android:hint="Select Product Series"
+            android:background="@drawable/edittext_background"
+            android:gravity="start|center"
+            android:paddingStart="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_5sdp"
+            android:singleLine="true"
+            android:textColor="@color/black" />
+
+        <ImageView
+            android:layout_width="@dimen/_20sdp"
+            android:layout_height="@dimen/_20sdp"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:src="@drawable/ic_drop_down" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/btnSubmit"
+        style="@style/CommonButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_25sdp"
+        android:backgroundTint="@color/colorPrimary"
+        android:gravity="center"
+        android:paddingStart="@dimen/_40sdp"
+        android:paddingEnd="@dimen/_40sdp"
+        android:text="@string/apply" />
+</LinearLayout>

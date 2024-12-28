@@ -1,5 +1,6 @@
 package ethicstechno.com.fieldforce.ui.fragments.bottomnavigation
 
+import AnimationType
 import addFragment
 import android.os.Bundle
 import android.util.Log
@@ -27,7 +28,17 @@ import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntr
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.PartyDealerListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.tourplan.TourPlanFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.VisitListFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_APPROVAL
+import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_ENTRY
+import ethicstechno.com.fieldforce.utils.MORE_INQUIRY_ENTRY
+import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPLICATION
+import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPROVAL
+import ethicstechno.com.fieldforce.utils.MORE_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.MORE_PARTY_DEALER
+import ethicstechno.com.fieldforce.utils.MORE_TOUR_PLAN
+import ethicstechno.com.fieldforce.utils.MORE_VISIT
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -94,6 +105,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
         moreList.add(MoreModel(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_leave_approval))
         moreList.add(MoreModel(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_tour_plan))
         moreList.add(MoreModel(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_order_entry))
+        moreList.add(MoreModel(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_order_entry))
     }
 
     private fun setupMoreAdapter() {
@@ -251,6 +263,15 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
+                        getString(R.string.more_inquiry_entry) ->{
+                            mActivity.addFragment(
+                                OrderEntryListFragment.newInstance(true),
+                                addToBackStack = true,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
+
 
                         getString(R.string.more_payment_follow_up) ->{
                             gotoReportDrill(getString(R.string.more_payment_follow_up))

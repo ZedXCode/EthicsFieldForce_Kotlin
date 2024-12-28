@@ -23,7 +23,16 @@ import ethicstechno.com.fieldforce.models.profile.StateListResponse
 import ethicstechno.com.fieldforce.models.profile.UserProfileResponse
 import ethicstechno.com.fieldforce.models.profile.ZoneListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.AlbumUtility
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FOR_COUNTRY
+import ethicstechno.com.fieldforce.utils.FOR_PLACE
+import ethicstechno.com.fieldforce.utils.FOR_STATE
+import ethicstechno.com.fieldforce.utils.FOR_ZONE
+import ethicstechno.com.fieldforce.utils.ImagePreviewCommonDialog
+import ethicstechno.com.fieldforce.utils.ImageUtils
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import retrofit2.Call
 import retrofit2.Callback
@@ -391,7 +400,8 @@ class ProfileFragment : HomeBaseFragment(), View.OnClickListener,
         profileUpdateReq.addProperty("StateId", selectedState.stateId)
         profileUpdateReq.addProperty("ZoneId", selectedZone.zoneId)
         profileUpdateReq.addProperty("CityId", selectedCity.cityId)
-        profileUpdateReq.addProperty("PinCode", binding.etPincode.text.toString().trim())
+        profileUpdateReq.addProperty("PinCode",
+            binding.etPincode.text.toString().trim().ifEmpty { "0" })
         profileUpdateReq.addProperty("Address", binding.etAddress.text.toString().trim())
         profileUpdateReq.addProperty("PersonalEmailId", binding.etMail.text.toString().trim())
         profileUpdateReq.addProperty("PersonalMobileNo", binding.etMobileNo.text.toString().trim())

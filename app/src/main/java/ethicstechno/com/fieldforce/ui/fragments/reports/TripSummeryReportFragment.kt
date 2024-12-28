@@ -32,6 +32,7 @@ import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceRespo
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.TripSummeryReportResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.ui.adapter.AttendanceAdapter
@@ -326,7 +327,7 @@ class TripSummeryReportFragment : HomeBaseFragment(), View.OnClickListener, Filt
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: LeaveTypeListResponse,
+        visitType: CategoryMasterResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

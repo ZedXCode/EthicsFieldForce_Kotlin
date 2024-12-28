@@ -88,6 +88,7 @@ public class AlbumActivity extends BaseActivity implements
     private long mLimitBytes;
 
     private boolean mFilterVisibility;
+    private boolean isCameraFront;
 
     private ArrayList<AlbumFile> mCheckedList;
     private MediaScanner mMediaScanner;
