@@ -65,7 +65,6 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var currentLatitude = 0.0
     var currentLongitude = 0.0
     lateinit var imgProfile: CircleImageView
-    var isExitFromAddOrderEntry = false
 
     init {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
