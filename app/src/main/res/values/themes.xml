@@ -362,14 +362,15 @@
     </style>
 
     <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="android:theme">@style/ThemeTextInput</item>
         <item name="boxStrokeColor">@color/colorPrimary</item>
-        <item name="boxCornerRadiusTopStart">@dimen/_30sdp</item>
-        <item name="boxCornerRadiusTopEnd">@dimen/_30sdp</item>
-        <item name="boxCornerRadiusBottomStart">@dimen/_30sdp</item>
-        <item name="boxCornerRadiusBottomEnd">@dimen/_30sdp</item>
+        <item name="boxCornerRadiusTopStart">@dimen/_10sdp</item>
+        <item name="boxCornerRadiusTopEnd">@dimen/_10sdp</item>
+        <item name="boxCornerRadiusBottomStart">@dimen/_10sdp</item>
+        <item name="boxCornerRadiusBottomEnd">@dimen/_10sdp</item>
         <item name="hintEnabled">false</item>
+        <item name="android:textColorHint">@color/colorPrimary</item>
     </style>
+
 
     <style name="ThemeTextInput" parent="">
         <item name="colorOnSurface">@color/colorPrimary</item>

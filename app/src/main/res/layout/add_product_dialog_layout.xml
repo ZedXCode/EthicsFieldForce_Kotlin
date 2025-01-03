@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <RelativeLayout xmlns:tools="http://schemas.android.com/tools"
+    <LinearLayout xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -11,7 +11,6 @@
             android:id="@+id/llToolBar"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_40sdp"
-            android:layout_alignParentTop="true"
             android:background="@color/colorPrimary"
             android:orientation="horizontal">
 
@@ -84,7 +83,6 @@
             android:id="@+id/llFilterView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/llToolBar"
             android:orientation="vertical">
 
             <LinearLayout
@@ -112,8 +110,7 @@
                         android:paddingEnd="@dimen/_25sdp"
                         android:singleLine="true"
                         android:textColor="@color/black"
-                        android:textColorHint="@color/black"
-                        android:textSize="@dimen/_14ssp" />
+                        android:textColorHint="@color/black" />
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
@@ -124,11 +121,100 @@
                         android:src="@drawable/ic_drop_down" />
                 </FrameLayout>
 
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/clSearchLayout"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!-- TextInputLayout -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/textInputLayout"
+                        style="@style/TextInputLayoutStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/edtSearch"
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/_50sdp"
+                            android:drawableStart="@drawable/ic_search_small"
+                            android:drawablePadding="@dimen/_8sdp"
+                            android:layout_gravity="start|center"
+                            android:singleLine="true"
+                            android:gravity="start|center"
+                            android:hint="@string/search_here"
+                            android:paddingStart="@dimen/_12sdp"
+                            android:textSize="@dimen/_14ssp" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- TextView acting as a drawable -->
+                    <TextView
+                        android:id="@+id/tvSearchGO"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/_40sdp"
+                        android:background="@drawable/button_background_primary"
+                        android:backgroundTint="@color/colorPrimary"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="GO"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/textInputLayout" />
+
+                    <TextView
+                        android:id="@+id/tvSearchClear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/_40sdp"
+                        android:background="@drawable/button_background_primary"
+                        android:backgroundTint="@color/colorRed"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:text="Clear"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/textInputLayout" />
+
+                    <ImageView
+                        android:id="@+id/imgCloseSearch"
+                        android:layout_width="@dimen/_24sdp"
+                        android:layout_height="@dimen/_24sdp"
+                        android:layout_marginEnd="@dimen/_4sdp"
+                        app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/textInputLayout"
+                        android:src="@drawable/ic_close_black"
+                        app:tint="@color/colorGray" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <ImageView
+                    android:id="@+id/imgSearch"
+                    android:src="@drawable/ic_search"
+                    android:layout_width="@dimen/_30sdp"
+                    android:layout_gravity="center"
+                    android:padding="@dimen/_4sdp"
+                    android:layout_marginStart="@dimen/_2sdp"
+                    android:layout_height="@dimen/_30sdp"
+                    app:tint="@color/colorPrimary" />
+
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/svView"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_38sdp"
                     android:layout_gravity="center"
+                    android:visibility="gone"
                     android:gravity="center"
                     android:hint="@string/search_here"
                     android:queryHint="Search Here.."
@@ -273,7 +359,6 @@
             android:id="@+id/cbSelectedItems"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/llFilterView"
             android:layout_marginStart="@dimen/_6sdp"
             android:buttonTint="@color/colorMaroon"
             android:text="Selected Products"
@@ -284,12 +369,21 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvProduct"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/cbSelectedItems"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:layout_marginTop="@dimen/_4sdp"
-            android:layout_marginBottom="@dimen/_10sdp"
             tools:listitem="@layout/product_layout" />
 
+        <ProgressBar
+            android:id="@+id/loader"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_30sdp"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_4sdp"
+            android:visibility="gone"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorPrimary" />
 
-    </RelativeLayout>
+    </LinearLayout>
 </layout>

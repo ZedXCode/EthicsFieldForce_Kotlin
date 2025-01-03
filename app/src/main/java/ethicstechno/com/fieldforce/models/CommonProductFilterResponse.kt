@@ -38,5 +38,7 @@ class DropDownItem(
     val dropdownKeyId: String? = null,
 
     @SerializedName("DropdownValue")
-    val dropdownValue: String? = null
+    val dropdownValue: String? = null,
+    // New property to track selection
+    var isSelected: Boolean = false
 ) : Parcelable

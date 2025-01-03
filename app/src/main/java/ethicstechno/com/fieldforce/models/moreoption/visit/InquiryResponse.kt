@@ -46,5 +46,7 @@ data class InquiryResponse(
     val documentNo: Int? = 0,
 
     @SerializedName("TableName")
-    val tableName: String? = ""
+    val tableName: String? = "",
+    // New property to track selection state
+    var isSelected: Boolean = false
 ) : Parcelable

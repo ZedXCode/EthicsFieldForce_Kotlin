@@ -717,6 +717,9 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         )
     }*/
     private fun openAlbumForList() {
+        val maxImageLimit = 4
+        val remainingLimit = maxImageLimit - imageAnyList.size
+
         AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
             onImagesSelected = { selectedFiles ->
                 lifecycleScope.launch(Dispatchers.IO) {
@@ -737,7 +740,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             },
             onError = {
                 CommonMethods.showToastMessage(mActivity, it)
-            }
+            },
+            remainingLimit
         )
     }
 

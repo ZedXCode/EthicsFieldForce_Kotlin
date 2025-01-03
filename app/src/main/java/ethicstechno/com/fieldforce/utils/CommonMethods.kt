@@ -477,6 +477,7 @@ class CommonMethods {
 
                 filterDialog.dismiss()
             }
+
             val adapter = DateOptionAdapter(
                 mActivity,
                 R.layout.simple_spinner_item,
@@ -591,7 +592,7 @@ class CommonMethods {
         }
 
 
-        private fun openStartDatePickerDialog(
+        fun openStartDatePickerDialog(
             isStartDate: Boolean,
             mActivity: HomeActivity,
             tvStartDate: TextView,

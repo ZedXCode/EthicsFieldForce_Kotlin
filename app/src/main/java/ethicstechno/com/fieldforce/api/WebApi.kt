@@ -162,6 +162,9 @@ interface WebApi {
     @POST("api/AccountMaster/GetPartyDealerList")
     fun getPartyDealerList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
 
+    @POST("api/AccountMaster/GetPartyDealerSearchList")
+    fun getPartyDealerSearchList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
+
     @POST("api/AccountMaster/GetPartyDealerDetails")
     fun getPartyDealerDetails(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
 
@@ -262,7 +265,10 @@ interface WebApi {
     @POST("api/Order/GetProductGroupList")
     fun getProductGroupList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>
 
-    @POST("api/Order/GetProductList")
+    /*@POST("api/Order/GetProductList")
+    fun getProductList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>*/
+
+    @POST("api/Order/GetProductListPageNoWise")
     fun getProductList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>
 
     @POST("api/Order/OrderInsertUpdate")

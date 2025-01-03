@@ -20,6 +20,7 @@ import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.RadioButton
 import android.widget.Spinner
 import android.widget.TextView
@@ -40,6 +41,7 @@ import com.groundworksapp.utility.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddOrderEntryBinding
+import ethicstechno.com.fieldforce.databinding.ItemUserBinding
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
@@ -140,6 +142,18 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     var selectedCategory: CategoryMasterResponse? = null
     private var selectedModeOfCommunication = 0
     private var isExpanded = false
+    private var partyDealerPageNo = 1
+    private var distributorPageNo = 1
+    private var isScrolling = false
+    private var isLastPage = false
+    private var layoutManager: LinearLayoutManager? = null
+    private lateinit var partyDealerDialog: AlertDialog
+    private lateinit var partyDealerAdapter: PartyDealerListAdapter
+    private lateinit var paginationLoader: ProgressBar
+    private lateinit var tvSearchGO: TextView
+    private lateinit var tvSearchClear: TextView
+    private lateinit var edtSearchPartyDealer: EditText
+
 
     private val partyDealerItemClickListener =
         object : ItemClickListener<AccountMasterList> {
@@ -407,6 +421,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun openAlbumForList() {
+        val maxImageLimit = 4
+        val remainingLimit = maxImageLimit - imageAnyList.size
+
         AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
             onImagesSelected = { selectedFiles ->
                 lifecycleScope.launch(Dispatchers.IO) {
@@ -427,7 +444,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             },
             onError = {
                 CommonMethods.showToastMessage(mActivity, it)
-            }
+            },
+            remainingLimit
         )
     }
 
@@ -638,56 +656,49 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             showToastMessage(mActivity, getString(R.string.no_internet))
             return
         }
-        CommonMethods.showLoading(mActivity)
+        paginationLoader.visibility = View.VISIBLE
 
         val appRegistrationData = appDao.getAppRegistration()
 
         val orderDateString =
             CommonMethods.convertDateStringForOrderEntry(binding.tvDate.text.toString())
 
-        val parameterString = if (isForPartyDealer) {
-            "FieldName=Order/Party and EntryDate=$orderDateString and CategoryMasterId=${selectedCategory?.categoryMasterId}"
-        } else {
-            "FieldName=Order/Distributor and EntryDate=$orderDateString and CategoryMasterId=${selectedCategory?.categoryMasterId}"
-        }
+        val fieldName =
+            if (isForPartyDealer) "FieldName=Order/Party" else "FieldName=Order/Distributor"
+        val parameterString =
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and EntryDate=$orderDateString and $FORM_ID_ORDER_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)
         jsonReq.addProperty("UserId", loginData.userId)
         jsonReq.addProperty("ParameterString", parameterString)
+        jsonReq.addProperty(
+            "pageNo",
+            if (isForPartyDealer) partyDealerPageNo else distributorPageNo
+        )
 
         val accountMasterCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getOrderAccountMasterList(jsonReq)
+            ?.getPartyDealerSearchList(jsonReq)
 
         accountMasterCall?.enqueue(object : Callback<List<AccountMasterList>> {
             override fun onResponse(
                 call: Call<List<AccountMasterList>>,
                 response: Response<List<AccountMasterList>>
             ) {
-                CommonMethods.hideLoading()
+                paginationLoader.visibility = View.GONE
                 when {
                     response.code() == 200 -> {
                         response.body()?.let {
-                            if (it.isNotEmpty()) {
-                                if (isForPartyDealer) {
-                                    accountMasterList.clear()
-                                    accountMasterList.addAll(it)
-                                    showPartyDealerDialog(true)
-                                } else {
-                                    distributorList.clear()
-                                    distributorList.addAll(it)
-                                    showPartyDealerDialog(false)
-                                }
-                                //setupPartyDealer()
-                            }
+                            handleApiResponse(response, isForPartyDealer)
                         }
                     }
                 }
             }
 
             override fun onFailure(call: Call<List<AccountMasterList>>, t: Throwable) {
-                CommonMethods.hideLoading()
+                paginationLoader.visibility = View.GONE
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -700,6 +711,37 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
         })
 
+    }
+
+    private fun handleApiResponse(
+        response: Response<List<AccountMasterList>>,
+        isForPartyDealer: Boolean
+    ) {
+        paginationLoader.visibility = View.GONE
+
+        if (response.isSuccessful) {
+            response.body()?.let { data ->
+                if (data.isNotEmpty()) {
+                    if (isForPartyDealer) {
+                        if (partyDealerPageNo == 1) {
+                            accountMasterList.clear()
+                            isLastPage = false
+                        }
+                        accountMasterList.addAll(data)
+                    } else {
+                        if (distributorPageNo == 1) {
+                            distributorList.clear()
+                            isLastPage = false
+                        }
+                        distributorList.addAll(data)
+                    }
+                    partyDealerAdapter.notifyDataSetChanged()
+                    isScrolling = false
+                } else {
+                    isLastPage = true
+                }
+            }
+        }
     }
 
     private fun callProductGroupListApi(isForProductGroup: Boolean, productGroupId: Int) {
@@ -718,10 +760,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(binding.tvDate.text.toString())
             val parameterString =
-                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString"
+                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString and $FORM_ID_ORDER_ENTRY"
             jsonReq.addProperty("ProductId", 0)
             jsonReq.addProperty("ProductGroupId", productGroupId)
             jsonReq.addProperty("ParameterString", parameterString)
+            //jsonReq.addProperty("pageNo", if(ispar)partyDealerPageNo)
 
         }
 
@@ -1010,7 +1053,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.etRemarks.setText(orderDetails.remarks)
         binding.tvRemarks.text = orderDetails.remarks
 
-        if (orderDetails.orderDetails.size > 0) {
+        if (orderDetails.orderDetails != null && orderDetails.orderDetails.size > 0) {
             orderDetailsList.clear()
             orderDetailsList.addAll(orderDetails.orderDetails)
             orderDetailsAdapter.refreshAdapter(orderDetailsList)
@@ -1079,26 +1122,28 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             R.id.flPartyDealer -> {
                 avoidDoubleClicks(binding.flPartyDealer)
-                if (selectedCategory?.categoryMasterId!! <= 0) {
+                if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
                 }
-                callAccountMasterList(true)
+                showPartyDealerListDialog(true)
             }
 
             R.id.flSelectDistributor -> {
-                avoidDoubleClicks(binding.flSelectDistributor)
-                if (selectedCategory?.categoryMasterId!! <= 0) {
+                avoidDoubleClicks(binding.flPartyDealer)
+                if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
                 }
-                callAccountMasterList(false)
+                showPartyDealerListDialog(false)
             }
 
             R.id.btnAddOrderDetails -> {
                 avoidDoubleClicks(binding.btnAddOrderDetails)
                 holdDetailsDataList.clear()
-                holdDetailsDataList.addAll(orderDetailsList)
+                if (orderDetailsList != null && orderDetailsList.size > 0) {
+                    holdDetailsDataList.addAll(orderDetailsList)
+                }
                 showProductDialogFragment()
                 //showAddProduct(null, -1)
             }
@@ -1230,7 +1275,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         productDialogFragment = AddProductDialogFragment.newInstance(
             binding.tvDate.text.toString(),
             selectedPartyDealerId,
-            orderDetailsList
+            orderDetailsList,
+            selectedCompany?.companyMasterId ?: 0,
+            selectedBranch?.branchMasterId ?: 0,
+            selectedDivision?.divisionMasterId ?: 0,
+            selectedCategory?.categoryMasterId ?: 0
         )
         productDialogFragment.setStyle(DialogFragment.STYLE_NO_TITLE, R.style.MyAppTheme)
         productDialogFragment.setOrderDetailsListener(this)
@@ -1567,7 +1616,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("CompanyMasterId", selectedCompany?.companyMasterId)
         objReq.addProperty("BranchMasterId", selectedBranch?.branchMasterId)
         objReq.addProperty("DivisionMasterId", selectedDivision?.divisionMasterId)
-        objReq.addProperty("CategoryMasterId", selectedCategory?.categoryMasterId)
         objReq.addProperty("OrderStatusId", 1)
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty("ModeOfCommunication", selectedModeOfCommunication)
@@ -1715,6 +1763,149 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         } catch (e: Exception) {
             Log.e("TAG", "onClick: " + e.message)
         }
+    }
+
+    private fun showPartyDealerListDialog(isFromPartyDealer: Boolean) {
+        try {
+            val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
+            partyDealerDialog = builder.create()
+            partyDealerDialog.setCancelable(false)
+            partyDealerDialog.setCanceledOnTouchOutside(false)
+            partyDealerDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            partyDealerDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+            val inflater =
+                mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val layout: View = inflater.inflate(R.layout.dialog_searchable_listing, null)
+            val rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            val imgClose = layout.findViewById<ImageView>(R.id.imgClose)
+            edtSearchPartyDealer = layout.findViewById<EditText>(R.id.edtSearch)
+            val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
+            paginationLoader = layout.findViewById(R.id.loader)
+            tvSearchGO = layout.findViewById(R.id.tvSearchGO)
+            tvSearchClear = layout.findViewById(R.id.tvSearchClear)
+
+            tvTitle.text = if (isFromPartyDealer) "Party/Dealer List" else "Distributor List"
+
+            setupRecyclerView(rvItems, isFromPartyDealer)
+
+            if (isFromPartyDealer) {
+                if (binding.tvPartyDealer.text.toString().trim().isNotEmpty()) {
+                    edtSearchPartyDealer.setText(binding.tvPartyDealer.text.toString().trim())
+                    tvSearchClear.visibility = View.VISIBLE
+                    tvSearchGO.visibility = View.GONE
+                    partyDealerPageNo = 1
+                }
+                callAccountMasterList(true)
+            } else {
+                if (binding.tvSelectDistributor.text.toString().trim().isNotEmpty()) {
+                    edtSearchPartyDealer.setText(binding.tvSelectDistributor.text.toString().trim())
+                    tvSearchClear.visibility = View.VISIBLE
+                    tvSearchGO.visibility = View.GONE
+                    distributorPageNo = 1
+                }
+                callAccountMasterList(false)
+            }
+            tvSearchGO.setOnClickListener {
+                if (isFromPartyDealer) {
+                    partyDealerPageNo = 1
+                    callAccountMasterList(true)
+                } else {
+                    distributorPageNo = 1
+                    callAccountMasterList(false)
+                }
+                tvSearchClear.visibility = View.VISIBLE
+                tvSearchGO.visibility = View.GONE
+            }
+            tvSearchClear.setOnClickListener {
+                edtSearchPartyDealer.setText("")
+                if (isFromPartyDealer) {
+                    partyDealerPageNo = 1
+                    callAccountMasterList(true)
+                } else {
+                    distributorPageNo = 1
+                    callAccountMasterList(false)
+                }
+                tvSearchClear.visibility = View.GONE
+                tvSearchGO.visibility = View.VISIBLE
+            }
+
+            imgClose.setOnClickListener { partyDealerDialog.dismiss() }
+
+            edtSearchPartyDealer.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(
+                    s: CharSequence?,
+                    start: Int,
+                    count: Int,
+                    after: Int
+                ) {
+                    // No action needed here
+                }
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    val searchText = s.toString().trim()
+
+                    if (searchText.isNotEmpty()) {
+                        tvSearchGO.visibility = View.VISIBLE
+                    } else {
+                        tvSearchGO.visibility = View.GONE
+                    }
+
+                    // Filter the list based on the dialogType and searchText
+                    /*val filteredList = if (searchText.isNotEmpty()) {
+                        accountMasterList.filter { item ->
+                            if (item is AccountMasterList) {
+                                item.accountName.contains(searchText, ignoreCase = true)
+                            } else {
+                                false
+                            }
+                        }
+
+                    } else {
+                        accountMasterList // If the search text is empty, return the full list
+                    }*/
+
+                    // Update the adapter with the filtered list
+                    //partyDealerAdapter.updateItems(ArrayList(filteredList))
+                }
+
+                override fun afterTextChanged(s: Editable?) {
+                    // No action needed here
+                }
+            })
+
+            partyDealerDialog.setView(layout, 0, 0, 0, 0)
+            partyDealerDialog.window?.setBackgroundDrawableResource(R.drawable.dialog_shape)
+            partyDealerDialog.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            //FirebaseCrashlytics.getInstance().recordException(e)
+        }
+    }
+
+    private fun setupRecyclerView(rvItems: RecyclerView, isFromPartyDealer: Boolean) {
+        layoutManager = LinearLayoutManager(mActivity, LinearLayoutManager.VERTICAL, false)
+        rvItems.layoutManager = layoutManager
+
+        partyDealerAdapter =
+            PartyDealerListAdapter(if (isFromPartyDealer) accountMasterList else distributorList, isFromPartyDealer)
+        rvItems.adapter = partyDealerAdapter
+
+        rvItems.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val visibleItemCount = layoutManager?.childCount ?: 0
+                val totalItemCount = layoutManager?.itemCount ?: 0
+                val firstVisibleItemPosition = layoutManager?.findFirstVisibleItemPosition() ?: 0
+
+                if (!isScrolling && !isLastPage && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                    isScrolling = true
+                    if (isFromPartyDealer) partyDealerPageNo++ else distributorPageNo++
+                    callAccountMasterList(isFromPartyDealer)
+                }
+            }
+        })
     }
 
     private fun showPartyDealerDialog(isForPartyDealer: Boolean) {
@@ -2126,6 +2317,59 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             categoryList.clear()
             categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
             setupCategorySpinner()
+        }
+    }
+
+    inner class PartyDealerListAdapter(
+        partyDealerList: ArrayList<AccountMasterList>,
+        val isFromPartyDealer: Boolean
+    ) : RecyclerView.Adapter<PartyDealerListAdapter.ViewHolder>() {
+        var filteredItems: List<AccountMasterList> = partyDealerList
+        override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
+            val inflater = LayoutInflater.from(parent.context)
+            val binding = ItemUserBinding.inflate(inflater, parent, false)
+            return ViewHolder(binding)
+        }
+
+        override fun getItemCount(): Int {
+            return filteredItems.size
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val dashboardData = filteredItems[position]
+            holder.bind(dashboardData)
+        }
+
+        fun filter(query: String) {
+            filteredItems = accountMasterList.filter { item ->
+                (item.accountName ?: "").contains(query, ignoreCase = true)
+            }
+            notifyDataSetChanged()
+        }
+
+        fun updateItems(arrayList: ArrayList<AccountMasterList>) {
+            this.filteredItems = arrayList
+            notifyDataSetChanged()
+
+        }
+
+        inner class ViewHolder(private val itemBinding: ItemUserBinding) :
+            RecyclerView.ViewHolder(itemBinding.root) {
+
+            fun bind(partyDealerData: AccountMasterList) {
+                itemBinding.tvUserName.text = partyDealerData.accountName ?: ""
+                itemBinding.tvUserName.setOnClickListener {
+                    if(isFromPartyDealer) {
+                        binding.tvPartyDealer.text = partyDealerData.accountName
+                        binding.etContactPersonName.setText(partyDealerData.contactPersonName ?: "")
+                        selectedPartyDealerId = partyDealerData.accountMasterId
+                    }else{
+                        binding.tvSelectDistributor.text = partyDealerData.accountName
+                        selectedDistributorId = partyDealerData.accountMasterId
+                    }
+                    partyDealerDialog.dismiss()
+                }
+            }
         }
     }
 

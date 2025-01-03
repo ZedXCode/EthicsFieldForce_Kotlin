@@ -28,11 +28,12 @@ class AlbumUtility(private val activity: Activity, private val isCamera: Boolean
 
     fun openAlbumAndHandleImageMultipleSelection(
         onImagesSelected: (List<File>) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        imageLimit: Int
     ) {
         Album.image(activity)
             .multipleChoice()
-            .selectCount(4)
+            .selectCount(imageLimit)
             .columnCount(3)
             .camera(isCamera)
             .onResult { result ->

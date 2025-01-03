@@ -46,9 +46,14 @@ import ethicstechno.com.fieldforce.ui.base.HomeBaseDialogFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
+import ethicstechno.com.fieldforce.utils.ARG_PARAM5
+import ethicstechno.com.fieldforce.utils.ARG_PARAM6
+import ethicstechno.com.fieldforce.utils.ARG_PARAM7
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
+import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -98,7 +103,14 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     private var header3Name = ""
     private var header4Name = ""
     private var header5Name = ""
-
+    private var partyDealerPageNo = 1
+    private var isScrolling = false
+    private var isLastPage = false
+    private var layoutManager: LinearLayoutManager? = null
+    private var companyId = 0
+    private var branchId = 0
+    private var divisionId = 0
+    private var categoryId = 0
 
     interface DialogDismissListener {
         fun onDialogDismissed(isCartClicked: Boolean)
@@ -154,12 +166,20 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         fun newInstance(
             orderDate: String,
             partyDealerId: Int,
-            orderDetailsList: ArrayList<ProductGroupResponse>
+            orderDetailsList: ArrayList<ProductGroupResponse>,
+            companyId: Int,
+            branchId: Int,
+            divisionId: Int,
+            categoryId: Int
         ): AddProductDialogFragment {
             val args = Bundle()
             args.putString(ARG_PARAM1, orderDate)
             args.putInt(ARG_PARAM2, partyDealerId)
             args.putParcelableArrayList(ARG_PARAM3, orderDetailsList)
+            args.putInt(ARG_PARAM4, companyId)
+            args.putInt(ARG_PARAM5, branchId)
+            args.putInt(ARG_PARAM6, divisionId)
+            args.putInt(ARG_PARAM7, categoryId)
             val fragment = AddProductDialogFragment()
             fragment.arguments = args
             return fragment
@@ -177,6 +197,10 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             partyDealerId = it.getInt(ARG_PARAM2, 0)
             //selectedProductList = it.serializable(ARG_PARAM3) ?: arrayListOf()
             selectedProductAdapterList = it.serializable(ARG_PARAM3) ?: arrayListOf()
+            companyId = it.getInt(ARG_PARAM4, 0)
+            branchId = it.getInt(ARG_PARAM5, 0)
+            divisionId = it.getInt(ARG_PARAM6, 0)
+            categoryId = it.getInt(ARG_PARAM7, 0)
             Log.e("TAG", "initView: " + selectedProductAdapterList.size)
         }
         binding.tvSelectGroup.setOnClickListener(this)
@@ -184,6 +208,36 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         binding.tvFilter3.setOnClickListener(this)
         binding.tvFilter4.setOnClickListener(this)
         binding.tvFilter5.setOnClickListener(this)
+        binding.imgSearch.setOnClickListener(this)
+        binding.tvSearchGO.setOnClickListener(this)
+        binding.tvSearchClear.setOnClickListener(this)
+        binding.imgCloseSearch.setOnClickListener(this)
+        setProductAdapter()
+        binding.edtSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
+                // No action needed here
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val searchText = s.toString().trim()
+
+                if (searchText.isNotEmpty()) {
+                    binding.tvSearchGO.visibility = View.VISIBLE
+                } else {
+                    binding.tvSearchGO.visibility = View.GONE
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // No action needed here
+            }
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 executeAPIsAndSetupData()
@@ -204,16 +258,14 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     private suspend fun executeAPIsAndSetupData() {
         withContext(Dispatchers.IO) {
             try {
-                val callProductListApi = async { callProductGroupListApi(false, 0) }
                 val callProductGroupApi = async { callProductGroupListApi(true, 0) }
+                binding.loader.visibility = View.VISIBLE
+                val callProductListApi = async { callProductGroupListApi(false, 0) }
                 val callCommonFilterApi = async { callCommonProductFilterApi() }
 
-                callProductListApi.await()
                 callProductGroupApi.await()
+                callProductListApi.await()
                 callCommonFilterApi.await()
-
-                setProductAdapter()
-                setupSearchFilter()
 
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
@@ -229,10 +281,10 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             binding.cbSelectedItems.setOnCheckedChangeListener { view, isChecked ->
                 if (isChecked) {
                     if (selectedProductAdapterList.size > 0 && productAdapter != null) {
-                        productAdapter.refreshAdapter(selectedProductAdapterList)
+                        productAdapter.refreshAdapter(selectedProductAdapterList, true)
                     }
                 } else {
-                    callProductGroupListApi(false, 0)
+                    callProductGroupListApi(false, selectedGroupId)
                 }
             }
         }
@@ -263,13 +315,41 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
     }
 
-    private fun setProductAdapter() {
+    /*private fun setProductAdapter() {
         productAdapter =
             ProductAdapter(mActivity, productList, binding.txtCartEntry)
         val layoutManager = LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
         binding.rvProduct.layoutManager = layoutManager
         binding.rvProduct.adapter = productAdapter
+    }*/
+
+    private fun setProductAdapter() {
+        layoutManager = LinearLayoutManager(mActivity, LinearLayoutManager.VERTICAL, false)
+        binding.rvProduct.layoutManager = layoutManager
+
+        productAdapter = ProductAdapter(mActivity, productList, binding.txtCartEntry)
+        binding.rvProduct.adapter = productAdapter
+
+        binding.rvProduct.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if(!binding.cbSelectedItems.isChecked) {
+                    val visibleItemCount = layoutManager?.childCount ?: 0
+                    val totalItemCount = layoutManager?.itemCount ?: 0
+                    val firstVisibleItemPosition =
+                        layoutManager?.findFirstVisibleItemPosition() ?: 0
+
+                    if (!isScrolling && !isLastPage && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                        isScrolling = true
+                        partyDealerPageNo++
+                        callProductGroupListApi(false, selectedGroupId)
+                    }
+                }
+            }
+        })
     }
+
 
     private fun callProductGroupListApi(
         isForProductGroup: Boolean,
@@ -279,7 +359,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        CommonMethods.showLoading(mActivity)
+        //CommonMethods.showLoading(mActivity)
+        binding.loader.visibility = View.VISIBLE
 
         val appRegistrationData = appDao.getAppRegistration()
 
@@ -290,13 +371,13 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(orderDate)
             val parameterString =
-                "ProductGroupId=$productGroupId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and " +
-                        "$header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds)"
+                "CompanyMasterId=$companyId and BranchMasterId=$branchId and DivisionMasterid=$divisionId and CategoryMasterId=$categoryId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and FormId=$FORM_ID_ORDER_ENTRY" +
+                        " and ProductGroupId=$productGroupId and " +
+                        "$header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds) and ProductName like '${binding.edtSearch.text.toString()}%'"
             jsonReq.addProperty("ProductId", 0)
             jsonReq.addProperty("ProductGroupId", productGroupId)
             jsonReq.addProperty("ParameterString", parameterString)
-            Log.e("TAG", "callProductGroupListApi: testing : " + jsonReq.toString())
-
+            jsonReq.addProperty("pageNo", partyDealerPageNo)
         }
 
         val productGroupCall = if (isForProductGroup) WebApiClient.getInstance(mActivity)
@@ -310,32 +391,45 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 call: Call<List<ProductGroupResponse>>,
                 response: Response<List<ProductGroupResponse>>
             ) {
-                CommonMethods.hideLoading()
+                //CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
-                        if (it.isNotEmpty() && it.size > 0) {
-                            if (isForProductGroup) {
-                                groupList.clear()
-                                groupList.add(
-                                    ProductGroupResponse(
-                                        orderId = 0,
-                                        orderDetailsId = 0,
-                                        productGroupId = 0,
-                                        productGroupName = "All Group"
-                                    )
-                                )
-                                groupList.addAll(it)
-                            } else {
-                                productList.clear()
+                        if (!isForProductGroup) {
+                            if (it.isNotEmpty()) {
+                                if (partyDealerPageNo == 1) {
+                                    productList.clear()
+                                    isLastPage = false
+                                }
                                 productList.addAll(it)
-                                productAdapter.refreshAdapter(productList)
-                                if (selectedProductAdapterList.size > 0) {
-                                    productAdapter.setSelectedItems(selectedProductAdapterList)
+                                productAdapter.refreshAdapter(productList, false)
+                                isScrolling = false
+                            } else {
+                                isLastPage = true
+                            }
+                            setupSearchFilter()
+                            binding.loader.visibility = View.GONE
+
+                        } else {
+                            if (it.isNotEmpty() && it.size > 0) {
+                                if (isForProductGroup) {
+                                    groupList.clear()
+                                    groupList.add(
+                                        ProductGroupResponse(
+                                            orderId = 0,
+                                            orderDetailsId = 0,
+                                            productGroupId = 0,
+                                            productGroupName = "All Group"
+                                        )
+                                    )
+                                    groupList.addAll(it)
+                                    binding.loader.visibility = View.GONE
+
                                 }
                             }
                         }
                     }
                 } else {
+                    binding.loader.visibility = View.GONE
                     CommonMethods.showAlertDialog(
                         mActivity,
                         "Error",
@@ -346,7 +440,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             }
 
             override fun onFailure(call: Call<List<ProductGroupResponse>>, t: Throwable) {
-                CommonMethods.hideLoading()
+                //CommonMethods.hideLoading()
+                binding.loader.visibility = View.GONE
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -365,13 +460,18 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        CommonMethods.showLoading(mActivity)
+        //CommonMethods.showLoading(mActivity)
+        binding.loader.visibility = View.VISIBLE
 
         val appRegistrationData = appDao.getAppRegistration()
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("userId", loginData.userId)
-        jsonReq.addProperty("parameterString", "")
+        jsonReq.addProperty(
+            "parameterString",
+            "ProductGroupId=$selectedGroupId and $header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) " +
+                    "AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds)"
+        )
 
         val commonProductFilterCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -382,42 +482,42 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 call: Call<CommonProductFilterResponse>,
                 response: Response<CommonProductFilterResponse>
             ) {
-                CommonMethods.hideLoading()
+                binding.loader.visibility = View.GONE
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.list1?.items?.size!! > 0) {
                             groupListNew.clear()
-                            groupListNew.addAll(it.list1.items);
+                            groupListNew.addAll(it.list1.items)
                         }
                         if (it.list2?.items?.size!! > 0) {
                             itemList2.clear()
                             itemList2.addAll(it.list2.items)
-                            binding.tvFilter2.hint = it.list2.headerName ?: ""
+                            binding.tvFilter2.text = it.list2.headerName ?: ""
                             header2Name = it.list2.headerName ?: ""
                         }
                         if (it.list3?.items?.size!! > 0) {
                             itemList3.clear()
                             itemList3.addAll(it.list3.items)
-                            binding.tvFilter3.hint = it.list3.headerName ?: ""
+                            binding.tvFilter3.text = it.list3.headerName ?: ""
                             header3Name = it.list3.headerName ?: ""
                         }
                         if (it.list4?.items?.size!! > 0) {
                             itemList4.clear()
                             itemList4.addAll(it.list4.items)
-                            binding.tvFilter4.hint = it.list4.headerName ?: ""
+                            binding.tvFilter4.text = it.list4.headerName ?: ""
                             header4Name = it.list4.headerName ?: ""
                         }
                         if (it.list5?.items?.size!! > 0) {
                             itemList5.clear()
                             itemList5.addAll(it.list5.items)
-                            binding.tvFilter5.hint = it.list5.headerName ?: ""
+                            binding.tvFilter5.text = it.list5.headerName ?: ""
                             header5Name = it.list5.headerName ?: ""
                         }
 
-                        if(itemList2.isEmpty() && itemList3.isEmpty()){
+                        if (itemList2.isEmpty() && itemList3.isEmpty()) {
                             binding.llFilter1.visibility = View.GONE
                         }
-                        if(itemList4.isEmpty() && itemList5.isEmpty()){
+                        if (itemList4.isEmpty() && itemList5.isEmpty()) {
                             binding.llFilter2.visibility = View.GONE
                         }
                     }
@@ -429,10 +529,13 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         null
                     )
                 }
+                //CommonMethods.hideLoading()
+                binding.loader.visibility = View.GONE
             }
 
             override fun onFailure(call: Call<CommonProductFilterResponse>, t: Throwable) {
-                CommonMethods.hideLoading()
+                //CommonMethods.hideLoading()
+                binding.loader.visibility = View.GONE
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -452,15 +555,49 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 dismiss()
             }
 
+            R.id.imgSearch -> {
+                binding.flGroup.visibility = View.GONE
+                binding.imgSearch.visibility = View.GONE
+                binding.clSearchLayout.visibility = View.VISIBLE
+            }
+            R.id.imgCloseSearch -> {
+                binding.imgSearch.visibility = View.VISIBLE
+                binding.clSearchLayout.visibility = View.GONE
+                binding.flGroup.visibility = View.VISIBLE
+                binding.edtSearch.setText("")
+                partyDealerPageNo = 1
+                callProductGroupListApi(false, selectedGroupId)
+                binding.cbSelectedItems.isChecked = false
+                binding.cbSelectedItems.visibility = View.GONE
+            }
+            R.id.tvSearchGO -> {
+                binding.tvSearchClear.visibility = View.VISIBLE
+                binding.tvSearchGO.visibility = View.GONE
+                partyDealerPageNo = 1
+                callProductGroupListApi(false, selectedGroupId)
+            }
+            R.id.tvSearchClear -> {
+                binding.tvSearchClear.visibility = View.GONE
+                binding.tvSearchGO.visibility = View.VISIBLE
+                partyDealerPageNo = 1
+                binding.edtSearch.setText("")
+                callProductGroupListApi(false, selectedGroupId)
+                binding.cbSelectedItems.isChecked = false
+                binding.cbSelectedItems.visibility = View.GONE
+                callProductGroupListApi(false, selectedGroupId)
+            }
             R.id.tvSelectGroup -> {
                 showGroupDialog()
             }
 
             R.id.tvFilter2 -> {
                 showCustomDialog("Size List", itemList2, selectedItemList2) { selectedItems ->
-                    selectedItemList2 = selectedItems as ArrayList<DropDownItem>
-                    binding.tvFilter2.text = selectedItemList2[0].dropdownValue
-                    filter2KeyIds = selectedItemList2.joinToString(", ") { "${it.dropdownKeyId}" }
+                    selectedItemList2 =
+                        if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
+                    binding.tvFilter2.text =
+                        if (selectedItemList2.isEmpty()) header2Name else selectedItemList2[0].dropdownValue
+                    filter2KeyIds =
+                        if (selectedItemList2.isEmpty()) "" else selectedItemList2.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -471,18 +608,28 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     itemList3,
                     selectedItemList3
                 ) { selectedItems ->
-                    selectedItemList3 = selectedItems as ArrayList<DropDownItem>
-                    binding.tvFilter3.text = selectedItemList3[0].dropdownValue
-                    filter3KeyIds = selectedItemList3.joinToString(", ") { "${it.dropdownKeyId}" }
+                    selectedItemList3 =
+                        if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
+                    binding.tvFilter3.text =
+                        if (selectedItemList3.isEmpty()) header3Name else selectedItemList3[0].dropdownValue
+                    filter3KeyIds =
+                        if (selectedItemList3.isEmpty()) "" else selectedItemList3.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
 
             R.id.tvFilter4 -> {
-                showCustomDialog("Grade List", itemList4, selectedItemList4) { selectedItems ->
-                    selectedItemList4 = selectedItems as ArrayList<DropDownItem>
-                    binding.tvFilter4.text = selectedItemList4[0].dropdownValue
-                    filter4KeyIds = selectedItemList4.joinToString(", ") { "${it.dropdownKeyId}" }
+                showCustomDialog(
+                    "Grade List",
+                    itemList4,
+                    selectedItemList4
+                ) { selectedItems ->
+                    selectedItemList4 =
+                        if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
+                    binding.tvFilter4.text =
+                        if (selectedItemList4.isEmpty()) header4Name else selectedItemList4[0].dropdownValue
+                    filter4KeyIds =
+                        if (selectedItemList4.isEmpty()) "" else selectedItemList4.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -493,9 +640,12 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     itemList5,
                     selectedItemList5
                 ) { selectedItems ->
-                    selectedItemList5 = selectedItems as ArrayList<DropDownItem>
-                    binding.tvFilter5.text = selectedItemList5[0].dropdownValue
-                    filter5KeyIds = selectedItemList5.joinToString(", ") { "${it.dropdownKeyId}" }
+                    selectedItemList5 =
+                        if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
+                    binding.tvFilter5.text =
+                        if (selectedItemList5.isEmpty()) header5Name else selectedItemList5[0].dropdownValue
+                    filter5KeyIds =
+                        if (selectedItemList5.isEmpty()) "" else selectedItemList5.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -592,6 +742,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
         productFilterDialog.show()
     }
+
     private fun showCustomDialog(
         title: String,
         dropdownItemList: List<DropDownItem>,
@@ -630,11 +781,9 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 adapter.filter(s.toString())
             }
 
-            override fun afterTextChanged(s: Editable?) {
-                // Optionally reflect changes in "Select All" checkbox state
-                cbAll.isChecked = adapter.getSelectedItems().size == dropdownItemList.size
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
+
 
         imgBack.setOnClickListener {
             inquiryDialog.dismiss()
@@ -642,12 +791,12 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
         btnSubmit.setOnClickListener {
             val selected = adapter.getSelectedItems()
-            if (selected.isNotEmpty()) {
-                onSelectionComplete(selected)
-                inquiryDialog.dismiss()
-            } else {
-                CommonMethods.showToastMessage(mActivity, getString(R.string.no_items_selected))
-            }
+            //if (selected.isNotEmpty()) {
+            onSelectionComplete(selected)
+            inquiryDialog.dismiss()
+            //} /*else {
+            //CommonMethods.showToastMessage(mActivity, getString(R.string.no_items_selected))
+            //}*/
         }
 
         cbAll.setOnCheckedChangeListener { _, isChecked ->
@@ -682,15 +831,19 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         var filteredItems: List<ProductGroupResponse> = productList
         var isUpdating = false
 
-        fun refreshAdapter(newProductList: ArrayList<ProductGroupResponse>) {
+        fun refreshAdapter(newProductList: ArrayList<ProductGroupResponse>, isSelectedProduct: Boolean) {
             // Update the product list and refresh the view
             productList = arrayListOf()
             productList = newProductList
             filteredItems = productList
+
+            if(!isSelectedProduct && selectedProductAdapterList.isNotEmpty()) {
+                setSelectedItems(selectedProductAdapterList)
+            }
             notifyDataSetChanged() // Refresh the adapter
         }
 
-        fun setSelectedItems(selectedItems: ArrayList<ProductGroupResponse>) {
+        /*fun setSelectedItems(selectedItems: ArrayList<ProductGroupResponse>) {
             //selectedProductAdapterList.clear()
             if (selectedItems.size > 0) {
                 //selectedProductAdapterList.clear()
@@ -711,7 +864,30 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 notifyDataSetChanged()
                 updateCartCount()
             }
+        }*/
+
+        fun setSelectedItems(selectedItems: ArrayList<ProductGroupResponse>) {
+            if (selectedItems.isNotEmpty()) {
+                selectedProductAdapterList = selectedItems
+
+                // Update the productList based on selectedProductAdapterList
+                productList.forEach { product ->
+                    val matchedItem = selectedProductAdapterList.find { it.productId == product.productId }
+                    matchedItem?.let { selected ->
+                        product.orderDetailsId = selected.orderDetailsId
+                        product.price = selected.price
+                        product.qty = selected.qty
+                        product.amount = selected.amount
+                    }
+                }
+
+                // Update filteredItems and refresh UI
+                filteredItems = productList
+                notifyDataSetChanged()
+                updateCartCount()
+            }
         }
+
 
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -737,10 +913,16 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             private var etAmount: EditText = itemView.findViewById(R.id.etAmount)
             private var tvUnit: TextView = itemView.findViewById(R.id.tvUnit)
             private var tvProductName: TextView = itemView.findViewById(R.id.tvProductName)
+            private var tvSchemeValue: TextView = itemView.findViewById(R.id.tvSchemeValue)
             var lylMain: LinearLayout = itemView.findViewById(R.id.lylMain)
 
             fun bind(item: ProductGroupResponse, position: Int) {
                 try {
+
+                    if((item.scheme ?: "").isNotEmpty()){
+                        tvSchemeValue.visibility = View.VISIBLE
+                        tvSchemeValue.text = item.scheme.toString()
+                    }
 
                     etQty.clearTextWatcher()
                     etPrice.clearTextWatcher()
@@ -758,6 +940,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     }
                     etQty.setText(item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
                     etAmount.setText(item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
+
+                    etPrice.isEnabled = item.isPriceEditable == true
 
                     // Ensure unit and product name are correctly displayed
                     tvUnit.text = item.unit ?: ""
@@ -966,93 +1150,79 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     class ProductFilterAdapter(
         private val context: Context,
         private val items: List<DropDownItem>
-    ) :
-        RecyclerView.Adapter<ProductFilterAdapter.ItemViewHolder>() {
+    ) : RecyclerView.Adapter<ProductFilterAdapter.ItemViewHolder>() {
 
-        private var checkedStates = BooleanArray(items.size)
         private var filteredItems: MutableList<DropDownItem> = items.toMutableList()
 
-        // Method to re-check previously selected items
+        // Update selected states for pre-selected items
         fun updateCheckedItems(selectedItems: List<DropDownItem>) {
-            for ((index, item) in filteredItems.withIndex()) {
-                checkedStates[index] = selectedItems.any { it.dropdownKeyId == item.dropdownKeyId }
+            items.forEach { item ->
+                item.isSelected = selectedItems.any { it.dropdownKeyId == item.dropdownKeyId }
             }
             notifyDataSetChanged()
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemViewHolder {
-            val view =
-                LayoutInflater.from(context)
-                    .inflate(R.layout.item_product_filter_layout, parent, false)
+            val view = LayoutInflater.from(context)
+                .inflate(R.layout.item_product_filter_layout, parent, false)
             return ItemViewHolder(view)
         }
 
         override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-            // Bind the item and its checked state
-            holder.bind(filteredItems[position], checkedStates[position])
+            val item = filteredItems[position]
+            holder.bind(item)
 
-            // Clear previous listener to avoid multiple triggers
+            // Clear previous listeners
             holder.itemCheckBox.setOnCheckedChangeListener(null)
 
             // Set the checkbox state explicitly
-            holder.itemCheckBox.isChecked = checkedStates[position]
+            holder.itemCheckBox.isChecked = item.isSelected
 
-            // Add a new listener to update the state
+            // Update the item's state on user interaction
             holder.itemCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                checkedStates[position] = isChecked
+                item.isSelected = isChecked
             }
         }
-
-
-
-
 
         override fun getItemCount(): Int = filteredItems.size
 
+        // Select or deselect all items
         fun selectAll(isChecked: Boolean) {
-            for (i in checkedStates.indices) {
-                checkedStates[i] = isChecked
-            }
+            items.forEach { it.isSelected = isChecked }
             notifyDataSetChanged()
         }
 
+        // Get selected items
         fun getSelectedItems(): List<DropDownItem> {
-            return filteredItems.filterIndexed { index, _ -> checkedStates[index] }
+            return items.filter { it.isSelected }
         }
 
+        // Filter items based on the search query
         fun filter(query: String) {
-            val filteredList = if (query.isEmpty()) {
-                items
+            filteredItems = if (query.isEmpty()) {
+                items.toMutableList()
             } else {
                 items.filter {
                     (it.dropdownValue ?: "").contains(query, ignoreCase = true)
-                }
+                }.toMutableList()
             }
-
-            // Update the filtered items
-            filteredItems = filteredList.toMutableList()
-
-            // Create a new checkedStates array for the filtered list
-            val newCheckedStates = BooleanArray(filteredItems.size)
-            for (index in filteredItems.indices) {
-                val originalIndex = items.indexOf(filteredItems[index])
-                if (originalIndex != -1) {
-                    newCheckedStates[index] = checkedStates[originalIndex]
-                }
-            }
-
-            checkedStates = newCheckedStates
             notifyDataSetChanged()
         }
 
-
         class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            lateinit var itemCheckBox: CheckBox
-            fun bind(item: DropDownItem, isChecked: Boolean) {
-                itemCheckBox = itemView.findViewById(R.id.itemCheckBox)
+            val itemCheckBox: CheckBox = itemView.findViewById(R.id.itemCheckBox)
+
+            fun bind(item: DropDownItem) {
                 itemCheckBox.text = item.dropdownValue
-                itemCheckBox.isChecked = isChecked
             }
+        }
+
+        override fun getItemId(position: Int): Long {
+            return position.toLong()
+        }
+
+        override fun getItemViewType(position: Int): Int {
+            return position
         }
     }
 

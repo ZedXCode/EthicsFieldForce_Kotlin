@@ -620,6 +620,9 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     }
 
     private fun openAlbumForList() {
+        val maxImageLimit = 4
+        val remainingLimit = maxImageLimit - imageAnyList.size
+
         AlbumUtility(mActivity, true).openAlbumAndHandleImageMultipleSelection(
             onImagesSelected = { selectedFiles ->
                 lifecycleScope.launch(Dispatchers.IO) {
@@ -640,7 +643,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             },
             onError = {
                 CommonMethods.showToastMessage(mActivity, it)
-            }
+            },
+            remainingLimit
         )
     }
 
@@ -1924,14 +1928,12 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     class InquiryAdapter(private val context: Context, private val items: List<InquiryResponse>) :
         RecyclerView.Adapter<InquiryAdapter.ItemViewHolder>() {
 
-        private val checkedStates = BooleanArray(items.size)
         private var filteredItems: MutableList<InquiryResponse> = items.toMutableList()
 
         // Method to re-check previously selected items
         fun updateCheckedItems(selectedItems: List<InquiryResponse>) {
-            for ((index, item) in filteredItems.withIndex()) {
-                checkedStates[index] =
-                    selectedItems.any { it.documentDetailsId == item.documentDetailsId }
+            items.forEach { item ->
+                item.isSelected = selectedItems.any { it.documentDetailsId == item.documentDetailsId }
             }
             notifyDataSetChanged()
         }
@@ -1943,23 +1945,30 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
 
         override fun onBindViewHolder(holder: ItemViewHolder, position: Int) {
-            holder.bind(filteredItems[position], checkedStates[position])
+            val item = filteredItems[position]
+            holder.bind(item)
+
+            // Clear previous listeners
+            holder.itemCheckBox.setOnCheckedChangeListener(null)
+
+            // Set checkbox state based on isSelected
+            holder.itemCheckBox.isChecked = item.isSelected
+
+            // Update the item's state on user interaction
             holder.itemCheckBox.setOnCheckedChangeListener { _, isChecked ->
-                checkedStates[position] = isChecked
+                item.isSelected = isChecked
             }
         }
 
         override fun getItemCount(): Int = filteredItems.size
 
         fun selectAll(isChecked: Boolean) {
-            for (i in checkedStates.indices) {
-                checkedStates[i] = isChecked
-            }
+            items.forEach { it.isSelected = isChecked }
             notifyDataSetChanged()
         }
 
         fun getSelectedItems(): List<InquiryResponse> {
-            return filteredItems.filterIndexed { index, _ -> checkedStates[index] }
+            return items.filter { it.isSelected }
         }
 
         fun filter(query: String) {
@@ -1979,25 +1988,25 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
 
         class ItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-            lateinit var itemCheckBox: CheckBox
-            fun bind(item: InquiryResponse, isChecked: Boolean) {
+            val itemCheckBox: CheckBox = itemView.findViewById(R.id.itemCheckBox)
+
+            fun bind(item: InquiryResponse) {
                 val tvProductName = itemView.findViewById<TextView>(R.id.tvProductName)
                 val tvEntryNo = itemView.findViewById<TextView>(R.id.tvEntryNo)
                 val tvDate = itemView.findViewById<TextView>(R.id.tvEntryDate)
                 val tvQty = itemView.findViewById<TextView>(R.id.tvQuantity)
                 val tvRate = itemView.findViewById<TextView>(R.id.tvRate)
                 val tvAmount = itemView.findViewById<TextView>(R.id.tvAmount)
-                itemCheckBox = itemView.findViewById(R.id.itemCheckBox)
                 tvProductName.text = item.productName
                 tvEntryNo.text = "${item.categoryName}-${item.documentNo}"
                 tvDate.text = item.documentDate
                 tvQty.text = item.quantity.toString()
                 tvRate.text = item.rate.toString()
                 tvAmount.text = item.amount.toString()
-                itemCheckBox.isChecked = isChecked
             }
         }
     }
+
 
     private fun resetSelection(resetBranch: Boolean, resetDivision: Boolean, resetCategory: Boolean) {
         if (resetBranch) {

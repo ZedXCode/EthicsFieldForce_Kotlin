@@ -1,68 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:orientation="vertical"
     android:layout_height="wrap_content"
     android:background="@drawable/dialog_shape"
+    android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
     <LinearLayout
         android:id="@+id/lylTop"
         android:layout_width="match_parent"
+        android:layout_height="@dimen/_45sdp"
         android:background="@color/colorPrimary"
-        android:orientation="horizontal"
-        android:layout_height="@dimen/_45sdp">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/tvTitle"
-            android:text="@string/select_company"
             android:layout_width="0dp"
-            android:layout_weight="1"
-            android:textSize="@dimen/_18ssp"
-            android:textStyle="bold"
-            android:gravity="start|center"
+            android:layout_height="match_parent"
             android:layout_marginStart="@dimen/_7sdp"
+            android:layout_weight="1"
+            android:gravity="start|center"
+            android:text="@string/select_company"
             android:textColor="@color/white"
-            android:layout_height="match_parent"/>
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/imgClose"
-            android:src="@drawable/ic_close"
+            android:layout_width="@dimen/_40sdp"
+            android:layout_height="@dimen/_40sdp"
             android:layout_gravity="center"
             android:layout_marginEnd="@dimen/_7sdp"
             android:padding="@dimen/_7sdp"
-            android:layout_width="@dimen/_40sdp"
-            android:layout_height="@dimen/_40sdp" />
+            android:src="@drawable/ic_close" />
 
     </LinearLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/TextInputLayoutStyle"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_margin="@dimen/_14sdp"
-        android:layout_height="@dimen/_50sdp">
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_10sdp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/edtSearch"
+        <!-- TextInputLayout -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
+            style="@style/TextInputLayoutStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edtSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_10sdp"
+                android:drawableStart="@drawable/ic_search_small"
+                android:drawablePadding="@dimen/_8sdp"
+                android:gravity="start|center"
+                android:hint="@string/search_here"
+                android:paddingStart="@dimen/_12sdp"
+                android:textSize="@dimen/_14ssp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- TextView acting as a drawable -->
+        <TextView
+            android:id="@+id/tvSearchGO"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:background="@drawable/button_background_primary"
+            android:backgroundTint="@color/colorPrimary"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="GO"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textInputLayout" />
+
+        <TextView
+            android:id="@+id/tvSearchClear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/_20sdp"
+            android:background="@drawable/button_background_primary"
+            android:backgroundTint="@color/colorRed"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Clear"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/textInputLayout" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvItems"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_50sdp"
-            android:drawableStart="@drawable/ic_search_small"
-            android:paddingStart="@dimen/_14sdp"
-            android:drawablePadding="@dimen/_7sdp"
-            android:gravity="start|center"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginBottom="@dimen/_8sdp" />
+
+        <ProgressBar
+            android:id="@+id/loader"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_30sdp"
             android:layout_gravity="center"
-            android:hint="@string/search_here"
-            android:inputType="text"
-            android:textSize="@dimen/_14ssp" />
-
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvItems"
-        android:layout_marginBottom="@dimen/_20sdp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+            android:layout_margin="@dimen/_10sdp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/colorPrimary"
+            android:visibility="gone" />
+    </LinearLayout>
 
 </LinearLayout>
