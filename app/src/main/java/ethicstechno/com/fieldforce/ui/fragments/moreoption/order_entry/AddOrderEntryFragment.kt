@@ -60,6 +60,8 @@ import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.OrderDetailsAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.ARG_PARAM2
+import ethicstechno.com.fieldforce.utils.ARG_PARAM3
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -153,6 +155,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private lateinit var tvSearchGO: TextView
     private lateinit var tvSearchClear: TextView
     private lateinit var edtSearchPartyDealer: EditText
+    private var isCompanyChange = false
+    private var allowEdit : Int = 0
+    private var allowDelete : Int = 0
+    //var accountMasterId : Int = 0
 
 
     private val partyDealerItemClickListener =
@@ -193,7 +199,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 // Handle user item selection
                 productSearchDialog.closeDialog()
                 tvSelectProduct.text = item.productName
-                etPrice.setText(item.salesPrice.toString())
+                etPrice.setText(CommonMethods.formatBigDecimal(item.salesPrice ?: BigDecimal.ZERO))
                 selectedProduct = item
                 tvUnit.text = item.unit
             }
@@ -202,9 +208,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     companion object {
         fun newInstance(
             orderId: Int,
+            allowEdit: Int?,
+            allowDelete: Int?,
         ): AddOrderEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
+            args.putInt(ARG_PARAM2, allowEdit ?: 0)
+            args.putInt(ARG_PARAM3, allowDelete ?: 0)
             val fragment = AddOrderEntryFragment()
             fragment.arguments = args
             return fragment
@@ -237,6 +247,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private fun initView() {
         arguments?.let {
             orderId = it.getInt(ARG_PARAM1, -1)
+            allowEdit = it.getInt(ARG_PARAM2, 1)
+            allowDelete = it.getInt(ARG_PARAM3, 1)
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -252,9 +264,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         setupImageUploadRecyclerView()
 
         setOrderDetailsAdapter()
+        binding.llHeader.setOnClickListener {
+            toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
+        }
         if (orderId > 0) {
-            binding.toolbar.imgEdit.visibility = View.VISIBLE
-            binding.toolbar.imgDelete.visibility = View.VISIBLE
+            if(allowEdit == 1){
+                binding.toolbar.imgEdit.visibility = View.VISIBLE
+            }
+            if(allowEdit == 1) {
+                binding.toolbar.imgDelete.visibility = View.VISIBLE
+            }
             binding.toolbar.imgEdit.setOnClickListener(this)
             binding.toolbar.imgDelete.setOnClickListener(this)
             formViewMode(true)
@@ -290,29 +309,23 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             //binding.tvOrderMode.visibility = View.VISIBLE
             //binding.spOrderMode.visibility = View.GONE
             binding.tvCategory.visibility = View.VISIBLE
-            binding.spCategory.visibility = View.GONE
             binding.etContactPersonName.visibility = View.GONE
             binding.tvContactPerson.visibility = View.VISIBLE
             binding.tvRemarks.visibility = View.VISIBLE
             binding.etRemarks.visibility = View.GONE
             binding.llBottom.visibility = View.GONE
+            binding.flCategory.visibility = View.GONE
+            disableRadioButtons(false)
         } else {
-            //binding.tvOrderMode.visibility = View.GONE
-            //binding.spOrderMode.visibility = View.VISIBLE
-            binding.tvCategory.visibility = View.GONE
-            binding.spCategory.visibility = View.VISIBLE
+            binding.radioGroupModeOfCom.isEnabled = true
+            binding.radioGroupModeOfCom.isClickable = true
             binding.etContactPersonName.visibility = View.VISIBLE
             binding.tvContactPerson.visibility = View.GONE
             binding.tvRemarks.visibility = View.GONE
             binding.etRemarks.visibility = View.VISIBLE
             binding.llBottom.visibility = View.VISIBLE
+            disableRadioButtons(true)
             binding.flPartyDealer.setOnClickListener(this)
-            binding.flSelectDistributor.setOnClickListener(this)
-            binding.tvDate.setOnClickListener(this)
-            binding.btnAddOrderDetails.setOnClickListener(this)
-            binding.llSelectCompany.setOnClickListener(this)
-            binding.llSelectBranch.setOnClickListener(this)
-            binding.llSelectDivision.setOnClickListener(this)
 
             binding.radioGroupModeOfCom.setOnCheckedChangeListener { group, checkedId ->
                 val radioButton = view?.findViewById<RadioButton>(checkedId)
@@ -323,19 +336,51 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
 
-            binding.llHeader.setOnClickListener {
-                toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
-            }
-
             //callCommonDropDownListApi(ORDER_MODE)
-            callProductGroupListApi(true, -1)
-            viewLifecycleOwner.lifecycleScope.launch {
-                try {
-                    executeAPIsAndSetupData()
-                } catch (e: Exception) {
-                    FirebaseCrashlytics.getInstance().recordException(e)
-                    e.printStackTrace()
+            //callProductGroupListApi(true, -1) comment by parth
+            if(orderId <= 0) {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    try {
+                        executeAPIsAndSetupData()
+                    } catch (e: Exception) {
+                        FirebaseCrashlytics.getInstance().recordException(e)
+                        e.printStackTrace()
+                    }
                 }
+                binding.tvCategory.visibility = View.GONE
+                binding.llSelectCompany.setOnClickListener(this)
+                binding.llSelectBranch.setOnClickListener(this)
+                binding.llSelectDivision.setOnClickListener(this)
+                binding.tvDate.setOnClickListener(this)
+                binding.flSelectDistributor.setOnClickListener(this)
+                binding.btnAddOrderDetails.setOnClickListener(this)
+            }else{
+                binding.llSelectCompany.setOnClickListener(null)
+                binding.llSelectBranch.setOnClickListener(null)
+                binding.llSelectDivision.setOnClickListener(null)
+                binding.tvDate.setOnClickListener(null)
+                binding.flPartyDealer.setOnClickListener(null)
+                if(orderId > 0){
+                    binding.tvCategory.visibility = View.VISIBLE
+                    binding.flSelectDistributor.setOnClickListener(this)
+                    binding.btnAddOrderDetails.setOnClickListener(this)
+                }
+            }
+        }
+    }
+
+    private fun disableRadioButtons(isRadioEnable: Boolean){
+        if(!isRadioEnable){
+            for (i in 0 until binding.radioGroupModeOfCom.childCount) {
+                val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
+                radioButton.isEnabled = false
+                radioButton.isClickable = false
+            }
+        }else{
+            for (i in 0 until binding.radioGroupModeOfCom.childCount) {
+                val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
+                radioButton.isEnabled = true
+                radioButton.isClickable = true
             }
         }
     }
@@ -464,7 +509,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
-                mActivity.getString(R.string.please_select_branch)
+                "Please select division"
             )
             return;
         }
@@ -529,7 +574,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             this,
         )
         binding.spCategory.adapter = adapter
-        if (categoryList.size == 2) {
+        if (isCompanyChange && categoryList.size == 2) {
             selectedCategory = CategoryMasterResponse(
                 categoryMasterId = categoryList[1].categoryMasterId,
                 categoryName = categoryList[1].categoryName
@@ -537,119 +582,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.spCategory.setSelection(1)
             categoryList[1]
         } else {
-            binding.spCategory.setSelection(0)
-            categoryList[0]
-        }
-        /*selectedCategory = if (isReadOnly) {
-            val categoryData = CategoryMasterResponse(
-                categoryMasterId = visitReportData.categoryMasterId,
-                categoryName = visitReportData.categoryName
-            )
-            val pos =
-                categoryList.indexOfFirst { it.categoryMasterId == categoryData.categoryMasterId }
-            binding.spCategory.setSelection(pos)
-            categoryData
-        } else {
-            if (categoryList.size == 2) {
-                selectedCategory = CategoryMasterResponse(
-                    categoryMasterId = categoryList[1].categoryMasterId,
-                    categoryName = categoryList[1].categoryName
-                )
-                binding.spCategory.setSelection(1)
-                categoryList[1]
-            } else {
+            if(isCompanyChange) {
                 binding.spCategory.setSelection(0)
                 categoryList[0]
+            }else{
+                val selectedCategoryIndex =
+                    categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+                binding.spCategory.setSelection(selectedCategoryIndex)
             }
-        }*/
-
-
-    }
-
-
-    /*private fun callCommonDropDownListApi(type: String) {
-        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
-            return
         }
-        CommonMethods.showLoading(mActivity)
-
-        val appRegistrationData = appDao.getAppRegistration()
-
-        val jsonReq = JsonObject()
-        jsonReq.addProperty("DropDownValueId", 0)
-        jsonReq.addProperty("DropDownFieldName", type)
-
-        val commonDropDownListCall = WebApiClient.getInstance(mActivity)
-            .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getCommonDropDownList(jsonReq)
-
-        commonDropDownListCall?.enqueue(object : Callback<List<CommonDropDownListModel>> {
-            override fun onResponse(
-                call: Call<List<CommonDropDownListModel>>,
-                response: Response<List<CommonDropDownListModel>>
-            ) {
-                CommonMethods.hideLoading()
-                if (isSuccess(response)) {
-                    response.body()?.let {
-                        if (it.isNotEmpty() && it.size > 0) {
-                            if (type == ORDER_MODE) {
-                                orderModeList.clear()
-                                orderModeList.add(
-                                    CommonDropDownListModel(
-                                        -1,
-                                        "Select Order Mode",
-                                        ""
-                                    )
-                                )
-                                orderModeList.addAll(it)
-                                setupCommonSpinner(
-                                    orderModeList,
-                                    binding.spOrderMode
-                                ) { it -> selectedOrderModeId = it.dropDownValueId }
-                            }*//* else if (type == ORDER_CATEGORY) {
-                                orderCategoryList.clear()
-                                orderCategoryList.add(
-                                    CommonDropDownListModel(
-                                        -1,
-                                        "Select Category",
-                                        ""
-                                    )
-                                )
-                                orderCategoryList.addAll(it)
-                                setupCommonSpinner(
-                                    orderCategoryList,
-                                    binding.spCategory
-                                ) { it -> selectedCategoryId = it.dropDownValueId }
-                            }*//*
-
-
-                        }
-                    }
-                } else {
-                    CommonMethods.showAlertDialog(
-                        mActivity,
-                        "Error",
-                        mActivity.getString(R.string.error_message),
-                        null
-                    )
-                }
-            }
-
-            override fun onFailure(call: Call<List<CommonDropDownListModel>>, t: Throwable) {
-                CommonMethods.hideLoading()
-                if (mActivity != null) {
-                    CommonMethods.showAlertDialog(
-                        mActivity,
-                        mActivity.getString(R.string.error),
-                        t.message,
-                        null
-                    )
-                }
-            }
-        })
-
-    }*/
+    }
 
     private fun callAccountMasterList(isForPartyDealer: Boolean) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
@@ -794,9 +736,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                     )
                                 )
                                 groupList.addAll(it)
-                                if (orderId > 0 && !isReadOnly) {
-                                    callOrderDetailsApi()
-                                }
                             } else {
                                 productList.clear()
                                 productList.addAll(it)
@@ -1031,19 +970,14 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         orderDetails: OrderDetailsResponse,
         appRegistrationData: AppRegistrationResponse
     ) {
+        //accountMasterId = orderDetails.accountMasterId ?: 0
         binding.tvDate.text = orderDetails.orderDate
-        //selectedOrderModeId = orderDetails.orderMode ?: -1
-        //val selectedOrderModeIndex = orderModeList.indexOfFirst { it.dropDownValueId == orderDetails.orderMode }
-        //binding.spOrderMode.setSelection(selectedOrderModeIndex)
         binding.tvOrderMode.text = orderDetails.orderModeName
         selectedCategory = CategoryMasterResponse(
             categoryMasterId = orderDetails.categoryMasterId,
             categoryName = orderDetails.categoryName
         )
-        val selectedCategoryIndex =
-            categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
-        binding.spCategory.setSelection(selectedCategoryIndex)
-        binding.tvCategory.text = orderDetails.categoryName
+
         binding.etContactPersonName.setText(orderDetails.contactPersonName)
         binding.tvContactPerson.text = orderDetails.contactPersonName
         binding.tvPartyDealer.text = orderDetails.accountName
@@ -1052,6 +986,23 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         selectedDistributorId = orderDetails.distributorAccountMasterId ?: -1
         binding.etRemarks.setText(orderDetails.remarks)
         binding.tvRemarks.text = orderDetails.remarks
+        binding.tvSelectCompany.text = orderDetails.companyName
+        binding.tvSelectBranch.text = orderDetails.branchName
+        binding.tvSelectDivision.text = orderDetails.divisionName
+        binding.tvCategory.text = orderDetails.categoryName
+
+        selectedCompany = CompanyMasterResponse(companyMasterId = orderDetails.companyMasterId, companyName = orderDetails.companyName)
+        selectedBranch = BranchMasterResponse(branchMasterId = orderDetails.branchMasterId, branchName = orderDetails.branchName)
+        selectedDivision = DivisionMasterResponse(divisionMasterId = orderDetails.divisionMasterId, divisionName = orderDetails.divisionName)
+        selectedCategory = CategoryMasterResponse(categoryMasterId = orderDetails.categoryMasterId, categoryName = orderDetails.categoryName)
+
+        selectedModeOfCommunication = orderDetails.modeOfCommunication ?: 0
+        when (selectedModeOfCommunication) {
+            1 -> binding.radioGroupModeOfCom.check(R.id.rbPersonally)
+            2 -> binding.radioGroupModeOfCom.check(R.id.rbPhone)
+            3 -> binding.radioGroupModeOfCom.check(R.id.rbEmail)
+            else -> binding.radioGroupModeOfCom.clearCheck()
+        }
 
         if (orderDetails.orderDetails != null && orderDetails.orderDetails.size > 0) {
             orderDetailsList.clear()
@@ -1154,14 +1105,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.cardImageCapture -> {
-                if (imageAnyList.size == 4) {
-                    CommonMethods.showToastMessage(
-                        mActivity,
-                        getString(R.string.photo_upload_limit_reached)
-                    )
-                    return
+                if(!isReadOnly) {
+                    if (imageAnyList.size == 4) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            getString(R.string.photo_upload_limit_reached)
+                        )
+                        return
+                    }
+                    askCameraGalleryPermission()
                 }
-                askCameraGalleryPermission()
             }
 
             R.id.tvDate -> {
@@ -1403,7 +1356,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                             )
                             companyMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedCompany = CompanyMasterResponse(
                                     companyMasterId = companyMasterList[1].companyMasterId,
                                     companyName = companyMasterList[1].companyName
@@ -1475,7 +1428,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                             )
                             branchMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedBranch = BranchMasterResponse(
                                     branchMasterId = branchMasterList[1].branchMasterId,
                                     branchName = branchMasterList[1].branchName
@@ -1552,12 +1505,14 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                             )
                             divisionMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedDivision = DivisionMasterResponse(
                                     divisionMasterId = divisionMasterList[1].divisionMasterId,
                                     divisionName = divisionMasterList[1].divisionName
                                 )
                                 binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+                                callCategoryListApi()
+                            }else{
                                 callCategoryListApi()
                             }
                         } else {
@@ -1621,7 +1576,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("ModeOfCommunication", selectedModeOfCommunication)
 
         if (imageAnyList.size > 0) {
-            if (CommonMethods.isHttpUrl(imageAnyList[0].toString())) {
+            if (imageAnyList[0] is String) {
                 objReq.addProperty("FilePath", imageAnyList[0].toString())
             } else {
                 val imageBase64 =
@@ -1629,7 +1584,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 objReq.addProperty("FilePath", imageBase64)
             }
             if (imageAnyList.size > 1) {
-                if (CommonMethods.isHttpUrl(imageAnyList[1].toString())) {
+                if (imageAnyList[1] is String) {
                     objReq.addProperty("FilePath2", imageAnyList[1].toString())
                 } else {
                     val imageBase64 =
@@ -1640,7 +1595,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 objReq.addProperty("FilePath2", "")
             }
             if (imageAnyList.size > 2) {
-                if (CommonMethods.isHttpUrl(imageAnyList[2].toString())) {
+                if (imageAnyList[2] is String) {
                     objReq.addProperty("FilePath3", imageAnyList[2].toString())
                 } else {
                     val imageBase64 =
@@ -1651,7 +1606,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 objReq.addProperty("FilePath3", "")
             }
             if (imageAnyList.size > 3) {
-                if (CommonMethods.isHttpUrl(imageAnyList[3].toString())) {
+                if (imageAnyList[3] is String) {
                     objReq.addProperty("FilePath4", imageAnyList[3].toString())
                 } else {
                     val imageBase64 =
@@ -1955,9 +1910,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             etQty = layout.findViewById<TextInputEditText>(R.id.etQty)
             etPrice = layout.findViewById<TextInputEditText>(R.id.etPrice)
             etAmount = layout.findViewById<TextInputEditText>(R.id.etAmount)
+            val tvSchemeValue = layout.findViewById<TextView>(R.id.tvSchemeValue)
             tvUnit = layout.findViewById<TextView>(R.id.tvUnit)
             val btnSubmit = layout.findViewById<MaterialButton>(R.id.btnSubmit)
             val btnCancel = layout.findViewById<MaterialButton>(R.id.btnCancel)
+
+            etPrice.isEnabled = productModel?.isPriceEditable == true
+            etAmount.isEnabled = productModel?.isPriceEditable == true
 
             etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etPrice))
             etAmount.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etAmount))
@@ -1965,11 +1924,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             if (productModel != null) {
                 btnSubmit.text = "Update"
+                tvSelectGroup.text = productModel.productGroupName
                 tvUnit.text = productModel.unit
                 tvSelectProduct.text = productModel.productName
-                etQty.setText(productModel.qty.toString())
-                etAmount.setText(productModel.amount.toString())
-                etPrice.setText(productModel.price.toString())
+                etQty.setText(CommonMethods.formatBigDecimal(productModel.qty))
+                etAmount.setText(CommonMethods.formatBigDecimal(productModel.amount))
+                etPrice.setText(CommonMethods.formatBigDecimal(productModel.price))
+                tvSchemeValue.setText(productModel.scheme)
             }
 
             if (orderId == 0 && orderDetailsList.size > 0) {
@@ -2056,6 +2017,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }
+
                 if (etAmount.text.toString().trim().isEmpty()) {
                     showToastMessage(
                         mActivity,
@@ -2169,8 +2131,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (totalQty > BigDecimal.ZERO) {
                 binding.lylTotalOrderAmount.visibility = View.VISIBLE
                 // Format the text to display amount + qty
-                binding.tvTotalOrderAmount.text = "$totalAmount"
-                binding.tvTotalOrderQty.text = "$totalQty"
+                binding.tvTotalOrderAmount.text = "${CommonMethods.formatBigDecimal(totalAmount)}"
+                binding.tvTotalOrderQty.text = "${CommonMethods.formatBigDecimal(totalQty)}"
             }
         }
     }
@@ -2252,6 +2214,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun companySelect(dropDownData: CompanyMasterResponse) {
         selectedCompany = dropDownData
+        isCompanyChange = true
         binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
         resetSelection(
             resetBranch = true,

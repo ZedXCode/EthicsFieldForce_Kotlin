@@ -112,6 +112,14 @@
                         android:textColor="@color/black"
                         android:textColorHint="@color/black" />
 
+                    <View
+                        android:id="@+id/viewSelectedGroup"
+                        android:visibility="gone"
+                        android:background="@drawable/selected_filter_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_38sdp"/>
+
+
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
                         android:layout_height="@dimen/_20sdp"
@@ -251,6 +259,13 @@
                         android:singleLine="true"
                         android:textColor="@color/black" />
 
+                    <View
+                        android:id="@+id/viewSelectedFilter2"
+                        android:visibility="gone"
+                        android:background="@drawable/selected_filter_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_38sdp"/>
+
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
                         android:layout_height="@dimen/_20sdp"
@@ -277,6 +292,14 @@
                         android:paddingEnd="@dimen/_5sdp"
                         android:singleLine="true"
                         android:textColor="@color/black" />
+
+                    <View
+                        android:id="@+id/viewSelectedFilter3"
+                        android:visibility="gone"
+                        android:background="@drawable/selected_filter_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_38sdp"/>
+
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
@@ -316,6 +339,13 @@
                         android:singleLine="true"
                         android:textColor="@color/black" />
 
+                    <View
+                        android:id="@+id/viewSelectedFilter4"
+                        android:visibility="gone"
+                        android:background="@drawable/selected_filter_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_38sdp"/>
+
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
                         android:layout_height="@dimen/_20sdp"
@@ -342,6 +372,13 @@
                         android:paddingEnd="@dimen/_5sdp"
                         android:singleLine="true"
                         android:textColor="@color/black" />
+
+                    <View
+                        android:id="@+id/viewSelectedFilter5"
+                        android:visibility="gone"
+                        android:background="@drawable/selected_filter_background"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/_38sdp"/>
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"

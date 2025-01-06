@@ -39,6 +39,7 @@
                     android:layout_marginHorizontal="@dimen/_10sdp"
                     android:layout_marginTop="@dimen/_10sdp"
                     android:text="Group"
+                    android:visibility="gone"
                     android:textColor="@color/colorPrimary"
                     android:textSize="@dimen/_16ssp" />
 
@@ -50,6 +51,7 @@
                     <FrameLayout
                         android:id="@+id/flGroup"
                         android:layout_width="0dp"
+                        android:visibility="gone"
                         android:layout_height="wrap_content"
                         android:layout_weight="1">
 
@@ -103,20 +105,22 @@
                             android:id="@+id/tvSelectProduct"
                             style="@style/TextViewLabelNormal"
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/_40sdp"
+                            android:layout_height="wrap_content"
                             android:background="@drawable/edittext_background"
                             android:gravity="start|center"
                             android:hint="@string/select_product"
+                            android:paddingTop="@dimen/_7sdp"
+                            android:paddingBottom="@dimen/_7sdp"
                             android:paddingStart="@dimen/_10sdp"
                             android:paddingEnd="@dimen/_25sdp"
-                            android:singleLine="true"
                             android:textColor="@color/black"
                             android:textColorHint="@color/black"
-                            android:textSize="@dimen/_14ssp" />
+                            android:textSize="@dimen/_12ssp" />
 
                         <ImageView
                             android:layout_width="@dimen/_20sdp"
                             android:layout_height="@dimen/_20sdp"
+                            android:visibility="gone"
                             android:layout_gravity="end|center"
                             android:layout_marginStart="@dimen/_5sdp"
                             android:layout_marginEnd="@dimen/_5sdp"
@@ -269,6 +273,15 @@
                     </androidx.appcompat.widget.LinearLayoutCompat>
 
                 </androidx.appcompat.widget.LinearLayoutCompat>
+
+                <TextView
+                    android:id="@+id/tvSchemeValue"
+                    android:layout_marginTop="@dimen/_10sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:textStyle="bold"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
 
                 <androidx.appcompat.widget.LinearLayoutCompat
                     android:layout_width="match_parent"

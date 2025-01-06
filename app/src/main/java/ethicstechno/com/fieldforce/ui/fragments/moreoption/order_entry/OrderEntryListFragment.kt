@@ -108,7 +108,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     private var isScrolling = false
     private var isLastPage = false
     private var layoutManager: LinearLayoutManager? = null
-    private var selectedPartyDealerId: Int = -1
+    private var selectedPartyDealerId: Int = 0
 
 
     companion object {
@@ -206,6 +206,10 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.llBottom.visibility = View.VISIBLE
+        selectedCompany = CompanyMasterResponse(companyMasterId = 0)
+        selectedBranch = BranchMasterResponse(branchMasterId = 0)
+        selectedDivision = DivisionMasterResponse(divisionMasterId = 0)
+        selectedCategory = CategoryMasterResponse(categoryMasterId = 0)
         callOrderListApi()
     }
 
@@ -339,15 +343,17 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             fun bind(orderData: OrderListResponse) {
 
-                binding.tvOrderDate.text = "Order Date : " + orderData.orderDate
-                binding.tvOrderNo.text = "Order No : " + orderData.documentNo
+                binding.tvOrderDate.text = "Date : " + orderData.orderDate
+                binding.tvOrderNo.text = "Order No : " +orderData.categoryName+"/"+ orderData.documentNo
                 binding.tvParty.text = "Party : " + orderData.accountName
                 binding.tvAmount.text = "Amount : " + orderData.orderAmount
                 binding.tvPlace.text = "Place : " + orderData.cityName
+                binding.tvBranch.text = "Branch : "+orderData.branchName
+                binding.tvStatus.text = "Status : "+orderData.orderStatusName
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        AddOrderEntryFragment.newInstance(orderData.orderId ?: 0),
+                        AddOrderEntryFragment.newInstance(orderData.orderId ?: 0, orderData.allowEdit, orderData.allowDelete),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.rightInLeftOut
@@ -925,8 +931,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         val fieldName = "FieldName=Order/Party"
         val parameterString =
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and" +
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0} and $FORM_ID_ORDER_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)

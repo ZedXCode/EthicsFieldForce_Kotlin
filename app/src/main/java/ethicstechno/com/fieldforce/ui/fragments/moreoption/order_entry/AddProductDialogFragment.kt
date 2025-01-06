@@ -140,6 +140,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     private val groupItemClickListener = object : ItemClickListener<DropDownItem> {
         override fun onItemSelected(item: DropDownItem) {
             // Handle user item selection
+            binding.viewSelectedGroup.visibility = View.VISIBLE
             groupSearchDialog.closeDialog()
             binding.tvSelectGroup.text = item.dropdownValue
             selectedGroupId = (item.dropdownKeyId ?: "0").toInt()
@@ -596,9 +597,11 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
                     binding.tvFilter2.text =
                         if (selectedItemList2.isEmpty()) header2Name else selectedItemList2[0].dropdownValue
+                    binding.viewSelectedFilter2.visibility = if (selectedItemList2.isEmpty()) View.GONE else View.VISIBLE
                     filter2KeyIds =
                         if (selectedItemList2.isEmpty()) "" else selectedItemList2.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
+
                 }
             }
 
@@ -612,6 +615,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
                     binding.tvFilter3.text =
                         if (selectedItemList3.isEmpty()) header3Name else selectedItemList3[0].dropdownValue
+                    binding.viewSelectedFilter3.visibility = if (selectedItemList3.isEmpty()) View.GONE else View.VISIBLE
                     filter3KeyIds =
                         if (selectedItemList3.isEmpty()) "" else selectedItemList3.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
@@ -628,6 +632,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         if (selectedItems == null || selectedItems.isEmpty()) arrayListOf() else selectedItems as ArrayList<DropDownItem>
                     binding.tvFilter4.text =
                         if (selectedItemList4.isEmpty()) header4Name else selectedItemList4[0].dropdownValue
+                    binding.viewSelectedFilter4.visibility = if (selectedItemList4.isEmpty()) View.GONE else View.VISIBLE
                     filter4KeyIds =
                         if (selectedItemList4.isEmpty()) "" else selectedItemList4.joinToString("|") { "${it.dropdownKeyId}" }
                     callProductGroupListApi(false, selectedGroupId)
@@ -758,17 +763,27 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         val layout: View = inflater.inflate(R.layout.add_inquiry_dialog, null)
         val rvInquiry = layout.findViewById<RecyclerView>(R.id.rvInquiry)
         val cbAll = layout.findViewById<CheckBox>(R.id.cbSelectedItems)
+        val cbSelected = layout.findViewById<CheckBox>(R.id.cbSelectedFilters)
+        val tvClearAll = layout.findViewById<TextView>(R.id.tvClearAll)
         val btnSubmit = layout.findViewById<Button>(R.id.btnSubmit)
         val imgBack = layout.findViewById<ImageView>(R.id.imgBack)
         val edtSearch = layout.findViewById<EditText>(R.id.edtSearch)
         val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
 
         tvTitle.text = title
-        val adapter = ProductFilterAdapter(mActivity, dropdownItemList)
+        val adapter = ProductFilterAdapter(mActivity, dropdownItemList){ selectedCount ->
+            if(selectedCount >  0){
+                cbSelected.visibility = View.VISIBLE
+            }else{
+                cbSelected.visibility = View.GONE
+            }
+            cbSelected.text = "Selected ($selectedCount)"
+        }
         if (selectedItems.isNotEmpty()) {
             adapter.updateCheckedItems(selectedItems)
             cbAll.isChecked = selectedItems.size == dropdownItemList.size
         }
+
 
 
         rvInquiry.layoutManager = LinearLayoutManager(mActivity)
@@ -800,8 +815,35 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
 
         cbAll.setOnCheckedChangeListener { _, isChecked ->
+            cbSelected.visibility = View.GONE
             adapter.selectAll(isChecked)
             cbAll.isChecked = isChecked // Reflect state in the checkbox
+        }
+
+        cbSelected.setOnCheckedChangeListener { _, isChecked ->
+            val selectedCount = adapter.getSelectedItems().size
+            cbSelected.text = if (isChecked) {
+                "Selected ($selectedCount)"
+            } else {
+                "Selected ($selectedCount)"
+            }
+
+            if (isChecked) {
+                // Show only the selected items
+                val selectedItems = adapter.getSelectedItems()
+                adapter.filterSelectedItems(selectedItems)
+            } else {
+                // Show all items
+                adapter.resetFilter()
+            }
+        }
+
+
+
+        tvClearAll.setOnClickListener {
+            adapter.clearAllFilters()
+            cbAll.isChecked = false
+            cbSelected.isChecked = false
         }
 
         inquiryDialog.setOnDismissListener {
@@ -942,6 +984,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etAmount.setText(item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
 
                     etPrice.isEnabled = item.isPriceEditable == true
+                    etAmount.isEnabled = item.isPriceEditable == true
 
                     // Ensure unit and product name are correctly displayed
                     tvUnit.text = item.unit ?: ""
@@ -1149,10 +1192,23 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
     class ProductFilterAdapter(
         private val context: Context,
-        private val items: List<DropDownItem>
+        private val items: List<DropDownItem>,
+        private val onSelectionChanged: (Int) -> Unit
     ) : RecyclerView.Adapter<ProductFilterAdapter.ItemViewHolder>() {
 
         private var filteredItems: MutableList<DropDownItem> = items.toMutableList()
+
+        // Filter to show only selected items
+        fun filterSelectedItems(selectedItems: List<DropDownItem>) {
+            filteredItems = selectedItems.toMutableList()
+            notifyDataSetChanged()
+        }
+
+        // Reset the filter to show all items
+        fun resetFilter() {
+            filteredItems = items.toMutableList()
+            notifyDataSetChanged()
+        }
 
         // Update selected states for pre-selected items
         fun updateCheckedItems(selectedItems: List<DropDownItem>) {
@@ -1181,14 +1237,24 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             // Update the item's state on user interaction
             holder.itemCheckBox.setOnCheckedChangeListener { _, isChecked ->
                 item.isSelected = isChecked
+                onSelectionChanged(getSelectedItems().size) // Notify the selection change
             }
         }
+
+        // Get selected items count
+        fun getSelectedCount(): Int = items.count { it.isSelected }
 
         override fun getItemCount(): Int = filteredItems.size
 
         // Select or deselect all items
         fun selectAll(isChecked: Boolean) {
             items.forEach { it.isSelected = isChecked }
+            notifyDataSetChanged()
+        }
+
+        // Clear all selected items
+        fun clearAllFilters() {
+            items.forEach { it.isSelected = false }
             notifyDataSetChanged()
         }
 

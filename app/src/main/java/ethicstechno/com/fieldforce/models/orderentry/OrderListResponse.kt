@@ -41,5 +41,7 @@ class OrderListResponse(
     @SerializedName("ParameterString") var parameterString: String? = null,
     @SerializedName("OrderDetails") var orderDetails: String? = null,
     @SerializedName("Success") var success: Boolean? = null,
-    @SerializedName("ReturnMessage") var returnMessage: String? = null
+    @SerializedName("ReturnMessage") var returnMessage: String? = null,
+    @SerializedName("AllowEdit") var allowEdit: Int? = 0,
+    @SerializedName("AllowDelete") var allowDelete: Int? = 0
 )

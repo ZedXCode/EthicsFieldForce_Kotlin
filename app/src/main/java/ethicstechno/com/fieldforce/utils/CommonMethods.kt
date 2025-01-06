@@ -63,6 +63,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -1071,6 +1072,14 @@ class CommonMethods {
             return decimalFormat.format(bigDecimal)
         }
 
+        fun formatBigDecimal(number: BigDecimal): String {
+            val roundedNumber = number.setScale(2, RoundingMode.HALF_UP)
+            val decimalFormat = DecimalFormat("0.00") // Ensures leading zero for values like 0.00
+            return decimalFormat.format(roundedNumber)
+        }
+
+
+
         fun dateStringToCalendar(dateString: String): Calendar {
             val date = dateFormat.parse(dateString)
             return Calendar.getInstance().apply {
@@ -1111,9 +1120,6 @@ class CommonMethods {
             animation.duration = 300
             animation.interpolator = AccelerateDecelerateInterpolator()
             animation.start()
-        }
-        fun isHttpUrl(url: String): Boolean {
-            return url.startsWith("http", ignoreCase = true)
         }
 
     }

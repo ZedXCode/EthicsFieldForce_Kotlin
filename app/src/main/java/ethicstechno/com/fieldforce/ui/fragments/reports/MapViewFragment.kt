@@ -19,7 +19,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -37,7 +44,24 @@ import ethicstechno.com.fieldforce.databinding.FragmentMapViewBinding
 import ethicstechno.com.fieldforce.models.attendance.UserLocationListResponse
 import ethicstechno.com.fieldforce.models.reports.TripListByAttendanceIdResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.ARG_PARAM10
+import ethicstechno.com.fieldforce.utils.ARG_PARAM11
+import ethicstechno.com.fieldforce.utils.ARG_PARAM12
+import ethicstechno.com.fieldforce.utils.ARG_PARAM2
+import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
+import ethicstechno.com.fieldforce.utils.ARG_PARAM5
+import ethicstechno.com.fieldforce.utils.ARG_PARAM6
+import ethicstechno.com.fieldforce.utils.ARG_PARAM7
+import ethicstechno.com.fieldforce.utils.ARG_PARAM8
+import ethicstechno.com.fieldforce.utils.ARG_PARAM9
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DirectionsApiClient
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -91,12 +115,12 @@ class MapViewFragment : HomeBaseFragment(), View.OnClickListener, OnMapReadyCall
             isFromPartyDealer: Boolean,
             latitude: Double,
             longitude: Double,
-            markerTitle: String,
-            markerDetails: String,
+            markerTitle: String?,
+            markerDetails: String?,
             punchOutLatitude: Double,
             punchOutLongitude: Double,
-            punchOutTitle: String,
-            punchOutDetails: String,
+            punchOutTitle: String?,
+            punchOutDetails: String?,
             isFromAttendance: Boolean
         ): MapViewFragment {
             val args = Bundle()
@@ -109,8 +133,8 @@ class MapViewFragment : HomeBaseFragment(), View.OnClickListener, OnMapReadyCall
             args.putString(ARG_PARAM7, markerDetails)
             args.putDouble(ARG_PARAM8, punchOutLatitude)
             args.putDouble(ARG_PARAM9, punchOutLongitude)
-            args.putString(ARG_PARAM10, punchOutTitle)
-            args.putString(ARG_PARAM11, punchOutDetails)
+            args.putString(ARG_PARAM10, punchOutTitle ?: "")
+            args.putString(ARG_PARAM11, punchOutDetails ?: "")
             args.putBoolean(ARG_PARAM12, isFromAttendance)
             val fragment = MapViewFragment()
             fragment.arguments = args

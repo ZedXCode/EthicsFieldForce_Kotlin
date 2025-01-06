@@ -4,7 +4,11 @@ import AnimationType
 import addFragment
 import android.app.Activity
 import android.app.ActivityManager
-import android.content.*
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -27,11 +31,24 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonObject
-import com.itextpdf.text.*
+import com.itextpdf.text.BaseColor
+import com.itextpdf.text.Document
+import com.itextpdf.text.Element
+import com.itextpdf.text.Font
+import com.itextpdf.text.PageSize
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.Phrase
 import com.itextpdf.text.pdf.PdfPCell
 import com.itextpdf.text.pdf.PdfPTable
 import com.itextpdf.text.pdf.PdfWriter
@@ -45,7 +62,6 @@ import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceRespo
 import ethicstechno.com.fieldforce.models.attendance.PunchInResponse
 import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.TripSummeryReportResponse
@@ -54,9 +70,20 @@ import ethicstechno.com.fieldforce.service.EthicsBackgroundService
 import ethicstechno.com.fieldforce.ui.adapter.AttendanceAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.MapViewFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateTypeList
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.formatDateToMMMyyyy
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DistanceCalculatorUtils
+import ethicstechno.com.fieldforce.utils.EXTRA_LATITUDE
+import ethicstechno.com.fieldforce.utils.EXTRA_LONGITUDE
+import ethicstechno.com.fieldforce.utils.ID_ZERO
+import ethicstechno.com.fieldforce.utils.IS_FOR_ATTENDANCE_REPORT
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.PRESENT_DAY
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import retrofit2.Call
 import retrofit2.Callback
@@ -64,7 +91,8 @@ import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogListener,
     UserSearchDialogUtil.UserSearchDialogDetect, AttendanceAdapter.LocationClick {
@@ -918,6 +946,10 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
     }
 
     override fun onLocationClick(currentMonthData: CurrentMonthAttendanceResponse, tripSummeryData: TripSummeryReportResponse) {
+        if((currentMonthData.punchInTime ?: "").isEmpty()){
+            CommonMethods.showToastMessage(mActivity, "Attendance data not found")
+            return
+        }
         mActivity.addFragment(
             MapViewFragment.newInstance(
                 currentMonthData.attendanceId,
@@ -929,7 +961,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 currentMonthData.punchInLocation,
                 currentMonthData.punchOutLatitude,
                 currentMonthData.punchOutLongitude,
-                "Punch Out" + " (${currentMonthData.punchOutTime})",
+                "Punch Out" + " (${currentMonthData.punchOutTime ?: ""})",
                 currentMonthData.punchOutLocation,
                 true
             ),

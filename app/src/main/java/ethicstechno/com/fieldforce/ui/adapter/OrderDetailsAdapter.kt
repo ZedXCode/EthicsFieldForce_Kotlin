@@ -1,19 +1,15 @@
 package ethicstechno.com.fieldforce.ui.adapter
 
 import android.content.Context
-import android.media.Image
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.orderentry.OrderDetailsResponse
 import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
-import java.lang.Exception
-import kotlin.collections.ArrayList
+import ethicstechno.com.fieldforce.utils.CommonMethods
 
 class OrderDetailsAdapter(
     var mContext: Context,
@@ -69,9 +65,9 @@ class OrderDetailsAdapter(
                 val srNo = (position + 1).toString()
                 tvSRNo.text = srNo
                 tvProduct.text = item.productName
-                tvQty.text = item.qty.toString()
-                tvPrice.text = item.price.toString()
-                tvAmount.text = item.amount.toString()
+                tvQty.text = CommonMethods.formatBigDecimal(item.qty)
+                tvPrice.text = CommonMethods.formatBigDecimal(item.price)
+                tvAmount.text = CommonMethods.formatBigDecimal(item.amount)
                 tvUnit.text = item.unit.toString()
 
                 ivEdit.setOnClickListener {

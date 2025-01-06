@@ -153,6 +153,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     private var inquiryDialog: AlertDialog? = null
     private var visitDetailsList: List<InquiryResponse> = arrayListOf()
     var initialTime = ""
+    private var isCompanyChange = false
 
 
     private val locationSettingsLauncher =
@@ -853,7 +854,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
-                mActivity.getString(R.string.please_select_branch)
+                "Please select division"
             )
             return;
         }
@@ -946,7 +947,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                             )
                             companyMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedCompany = CompanyMasterResponse(
                                     companyMasterId = companyMasterList[1].companyMasterId,
                                     companyName = companyMasterList[1].companyName
@@ -986,13 +987,13 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+        /*if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.please_select_company)
             )
             return;
-        }
+        }*/
         CommonMethods.showLoading(mActivity)
 
         val appRegistrationData = appDao.getAppRegistration()
@@ -1022,7 +1023,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                             )
                             branchMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedBranch = BranchMasterResponse(
                                     branchMasterId = branchMasterList[1].branchMasterId,
                                     branchName = branchMasterList[1].branchName
@@ -1030,14 +1031,15 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
                             }else{
-                                val userDialog = UserSearchDialogUtil(
+                                //callDivisionListApi()
+                                /*val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_BRANCH,
                                     branchList = branchMasterList,
                                     branchInterfaceDetect = this@AddVisitFragment as UserSearchDialogUtil.BranchDialogDetect,
                                     userDialogInterfaceDetect = null
                                 )
-                                userDialog.showUserSearchDialog()
+                                userDialog.showUserSearchDialog()*/
                             }
                         }else{
                             CommonMethods.showToastMessage(
@@ -1076,13 +1078,13 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+        /*if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.please_select_branch)
             )
             return;
-        }
+        }*/
         CommonMethods.showLoading(mActivity)
 
         val appRegistrationData = appDao.getAppRegistration()
@@ -1116,7 +1118,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                             )
                             divisionMasterList.addAll(it)
-                            if (it.size == 1) {
+                            if (isCompanyChange && it.size == 1) {
                                 selectedDivision = DivisionMasterResponse(
                                     divisionMasterId = divisionMasterList[1].divisionMasterId,
                                     divisionName = divisionMasterList[1].divisionName
@@ -1124,14 +1126,14 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
                             }else{
-                                val userDialog = UserSearchDialogUtil(
+                                /*val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_DIVISION,
                                     divisionList = divisionMasterList,
                                     divisionInterfaceDetect = this@AddVisitFragment as UserSearchDialogUtil.DivisionDialogDetect,
                                     userDialogInterfaceDetect = null
                                 )
-                                userDialog.showUserSearchDialog()
+                                userDialog.showUserSearchDialog()*/
                                 callCategoryListApi()
                             }
                         }else{
@@ -1378,7 +1380,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         inquiryDialog!!.show()
     }
 
-    private fun setupCategorySpinner() {
+    /*private fun setupCategorySpinner() {
         val adapter = LeaveTypeAdapter(
             mActivity,
             R.layout.simple_spinner_item,
@@ -1410,6 +1412,33 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
 
 
+    }
+*/
+    private fun setupCategorySpinner() {
+        val adapter = LeaveTypeAdapter(
+            mActivity,
+            R.layout.simple_spinner_item,
+            categoryList,
+            this,
+        )
+        binding.spCategory.adapter = adapter
+        if (isCompanyChange && categoryList.size == 2) {
+            selectedCategory = CategoryMasterResponse(
+                categoryMasterId = categoryList[1].categoryMasterId,
+                categoryName = categoryList[1].categoryName
+            )
+            binding.spCategory.setSelection(1)
+            categoryList[1]
+        } else {
+            if(isCompanyChange) {
+                binding.spCategory.setSelection(0)
+                categoryList[0]
+            }else{
+                val selectedCategoryIndex =
+                    categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+                binding.spCategory.setSelection(selectedCategoryIndex)
+            }
+        }
     }
 
     private fun callAddVisitApi() {
@@ -1456,7 +1485,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         addVisitReq.addProperty("SelfiePath", base64SelfieImage)
 
         if (imageAnyList.size > 0) {
-            if (CommonMethods.isHttpUrl(imageAnyList[0].toString())) {
+            if (imageAnyList[0] is String) {
                 addVisitReq.addProperty("FilePath", imageAnyList[0].toString())
             } else {
                 val imageBase64 =
@@ -1464,7 +1493,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 addVisitReq.addProperty("FilePath", imageBase64)
             }
             if (imageAnyList.size > 1) {
-                if (CommonMethods.isHttpUrl(imageAnyList[1].toString())) {
+                if (imageAnyList[1] is String) {
                     addVisitReq.addProperty("FilePath2", imageAnyList[1].toString())
                 } else {
                     val imageBase64 =
@@ -1475,7 +1504,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 addVisitReq.addProperty("FilePath2", "")
             }
             if (imageAnyList.size > 2) {
-                if (CommonMethods.isHttpUrl(imageAnyList[2].toString())) {
+                if (imageAnyList[2] is String) {
                     addVisitReq.addProperty("FilePath3", imageAnyList[2].toString())
                 } else {
                     val imageBase64 =
@@ -1486,7 +1515,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 addVisitReq.addProperty("FilePath3", "")
             }
             if (imageAnyList.size > 3) {
-                if (CommonMethods.isHttpUrl(imageAnyList[3].toString())) {
+                if (imageAnyList[3] is String) {
                     addVisitReq.addProperty("FilePath4", imageAnyList[3].toString())
                 } else {
                     val imageBase64 =
@@ -1878,6 +1907,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     override fun companySelect(dropDownData: CompanyMasterResponse) {
         selectedCompany = dropDownData
+        isCompanyChange = true
         binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
         resetSelection(
             resetBranch = true,
