@@ -1,9 +1,12 @@
-package ethicstechno.com.fieldforce.models.orderentry
+package ethicstechno.com.fieldforce.models.moreoption.orderentry
 
+import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
-class OrderListResponse(
+@Parcelize
+class OrderDetailsResponse(
     @SerializedName("OrderId") var orderId: Int? = null,
     @SerializedName("OrderDate") var orderDate: String? = null,
     @SerializedName("AccountMasterId") var accountMasterId: Int? = null,
@@ -31,17 +34,41 @@ class OrderListResponse(
     @SerializedName("BranchMasterId") var branchMasterId: Int? = null,
     @SerializedName("DivisionMasterId") var divisionMasterId: Int? = null,
     @SerializedName("ModeOfCommunication") var modeOfCommunication: Int? = null,
+    @SerializedName("DocumentNo") var documentNo: Int? = null,
+    @SerializedName("ParameterString") var parameterString: String? = null,
     @SerializedName("FilePath2") var filePath2: String? = null,
     @SerializedName("FilePath3") var filePath3: String? = null,
     @SerializedName("FilePath4") var filePath4: String? = null,
     @SerializedName("CompanyName") var companyName: String? = null,
     @SerializedName("BranchName") var branchName: String? = null,
     @SerializedName("DivisionName") var divisionName: String? = null,
-    @SerializedName("DocumentNo") var documentNo: Int? = null,
-    @SerializedName("ParameterString") var parameterString: String? = null,
-    @SerializedName("OrderDetails") var orderDetails: String? = null,
     @SerializedName("Success") var success: Boolean? = null,
     @SerializedName("ReturnMessage") var returnMessage: String? = null,
-    @SerializedName("AllowEdit") var allowEdit: Int? = 0,
-    @SerializedName("AllowDelete") var allowDelete: Int? = 0
-)
+    @SerializedName("OrderDetails") var orderDetails: ArrayList<ProductGroupResponse> = arrayListOf()
+) : Parcelable {
+
+    @Parcelize
+    data class OrderDetails(
+        @SerializedName("OrderDetailsId") var orderDetailsId: Int = 0,
+        @SerializedName("OrderId") var orderId: Int? = null,
+        @SerializedName("ProductId") var productId: Int? = null,
+        @SerializedName("ProductName") var productName: String? = null,
+        @SerializedName("ProductGroupId") var productGroupId: Int? = null,
+        @SerializedName("ProductGroupName") var productGroupName: String? = null,
+        @SerializedName("Unit") var unit: String? = null,
+        @SerializedName("AltUnit") var altUnit: String? = null,
+        @SerializedName("ConversionFactor") var conversionFactor: Double? = null,
+        @SerializedName("MRP") var mrp: Double? = null,
+        @SerializedName("SalesPrice") var salesPrice: BigDecimal? = null,
+        @SerializedName("Quantity") var quantity: BigDecimal? = null,
+        @SerializedName("PendingQuantity") var pendingQuantity: Int? = null,
+        @SerializedName("Rate") var rate: BigDecimal? = null,
+        @SerializedName("Amount") var amount: BigDecimal? = null,
+        @SerializedName("Discount") var discount: BigDecimal? = null,
+        @SerializedName("TaxPercentage") var taxPercentage: Double? = null,
+        @SerializedName("NetAmount") var netAmount: BigDecimal? = null,
+        @SerializedName("UserId") var userId: Int? = null,
+        @SerializedName("Success") var success: Boolean? = null,
+        @SerializedName("ReturnMessage") var returnMessage: String? = null
+    ) : Parcelable
+}

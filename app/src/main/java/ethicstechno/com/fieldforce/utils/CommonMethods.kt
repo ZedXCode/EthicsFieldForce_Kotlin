@@ -850,6 +850,18 @@ class CommonMethods {
             return time
         }
 
+        fun convertToAmPm(time: String): String {
+            val inputFormat = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
+            val outputFormat = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+            return try {
+                val date = inputFormat.parse(time)
+                outputFormat.format(date ?: "")
+            } catch (e: Exception) {
+                ""
+            }
+        }
+
+
         fun getTodayEndTime(): String {
             val calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, 23)

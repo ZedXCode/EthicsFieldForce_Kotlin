@@ -23,9 +23,11 @@ import ethicstechno.com.fieldforce.models.moreoption.MoreModel
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.ExpenseListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry.InquiryEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicationListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.PartyDealerListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.tourplan.TourPlanFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.VisitListFragment
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -37,6 +39,7 @@ import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPLICATION
 import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPROVAL
 import ethicstechno.com.fieldforce.utils.MORE_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_PARTY_DEALER
+import ethicstechno.com.fieldforce.utils.MORE_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_TOUR_PLAN
 import ethicstechno.com.fieldforce.utils.MORE_VISIT
 import retrofit2.Call
@@ -106,6 +109,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
         moreList.add(MoreModel(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_tour_plan))
         moreList.add(MoreModel(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_order_entry))
         moreList.add(MoreModel(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_order_entry))
+        moreList.add(MoreModel(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_order_entry))
     }
 
     private fun setupMoreAdapter() {
@@ -265,7 +269,15 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         }
                         getString(R.string.more_inquiry_entry) ->{
                             mActivity.addFragment(
-                                OrderEntryListFragment.newInstance(true),
+                                InquiryEntryListFragment.newInstance(true),
+                                addToBackStack = true,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
+                        getString(R.string.more_quotation_entry) ->{
+                            mActivity.addFragment(
+                                QuotationEntryListFragment.newInstance(true),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut

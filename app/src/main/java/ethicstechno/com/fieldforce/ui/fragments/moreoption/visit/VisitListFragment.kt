@@ -24,7 +24,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonObject
@@ -35,12 +42,21 @@ import ethicstechno.com.fieldforce.databinding.ItemListBinding
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.AddPartyDealerFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.MapViewFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FORM_ID_VISIT
+import ethicstechno.com.fieldforce.utils.FOR_DASHBOARD_REPORT_REDIRECT
+import ethicstechno.com.fieldforce.utils.FOR_LOCATION_REDIRECT
+import ethicstechno.com.fieldforce.utils.FOR_PARTY_DEALER_LIST
+import ethicstechno.com.fieldforce.utils.FOR_PARTY_DEALER_UPDATE
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -514,7 +530,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
                 binding.tvAddVisit.setOnClickListener {
                     mActivity.addFragment(
-                        AddVisitFragment.newInstance(visitData, VisitReportListResponse(), false),
+                        AddVisitFragment.newInstance(visitData, 0, false),
                         true,
                         true,
                         AnimationType.fadeInfadeOut

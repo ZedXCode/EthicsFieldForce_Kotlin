@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.utils.CommonMethods
 
 class OrderDetailsAdapter(
@@ -30,7 +30,7 @@ class OrderDetailsAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item: ProductGroupResponse= productModelLis[position]
+        val item: ProductGroupResponse = productModelLis[position]
         holder.bind(item, holder.adapterPosition)
     }
 

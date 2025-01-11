@@ -19,7 +19,7 @@ import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.models.DropDownItem
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.ui.adapter.GenericAdapter
 import ethicstechno.com.fieldforce.utils.DIALOG_ACCOUNT_MASTER
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE

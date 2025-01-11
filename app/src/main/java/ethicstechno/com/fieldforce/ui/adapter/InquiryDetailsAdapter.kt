@@ -1,27 +1,24 @@
 package ethicstechno.com.fieldforce.ui.adapter
 
 import android.content.Context
-import android.media.Image
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderDetailsResponse
-import java.lang.Exception
-import kotlin.collections.ArrayList
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
+import ethicstechno.com.fieldforce.utils.CommonMethods
 
-class OrderDetailsAdapterOLD(
+class InquiryDetailsAdapter(
     var mContext: Context,
-    var productModelLis: List<OrderDetailsResponse.OrderDetails>,
+    var productModelLis: List<ProductInquiryGroupResponse>,
     private val listener: ProductItemClickListener,
 ) :
-    RecyclerView.Adapter<OrderDetailsAdapterOLD.ViewHolder>() {
+    RecyclerView.Adapter<InquiryDetailsAdapter.ViewHolder>() {
 
-    fun refreshAdapter(listdata: ArrayList<OrderDetailsResponse.OrderDetails>) {
+    fun refreshAdapter(listdata: ArrayList<ProductInquiryGroupResponse>) {
         productModelLis = arrayListOf()
         productModelLis = listdata
         notifyDataSetChanged()
@@ -33,7 +30,7 @@ class OrderDetailsAdapterOLD(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item: OrderDetailsResponse.OrderDetails= productModelLis[position]
+        val item: ProductInquiryGroupResponse = productModelLis[position]
         holder.bind(item, holder.adapterPosition)
     }
 
@@ -62,15 +59,15 @@ class OrderDetailsAdapterOLD(
             ivDelete = itemView.findViewById(R.id.ivDelete)
         }
 
-        fun bind(item: OrderDetailsResponse.OrderDetails, position: Int) {
+        fun bind(item: ProductInquiryGroupResponse, position: Int) {
             try {
 
                 val srNo = (position + 1).toString()
                 tvSRNo.text = srNo
                 tvProduct.text = item.productName
-                tvQty.text = item.quantity.toString()
-                tvPrice.text = item.rate.toString()
-                tvAmount.text = item.amount.toString()
+                tvQty.text = CommonMethods.formatBigDecimal(item.qty)
+                tvPrice.text = CommonMethods.formatBigDecimal(item.price)
+                tvAmount.text = CommonMethods.formatBigDecimal(item.amount)
                 tvUnit.text = item.unit.toString()
 
                 ivEdit.setOnClickListener {
@@ -87,8 +84,8 @@ class OrderDetailsAdapterOLD(
     }
 
     interface ProductItemClickListener {
-        fun onEditClick(item: OrderDetailsResponse.OrderDetails, position: Int)
-        fun onDeleteClick(item: OrderDetailsResponse.OrderDetails, position: Int)
+        fun onEditClick(item: ProductInquiryGroupResponse, position: Int)
+        fun onDeleteClick(item: ProductInquiryGroupResponse, position: Int)
     }
 
 }

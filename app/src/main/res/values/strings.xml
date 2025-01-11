@@ -117,6 +117,7 @@
     <string name="more_tour_plan" translatable="false">Tour &#10; Plan</string>
     <string name="more_order_entry" translatable="false">Order Entry</string>
     <string name="more_inquiry_entry" translatable="false">Inquiry</string>
+    <string name="more_quotation_entry" translatable="false">Quotation</string>
     <string name="more_payment_follow_up" translatable="false">Payment FollowUp</string>
     <string name="more_sales_inquiry" translatable="false">Sales Inquiry</string>
     <string name="add_expense" translatable="false">Add Expense</string>
@@ -332,8 +333,12 @@
     <string name="please_select_product_group" translatable="false">Please select product group</string>
     <string name="select_product" translatable="false">Select Product</string>
     <string name="add_order_entry" translatable="false">Add Order Entry</string>
+    <string name="add_inquiry_entry" translatable="false">Add Quotation</string>
+    <string name="add_quotation_entry" translatable="false">Add Quotation</string>
     <string name="please_selected_order_mode" translatable="false">Please selected order mode</string>
     <string name="please_select_order_category" translatable="false">Please select order category</string>
+    <string name="please_select_quotation_category" translatable="false">Please select quotation category</string>
+    <string name="please_select_inquiry_category" translatable="false">Please select inquiry category</string>
     <string name="contact_person_name" translatable="false">Contact Person Name</string>
     <string name="distributor_name" translatable="false">Distributor Name</string>
     <string name="distributor_list" translatable="false">Distributor List</string>
@@ -341,23 +346,41 @@
     <string name="distributor_validation" translatable="false">Please select distributor</string>
     <string name="product_validation" translatable="false">Please add product</string>
     <string name="order_entry_confirmation" translatable="false">Are you sure you want to add order entry?</string>
+    <string name="inquiry_entry_confirmation" translatable="false">Are you sure you want to add inquiry?</string>
+    <string name="quotation_entry_confirmation" translatable="false">Are you sure you want to add quotation?</string>
     <string name="order_entry_list" translatable="false">Order Entry List</string>
+    <string name="inquiry_entry_list" translatable="false">Inquiry List</string>
+    <string name="quotation_entry_list" translatable="false">Quotation List</string>
     <string name="inquiry_list" translatable="false">Inquiry List</string>
     <string name="select_group" translatable="false">Select Group</string>
     <string name="please_enter_quantity" translatable="false">Please enter quantity</string>
     <string name="please_enter_amount" translatable="false">Please enter amount</string>
     <string name="update_order_entry" translatable="false">Update Order Entry</string>
+    <string name="update_inquiry_entry" translatable="false">Update inquiry</string>
+    <string name="update_quotation_entry" translatable="false">Update quotation</string>
     <string name="update_order_entry_confirmation" translatable="false">Are you sure you want to Update Order entry?</string>
+    <string name="update_inquiry_entry_confirmation" translatable="false">Are you sure you want to Update Inquiry?</string>
+    <string name="update_quotation_entry_confirmation" translatable="false">Are you sure you want to Update Quotation?</string>
     <string name="one_item_required_for_order_entry" translatable="false">One Item required for Order Entry</string>
+    <string name="one_item_required_for_inquiry_entry" translatable="false">One Item required for Inquiry</string>
+    <string name="one_item_required_for_quotation_entry" translatable="false">One Item required for Quotation</string>
     <string name="delete" translatable="false">Delete</string>
     <string name="delete_order_entry" translatable="false">Delete Order Entry</string>
     <string name="are_you_sure_you_want_to_delete_order_entry" translatable="false">Are you sure you want to delete order entry?</string>
     <string name="are_you_sure_you_want_to_edit_order_entry" translatable="false">Are you sure you want to edit order entry?</string>
+    <string name="are_you_sure_you_want_to_edit_inquiry_entry" translatable="false">Are you sure you want to edit inquiry?</string>
+    <string name="are_you_sure_you_want_to_edit_quotation_entry" translatable="false">Are you sure you want to edit quotation?</string>
     <string name="add_product" translatable="false">Add Product</string>
     <string name="order_details" translatable="false">Order Details</string>
+    <string name="inquiry_details" translatable="false">Inquiry Details</string>
+    <string name="quotation_details" translatable="false">Quotation Details</string>
     <string name="no_image_found" translatable="false">No Image Found</string>
     <string name="edit_order_entry" translatable="false">Edit Order Entry</string>
+    <string name="edit_inquiry_entry" translatable="false">Edit Inquiry</string>
+    <string name="edit_quotation_entry" translatable="false">Edit Quotation</string>
     <string name="are_you_sure_you_want_to_exit" translatable="false">Are you sure you want to exit?</string>
+    <string name="delete_inquiry_details" translatable="false">Delete Inquiry Details</string>
+    <string name="delete_quotation_details" translatable="false">Delete Quotation Details</string>
     <string name="delete_order_details" translatable="false">Delete Order Details</string>
     <string name="are_you_sure_you_want_to_delete_this_product" translatable="false">Are you sure you want to delete this product?</string>
     <string name="select_region" translatable="false">Select Region</string>
@@ -417,4 +440,5 @@
     <string name="product_series" translatable="false">Product Series</string>
     <string name="selected_products" translatable="false">Selected Products</string>
     <string name="add_inquiry" translatable="false">Add Inquiry</string>
+    <string name="no_visit_details_found" translatable="false">No visit details found</string>
 </resources>

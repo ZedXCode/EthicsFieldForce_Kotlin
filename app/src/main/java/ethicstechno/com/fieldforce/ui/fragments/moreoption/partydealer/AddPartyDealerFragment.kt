@@ -380,6 +380,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
 
         Log.e("TAG", "setupDataForUpdate:BEFORE " + imageAnyList.toString())
 
+
         imageAdapter?.addImage(imageAnyList, true)
         handleAssetRVView(imageAnyList.size)
 

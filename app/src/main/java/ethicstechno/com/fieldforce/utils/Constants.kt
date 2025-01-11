@@ -47,6 +47,8 @@ const val DROP_DOWN_VISIT_TYPE = "VisitType"
 const val FORM_ID_PARTY_DEALER = "FormId=204"
 const val FORM_ID_VISIT = "FormId=205"
 const val FORM_ID_ORDER_ENTRY = "FormId=214"
+const val FORM_ID_INQUIRY_ENTRY = "FormId=212"
+const val FORM_ID_QUOTATION_ENTRY = "FormId=213"
 
 const val CONTROL_TYPE_FIX_PER_KM = 3
 
@@ -60,6 +62,7 @@ const val MORE_LEAVE_APPROVAL = 6
 const val MORE_TOUR_PLAN = 7
 const val MORE_ORDER_ENTRY = 8
 const val MORE_INQUIRY_ENTRY = 9
+const val MORE_QUOTATION_ENTRY = 10
 
 
 const val FOR_USER = 1

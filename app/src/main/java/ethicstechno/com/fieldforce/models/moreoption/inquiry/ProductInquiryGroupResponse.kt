@@ -1,4 +1,4 @@
-package ethicstechno.com.fieldforce.models.orderentry
+package ethicstechno.com.fieldforce.models.moreoption.inquiry
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
@@ -6,9 +6,9 @@ import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
 @Parcelize
-class ProductGroupResponse(
-    @SerializedName("OrderDetailsId") var orderDetailsId: Int,
-    @SerializedName("OrderId") var orderId: Int,
+class ProductInquiryGroupResponse(
+    @SerializedName("InquiryDetailsId") var inquiryDetailsId: Int,
+    @SerializedName("InquiryId") var inquiryId: Int,
     @SerializedName("ProductId") var productId: Int? = 0,
     @SerializedName("ProductName") var productName: String? = "",
     @SerializedName("ProductGroupId") var productGroupId: Int? = 0,

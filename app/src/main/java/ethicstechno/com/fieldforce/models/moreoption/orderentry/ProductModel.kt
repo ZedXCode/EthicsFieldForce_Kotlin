@@ -1,4 +1,4 @@
-package ethicstechno.com.fieldforce.models.orderentry
+package ethicstechno.com.fieldforce.models.moreoption.orderentry
 
 data class ProductModel (
     var groupData: ProductGroupResponse,

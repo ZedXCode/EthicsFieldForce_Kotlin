@@ -154,6 +154,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     private var visitDetailsList: List<InquiryResponse> = arrayListOf()
     var initialTime = ""
     private var isCompanyChange = false
+    var visitId = 0
 
 
     private val locationSettingsLauncher =
@@ -177,12 +178,12 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     companion object {
         fun newInstance(
             partyDealerData: AccountMasterList,
-            visitReport: VisitReportListResponse,
+            visitId: Int,
             readOnly: Boolean
         ): AddVisitFragment {
             val args = Bundle()
             args.putParcelable(ARG_PARAM1, partyDealerData)
-            args.putParcelable(ARG_PARAM2, visitReport)
+            args.putInt(ARG_PARAM2, visitId)
             args.putBoolean(ARG_PARAM3, readOnly)
             val fragment = AddVisitFragment()
             fragment.arguments = args
@@ -208,12 +209,13 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 it.getParcelable(ARG_PARAM1) ?: AccountMasterList()
             }
 
-            visitReportData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            /*visitReportData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 it.getParcelable(ARG_PARAM2, VisitReportListResponse::class.java)
                     ?: VisitReportListResponse()
             } else {
                 it.getParcelable(ARG_PARAM2) ?: VisitReportListResponse()
-            }
+            }*/
+            visitId = it.getInt(ARG_PARAM2, 0)
             isReadOnly = it.getBoolean(ARG_PARAM3, false)
         }
         initView()
@@ -224,6 +226,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.toolbar.imgBack.visibility = View.VISIBLE
         binding.toolbar.tvHeader.text =
             if (isReadOnly) mActivity.getString(R.string.visit_details) else mActivity.getString(R.string.add_visit_details)
+        setupRecyclerView()
 
         if (!isReadOnly && !AppPreference.getBooleanPreference(mActivity, IS_TRIP_START)) {
             CommonMethods.showAlertDialog(
@@ -245,40 +248,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
 
         binding.toolbar.imgBack.setOnClickListener(this)
-        binding.tvDate.text =
-            if (isReadOnly) visitReportData.visitDate else CommonMethods.getCurrentDate()
-        binding.tvCityName.text = if (isReadOnly) visitReportData.cityName else visitData.cityName
-        binding.etContactPerson.setText(if (isReadOnly) visitReportData.contactPersonName else visitData.contactPersonName)
-        binding.tvSelectParty.text =
-            if (isReadOnly) visitReportData.accountName else visitData.accountName
-        binding.tvNextVisitFollowUpDate.text =
-            if (isReadOnly) visitReportData.nextVisitDate else CommonMethods.getCurrentDate()
-        binding.tvNextFollowUpTime.text =
-            if (isReadOnly) visitReportData.nextVisitTime else CommonMethods.getCurrentTimeIn12HrFormat()
         if (isReadOnly) {
-            binding.etVisitDetails.setText(visitReportData.visitDetails)
-            binding.etNextVisitSubject.setText(visitReportData.nextVisitSubject)
-            binding.etRemarks.setText(visitReportData.remarks)
-            binding.tvAddVisit.visibility = View.GONE
-            /*binding.imgDropDown.visibility = View.GONE
-            binding.imgSearch.visibility = View.GONE*/
-            binding.etVisitDetails.isEnabled = false
-            binding.etNextVisitSubject.isEnabled = false
-            binding.etRemarks.isEnabled = false
-            binding.etContactPerson.isEnabled = false
-
-            /*if((visitReportData.filePath1 ?: "").isNotEmpty()){
-                imageAnyList.add((partyDealerDataForUpdate.filePath1) ?: "")
-            }
-            if((partyDealerDataForUpdate.filePath2 ?: "").isNotEmpty()){
-                imageAnyList.add((partyDealerDataForUpdate.filePath2) ?: "")
-            }
-            if((partyDealerDataForUpdate.filePath3 ?: "").isNotEmpty()){
-                imageAnyList.add((partyDealerDataForUpdate.filePath3) ?: "")
-            }
-            if((partyDealerDataForUpdate.filePath4 ?: "").isNotEmpty()){
-                imageAnyList.add((partyDealerDataForUpdate.filePath4) ?: "")
-            }*/
+            callVisitDetailsApi();
         } else {
             presetDate = CommonMethods.getCurrentDate()
             presetTime = CommonMethods.getCurrentTimeIn12HrFormat()
@@ -294,8 +265,12 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             binding.cardImageCapture.setOnClickListener(this)
             binding.cardAddInquiry.setOnClickListener(this)
             binding.cardImageSelfieCapture.setOnClickListener(this)
-
-            setupRecyclerView()
+            binding.tvDate.text = CommonMethods.getCurrentDate()
+            binding.tvCityName.text = visitData.cityName
+            binding.etContactPerson.setText(visitData.contactPersonName)
+            binding.tvSelectParty.text = visitData.accountName
+            binding.tvNextVisitFollowUpDate.text = CommonMethods.getCurrentDate()
+            binding.tvNextFollowUpTime.text = CommonMethods.getCurrentTimeIn12HrFormat()
 
             binding.tvStartTime.text = CommonMethods.getCurrentTimeIn12HrFormat()
             binding.tvEndTime.text = CommonMethods.getCurrentTimeIn12HrFormat()
@@ -1482,7 +1457,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         addVisitReq.addProperty("EndTime", binding.tvEndTime.text.toString())
         addVisitReq.addProperty("VisitStatus", selectedStatus)
         addVisitReq.addProperty("DDMStageId", selectedStage?.dropdownKeyId)
-        addVisitReq.addProperty("SelfiePath", base64SelfieImage)
+        addVisitReq.addProperty("SelfieFilePath", base64SelfieImage)
 
         if (imageAnyList.size > 0) {
             if (imageAnyList[0] is String) {
@@ -1608,6 +1583,137 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         })
 
     }
+
+    private fun callVisitDetailsApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showAlertDialog(
+                mActivity,
+                mActivity.getString(R.string.network_error),
+                mActivity.getString(R.string.network_error_msg),
+                null
+            )
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val visitDetailsReq = JsonObject()
+        visitDetailsReq.addProperty("UserId", loginData.userId)
+        visitDetailsReq.addProperty("parameterString", FORM_ID_VISIT)
+        visitDetailsReq.addProperty("visitId", visitId)
+
+        CommonMethods.getBatteryPercentage(mActivity)
+
+        val visitReportCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getVisitDetails(visitDetailsReq)
+
+
+        visitReportCall?.enqueue(object : Callback<List<VisitReportListResponse>> {
+            override fun onResponse(
+                call: Call<List<VisitReportListResponse>>,
+                response: Response<List<VisitReportListResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let { it ->
+                        if (it.isNotEmpty()) {
+                            setupVisitDetails(it[0])
+                        }else{
+                            CommonMethods.showToastMessage(mActivity,
+                                getString(R.string.no_visit_details_found))
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<VisitReportListResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun setupVisitDetails(visitReportData: VisitReportListResponse) {
+        binding.tvDate.text = visitReportData.visitDate
+        binding.tvCityName.text = visitReportData.cityName
+        binding.etContactPerson.setText(visitReportData.contactPersonName)
+        binding.tvSelectParty.text = visitReportData.accountName
+        binding.tvNextVisitFollowUpDate.text = visitReportData.nextVisitDate
+        binding.tvNextFollowUpTime.text = visitReportData.nextVisitTime
+
+        binding.etVisitDetails.setText(visitReportData.visitDetails)
+        binding.etNextVisitSubject.setText(visitReportData.nextVisitSubject)
+        binding.etRemarks.setText(visitReportData.remarks)
+        binding.tvSelectCompany.text = visitReportData.companyName.ifEmpty { "" }
+        binding.tvSelectBranch.text = visitReportData.branchName.ifEmpty { "" }
+        binding.tvSelectDivision.text = visitReportData.divisionName.ifEmpty { "" }
+        binding.tvCategory.text = visitReportData.categoryName.ifEmpty { "" }
+        binding.tvSelectVisitType.text = visitReportData.dmdVisitTypeName.ifEmpty { "" }
+        binding.tvStartTime.text = CommonMethods.convertToAmPm(visitReportData.startTime)
+        binding.tvEndTime.text = CommonMethods.convertToAmPm(visitReportData.endTime)
+        binding.tvSelectStage.text = visitReportData.dmdStageName.ifEmpty { "" }
+        disableRadioModeOfCom(false)
+        disableRadioStatus(false)
+        selectedModeOfCommunication = visitReportData.modeOfCommunication ?: 0
+        when (selectedModeOfCommunication) {
+            1 -> binding.radioGroupModeOfCom.check(R.id.rbPersonally)
+            2 -> binding.radioGroupModeOfCom.check(R.id.rbPhone)
+            3 -> binding.radioGroupModeOfCom.check(R.id.rbEmail)
+            else -> binding.radioGroupModeOfCom.clearCheck()
+        }
+        when (visitReportData.visitStatus ?: 0) {
+            1 -> binding.radioGroupStatus.check(R.id.rbNotNow)
+            2 -> binding.radioGroupStatus.check(R.id.rbNextVisit)
+            3 -> binding.radioGroupStatus.check(R.id.rbClose)
+            else -> binding.radioGroupStatus.clearCheck()
+        }
+        if(selectedModeOfCommunication == 2){
+            binding.llNextVisitLayout.visibility = View.VISIBLE
+        }
+
+        binding.flCategory.visibility = View.GONE
+        binding.tvCategory.visibility = View.VISIBLE
+        binding.tvAddVisit.visibility = View.GONE
+        /*binding.imgDropDown.visibility = View.GONE
+        binding.imgSearch.visibility = View.GONE*/
+        binding.etVisitDetails.isEnabled = false
+        binding.etNextVisitSubject.isEnabled = false
+        binding.etRemarks.isEnabled = false
+        binding.etContactPerson.isEnabled = false
+
+        if((visitReportData.filePath ?: "").isNotEmpty()){
+            imageAnyList.add((visitReportData.filePath) ?: "")
+        }
+        if((visitReportData.filePath2 ?: "").isNotEmpty()){
+            imageAnyList.add((visitReportData.filePath2) ?: "")
+        }
+        if((visitReportData.filePath3 ?: "").isNotEmpty()){
+            imageAnyList.add((visitReportData.filePath3) ?: "")
+        }
+        if((visitReportData.filePath4 ?: "").isNotEmpty()){
+            imageAnyList.add((visitReportData.filePath4) ?: "")
+        }
+        imageAdapter?.addImage(imageAnyList, true)
+        handleAssetRVView(imageAnyList.size)
+    }
+
 
     private fun locationEnableDialog() {
         try {
@@ -2058,6 +2164,38 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             categoryList.clear()
             categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
             setupCategorySpinner()
+        }
+    }
+
+    private fun disableRadioModeOfCom(isRadioEnable: Boolean){
+        if(!isRadioEnable){
+            for (i in 0 until binding.radioGroupModeOfCom.childCount) {
+                val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
+                radioButton.isEnabled = false
+                radioButton.isClickable = false
+            }
+        }else{
+            for (i in 0 until binding.radioGroupModeOfCom.childCount) {
+                val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
+                radioButton.isEnabled = true
+                radioButton.isClickable = true
+            }
+        }
+    }
+
+    private fun disableRadioStatus(isRadioEnable: Boolean){
+        if(!isRadioEnable){
+            for (i in 0 until binding.radioGroupStatus.childCount) {
+                val radioButton = binding.radioGroupStatus.getChildAt(i)
+                radioButton.isEnabled = false
+                radioButton.isClickable = false
+            }
+        }else{
+            for (i in 0 until binding.radioGroupStatus.childCount) {
+                val radioButton = binding.radioGroupStatus.getChildAt(i)
+                radioButton.isEnabled = true
+                radioButton.isClickable = true
+            }
         }
     }
 }

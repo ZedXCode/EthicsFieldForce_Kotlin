@@ -18,10 +18,19 @@ import ethicstechno.com.fieldforce.models.dynamiccontent.DynamicPageContentList
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.DynamicMenuListResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.*
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryDetailsResponse
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryListResponse
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderDetailsResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderListResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.quotation.ProductQuotationGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationDetailsResponse
+import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.tourplan.TourPlanListResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
@@ -29,9 +38,6 @@ import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.InquiryResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
-import ethicstechno.com.fieldforce.models.orderentry.OrderDetailsResponse
-import ethicstechno.com.fieldforce.models.orderentry.OrderListResponse
-import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.models.profile.CountryListResponse
 import ethicstechno.com.fieldforce.models.profile.StateListResponse
 import ethicstechno.com.fieldforce.models.profile.UserProfileResponse
@@ -244,6 +250,11 @@ interface WebApi {
     @POST("api/Visit/GetVisit")
     fun visitReportList(@Body jsonObject: JsonObject): Call<List<VisitReportListResponse>>
 
+    @POST("api/Visit/GetVisitReport_ListAll")
+    fun visitReportListNew(@Body jsonObject: JsonObject): Call<List<VisitReportListResponse>>
+    @POST("api/Visit/GetVisitReport_Details")
+    fun getVisitDetails(@Body jsonObject: JsonObject): Call<List<VisitReportListResponse>>
+
     @POST("api/Trip/GetUserTripLocationList")
     fun getTripRoadMapList(@Body jsonObject: JsonObject): Call<List<TripRoadMapResponse>>
 
@@ -265,35 +276,71 @@ interface WebApi {
     @POST("api/Order/GetProductGroupList")
     fun getProductGroupList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>
 
+    @POST("api/Order/GetProductGroupList")
+    fun getInquiryProductGroupList(@Body jsonObject: JsonObject): Call<List<ProductInquiryGroupResponse>>
+
+    @POST("api/Order/GetProductGroupList")
+    fun getQuotationProductGroupList(@Body jsonObject: JsonObject): Call<List<ProductQuotationGroupResponse>>
+
     /*@POST("api/Order/GetProductList")
     fun getProductList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>*/
 
     @POST("api/Order/GetProductListPageNoWise")
     fun getProductList(@Body jsonObject: JsonObject): Call<List<ProductGroupResponse>>
 
+    @POST("api/Order/GetProductListPageNoWise")
+    fun getInquiryProductList(@Body jsonObject: JsonObject): Call<List<ProductInquiryGroupResponse>>
+
+    @POST("api/Order/GetProductListPageNoWise")
+    fun getQuotationProductList(@Body jsonObject: JsonObject): Call<List<ProductQuotationGroupResponse>>
+
     @POST("api/Order/OrderInsertUpdate")
     fun addOrderInsertUpdate(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Inquiry/InquiryInsertUpdate")
+    fun addInquiryInsertUpdate(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Quotation/QuotationInsertUpdate")
+    fun addQuotationInsertUpdate(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @POST("api/Order/GetOrderList")
     fun getOrderList(@Body jsonObject: JsonObject): Call<List<OrderListResponse>>
 
     @POST("api/Inquiry/GetInquiryList")//added
-    fun getInquiryList(@Body jsonObject: JsonObject): Call<List<OrderListResponse>>
+    fun getInquiryList(@Body jsonObject: JsonObject): Call<List<InquiryListResponse>>
+
+    @POST("api/Quotation/GetQuotationList")//added
+    fun getQuotationList(@Body jsonObject: JsonObject): Call<List<QuotationListResponse>>
 
     @POST("api/Order/GetOrderDetails")
     fun getOrderDetails(@Body jsonObject: JsonObject): Call<List<OrderDetailsResponse>>
 
     @POST("api/Inquiry/GetInquiryDetails")
-    fun getInquiryDetails(@Body jsonObject: JsonObject): Call<List<OrderDetailsResponse>>
+    fun getInquiryDetails(@Body jsonObject: JsonObject): Call<List<InquiryDetailsResponse>>
+
+    @POST("api/Inquiry/GetQuotationDetails")
+    fun getQuotationDetails(@Body jsonObject: JsonObject): Call<List<QuotationDetailsResponse>>
 
     @POST("api/Order/OrderDetailsDelete")
     fun deleteOrderDetails(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Inquiry/InquiryDetailsDelete")
+    fun deleteInquiryDetails(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Quotation/QuotationDetailsDelete")
+    fun deleteQuotationDetails(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @POST("api/AccountMaster/GetAccountMasterList")
     fun getOrderAccountMasterList(@Body jsonObject: JsonObject): Call<List<AccountMasterList>>
 
     @POST("api/Order/OrderDelete")
     fun deleteOrderEntry(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Inquiry/InquiryDelete")
+    fun deleteInquiryEntry(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+
+    @POST("api/Quotation/QuotationDelete")
+    fun deleteQuotationEntry(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
 
     @GET("api/v1/dropdownmasterdetails/get")
     fun getDropDownMasterDetails(

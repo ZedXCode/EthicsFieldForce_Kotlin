@@ -1,5 +1,6 @@
 package ethicstechno.com.fieldforce.ui.fragments.reports
 
+import AnimationType
 import addFragment
 import android.os.Bundle
 import android.util.TypedValue
@@ -16,21 +17,20 @@ import ethicstechno.com.fieldforce.databinding.FragmentVisitReportBinding
 import ethicstechno.com.fieldforce.databinding.ItemVisitReportBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
-import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.AddVisitFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateTypeList
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FORM_ID_VISIT
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.*
 
 
 class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogListener,
@@ -222,11 +222,12 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
 
         CommonMethods.getBatteryPercentage(mActivity)
 
-        val tripListCall = WebApiClient.getInstance(mActivity)
+        val visitReportCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.visitReportList(tripListReq)
+            ?.visitReportListNew(tripListReq)
 
-        tripListCall?.enqueue(object : Callback<List<VisitReportListResponse>> {
+
+        visitReportCall?.enqueue(object : Callback<List<VisitReportListResponse>> {
             override fun onResponse(
                 call: Call<List<VisitReportListResponse>>,
                 response: Response<List<VisitReportListResponse>>
@@ -371,7 +372,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                 binding.tvParty.text = " : "+report.accountName
                 binding.tvPlace.text = " : "+report.cityName
                 binding.llMain.setOnClickListener{
-                    mActivity.addFragment(AddVisitFragment.newInstance(AccountMasterList(), report, true), true, true, AnimationType.fadeInfadeOut)
+                    mActivity.addFragment(AddVisitFragment.newInstance(AccountMasterList(), report.visitId, true), true, true, AnimationType.fadeInfadeOut)
                 }
             }
         }

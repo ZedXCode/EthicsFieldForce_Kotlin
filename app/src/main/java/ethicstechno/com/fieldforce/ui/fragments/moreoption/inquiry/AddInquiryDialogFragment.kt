@@ -1,4 +1,4 @@
-package ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry
+package ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry
 
 import android.app.Dialog
 import android.content.Context
@@ -40,7 +40,7 @@ import ethicstechno.com.fieldforce.databinding.AddProductDialogLayoutBinding
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.models.CommonProductFilterResponse
 import ethicstechno.com.fieldforce.models.DropDownItem
-import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.CommonProductFilterAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseDialogFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
@@ -53,7 +53,7 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM7
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
-import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
 import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -66,21 +66,21 @@ import java.io.Serializable
 import java.math.BigDecimal
 
 
-class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener {
+class AddInquiryDialogFragment : HomeBaseDialogFragment(), View.OnClickListener {
 
     lateinit var binding: AddProductDialogLayoutBinding
     var partyDealerId = 0
     var orderDate = ""
-    private var groupList: ArrayList<ProductGroupResponse> = arrayListOf()
-    private var productList: ArrayList<ProductGroupResponse> = arrayListOf()
+    private var groupList: ArrayList<ProductInquiryGroupResponse> = arrayListOf()
+    private var productList: ArrayList<ProductInquiryGroupResponse> = arrayListOf()
     private lateinit var groupSearchDialog: SearchDialogUtil<DropDownItem>
     var selectedGroupId = 0
     var selectedGroup: DropDownItem? = null
     private lateinit var productAdapter: ProductAdapter
     private var listener: OnOrderDetailsListener? = null
 
-    //var selectedProductList: ArrayList<ProductGroupResponse> = arrayListOf()
-    private var selectedProductAdapterList: java.util.ArrayList<ProductGroupResponse> =
+    //var selectedProductList: ArrayList<ProductInquiryGroupResponse> = arrayListOf()
+    private var selectedProductAdapterList: java.util.ArrayList<ProductInquiryGroupResponse> =
         arrayListOf()
     private var dismissListener: DialogDismissListener? = null
     private var isCartClicked = false
@@ -167,12 +167,12 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         fun newInstance(
             orderDate: String,
             partyDealerId: Int,
-            orderDetailsList: ArrayList<ProductGroupResponse>,
+            orderDetailsList: ArrayList<ProductInquiryGroupResponse>,
             companyId: Int,
             branchId: Int,
             divisionId: Int,
             categoryId: Int
-        ): AddProductDialogFragment {
+        ): AddInquiryDialogFragment {
             val args = Bundle()
             args.putString(ARG_PARAM1, orderDate)
             args.putInt(ARG_PARAM2, partyDealerId)
@@ -181,7 +181,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             args.putInt(ARG_PARAM5, branchId)
             args.putInt(ARG_PARAM6, divisionId)
             args.putInt(ARG_PARAM7, categoryId)
-            val fragment = AddProductDialogFragment()
+            val fragment = AddInquiryDialogFragment()
             fragment.arguments = args
             return fragment
         }
@@ -305,7 +305,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     }
 
     // Function to display cart items in a dialog
-    private fun showCartItems(orderDetailsList: java.util.ArrayList<ProductGroupResponse>) {
+    private fun showCartItems(orderDetailsList: java.util.ArrayList<ProductInquiryGroupResponse>) {
         if (orderDetailsList.isNotEmpty()) {
             //val orderDetailsList = productAdapter.getOrderDetailsList()
             listener?.onOrderDetailsSelected(orderDetailsList) // Pass the order details to the listener
@@ -372,7 +372,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(orderDate)
             val parameterString =
-                "CompanyMasterId=$companyId and BranchMasterId=$branchId and DivisionMasterid=$divisionId and CategoryMasterId=$categoryId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and FormId=$FORM_ID_ORDER_ENTRY" +
+                "CompanyMasterId=$companyId and BranchMasterId=$branchId and DivisionMasterid=$divisionId and CategoryMasterId=$categoryId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and FormId=$FORM_ID_INQUIRY_ENTRY" +
                         " and ProductGroupId=$productGroupId and " +
                         "$header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds) and ProductName like '${binding.edtSearch.text.toString()}%'"
             jsonReq.addProperty("ProductId", 0)
@@ -383,14 +383,14 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
         val productGroupCall = if (isForProductGroup) WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getProductGroupList(jsonReq) else WebApiClient.getInstance(mActivity)
+            ?.getInquiryProductGroupList(jsonReq) else WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getProductList(jsonReq)
+            ?.getInquiryProductList(jsonReq)
 
-        productGroupCall?.enqueue(object : Callback<List<ProductGroupResponse>> {
+        productGroupCall?.enqueue(object : Callback<List<ProductInquiryGroupResponse>> {
             override fun onResponse(
-                call: Call<List<ProductGroupResponse>>,
-                response: Response<List<ProductGroupResponse>>
+                call: Call<List<ProductInquiryGroupResponse>>,
+                response: Response<List<ProductInquiryGroupResponse>>
             ) {
                 //CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -415,9 +415,9 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                                 if (isForProductGroup) {
                                     groupList.clear()
                                     groupList.add(
-                                        ProductGroupResponse(
-                                            orderId = 0,
-                                            orderDetailsId = 0,
+                                        ProductInquiryGroupResponse(
+                                            inquiryId = 0,
+                                            inquiryDetailsId = 0,
                                             productGroupId = 0,
                                             productGroupName = "All Group"
                                         )
@@ -440,7 +440,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 }
             }
 
-            override fun onFailure(call: Call<List<ProductGroupResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<ProductInquiryGroupResponse>>, t: Throwable) {
                 //CommonMethods.hideLoading()
                 binding.loader.visibility = View.GONE
                 if (mActivity != null) {
@@ -470,7 +470,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         jsonReq.addProperty("userId", loginData.userId)
         jsonReq.addProperty(
             "parameterString",
-            "ProductGroupId=$selectedGroupId and $header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) " +
+            "ProductGroupId=CompanyMasterId=${companyId} and BranchMasterId=${branchId} and DivisionMasterid=${divisionId} and CategoryMasterId=${categoryId} and $selectedGroupId and $header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) " +
                     "AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds)"
         )
 
@@ -862,7 +862,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     }
 
     interface OnOrderDetailsListener {
-        fun onOrderDetailsSelected(orderDetailsList: java.util.ArrayList<ProductGroupResponse>)
+        fun onOrderDetailsSelected(orderDetailsList: java.util.ArrayList<ProductInquiryGroupResponse>)
     }
 
     inline fun <reified T : Serializable> Bundle.serializable(key: String): T? = when {
@@ -873,13 +873,13 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
     inner class ProductAdapter(
         var mContext: Context,
-        var productList: java.util.ArrayList<ProductGroupResponse>,
+        var productList: java.util.ArrayList<ProductInquiryGroupResponse>,
         private val txtCartEntry: TextView,
     ) : RecyclerView.Adapter<ProductAdapter.ViewHolder>() {
-        var filteredItems: List<ProductGroupResponse> = productList
+        var filteredItems: List<ProductInquiryGroupResponse> = productList
         var isUpdating = false
 
-        fun refreshAdapter(newProductList: ArrayList<ProductGroupResponse>, isSelectedProduct: Boolean) {
+        fun refreshAdapter(newProductList: ArrayList<ProductInquiryGroupResponse>, isSelectedProduct: Boolean) {
             // Update the product list and refresh the view
             productList = arrayListOf()
             productList = newProductList
@@ -891,7 +891,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             notifyDataSetChanged() // Refresh the adapter
         }
 
-        /*fun setSelectedItems(selectedItems: ArrayList<ProductGroupResponse>) {
+        /*fun setSelectedItems(selectedItems: ArrayList<ProductInquiryGroupResponse>) {
             //selectedProductAdapterList.clear()
             if (selectedItems.size > 0) {
                 //selectedProductAdapterList.clear()
@@ -902,7 +902,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     val selectedItem =
                         selectedProductAdapterList.find { it.productId == product.productId }
                     if (selectedItem != null) {
-                        product.orderDetailsId = selectedItem.orderDetailsId
+                        product.inquiryDetailsId = selectedItem.inquiryDetailsId
                         product.price = selectedItem.price
                         product.qty = selectedItem.qty // Set the quantity
                         product.amount = selectedItem.amount // Set the amount
@@ -914,7 +914,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             }
         }*/
 
-        fun setSelectedItems(selectedItems: ArrayList<ProductGroupResponse>) {
+        fun setSelectedItems(selectedItems: ArrayList<ProductInquiryGroupResponse>) {
             if (selectedItems.isNotEmpty()) {
                 selectedProductAdapterList = selectedItems
 
@@ -922,7 +922,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 productList.forEach { product ->
                     val matchedItem = selectedProductAdapterList.find { it.productId == product.productId }
                     matchedItem?.let { selected ->
-                        product.orderDetailsId = selected.orderDetailsId
+                        product.inquiryDetailsId = selected.inquiryDetailsId
                         product.price = selected.price
                         product.qty = selected.qty
                         product.amount = selected.amount
@@ -945,7 +945,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item: ProductGroupResponse = filteredItems[position]
+            val item: ProductInquiryGroupResponse = filteredItems[position]
 
             holder.bind(item, holder.bindingAdapterPosition)
         }
@@ -964,7 +964,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             private var tvSchemeValue: TextView = itemView.findViewById(R.id.tvSchemeValue)
             var lylMain: LinearLayout = itemView.findViewById(R.id.lylMain)
 
-            fun bind(item: ProductGroupResponse, position: Int) {
+            fun bind(item: ProductInquiryGroupResponse, position: Int) {
                 try {
 
                     if((item.scheme ?: "").isNotEmpty()){
@@ -1006,8 +1006,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etQty.addTextWatcher { s ->
                         if (etQty.isFocused) {
                             val qtyValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && qtyValue <= BigDecimal.ZERO) {
-                                etQty.setText("1")  // Restrict qty to be greater than 0 if orderDetailsId > 0
+                            if (item.inquiryDetailsId > 0 && qtyValue <= BigDecimal.ZERO) {
+                                etQty.setText("1")  // Restrict qty to be greater than 0 if inquiryDetailsId > 0
                             } else {
                                 calculateAmount(item, etQty, etPrice, etAmount)
                                 item.qty = qtyValue
@@ -1018,8 +1018,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etPrice.addTextWatcher { s ->
                         if (etPrice.isFocused) {
                             val priceValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && priceValue <= BigDecimal.ZERO) {
-                                etPrice.setText("1")  // Restrict price to be greater than 0 if orderDetailsId > 0
+                            if (item.inquiryDetailsId > 0 && priceValue <= BigDecimal.ZERO) {
+                                etPrice.setText("1")  // Restrict price to be greater than 0 if inquiryDetailsId > 0
                             } else {
                                 calculateAmount(item, etQty, etPrice, etAmount)
                                 item.price = priceValue
@@ -1030,8 +1030,8 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etAmount.addTextWatcher { s ->
                         if (etAmount.isFocused) {
                             val amountValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && amountValue <= BigDecimal.ZERO) {
-                                etAmount.setText("1")  // Restrict amount to be greater than 0 if orderDetailsId > 0
+                            if (item.inquiryDetailsId > 0 && amountValue <= BigDecimal.ZERO) {
+                                etAmount.setText("1")  // Restrict amount to be greater than 0 if inquiryDetailsId > 0
                             } else {
                                 calculatePrice(item, etQty, etPrice, etAmount)
                                 item.amount = amountValue
@@ -1053,7 +1053,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
 
         private fun calculateAmount(
-            item: ProductGroupResponse,
+            item: ProductInquiryGroupResponse,
             etQty: EditText,
             etPrice: EditText,
             etAmount: EditText
@@ -1093,7 +1093,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
 
         private fun calculatePrice(
-            item: ProductGroupResponse,
+            item: ProductInquiryGroupResponse,
             etQty: EditText,
             etPrice: EditText,
             etAmount: EditText
@@ -1121,7 +1121,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         }
 
 
-        private fun addItemToCart(item: ProductGroupResponse) {
+        private fun addItemToCart(item: ProductInquiryGroupResponse) {
             val existingItemIndex =
                 selectedProductAdapterList.indexOfFirst { it.productId == item.productId }
             if (existingItemIndex != -1) {
@@ -1132,7 +1132,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             updateCartCount()
         }
 
-        private fun removeItemFromCart(item: ProductGroupResponse) {
+        private fun removeItemFromCart(item: ProductInquiryGroupResponse) {
             if (selectedProductAdapterList.contains(item)) {
                 selectedProductAdapterList.remove(item)
                 //selectedItemsList.remove(item)

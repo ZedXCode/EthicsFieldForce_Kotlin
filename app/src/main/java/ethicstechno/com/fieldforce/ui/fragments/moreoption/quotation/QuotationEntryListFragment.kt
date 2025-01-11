@@ -1,4 +1,4 @@
-package ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry
+package ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation
 
 import AnimationType
 import addFragment
@@ -38,11 +38,11 @@ import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.databinding.ItemUserBinding
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
-import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
@@ -51,7 +51,8 @@ import ethicstechno.com.fieldforce.utils.CUSTOM_RANGE
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
@@ -68,13 +69,13 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
+class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
     UserSearchDialogUtil.BranchDialogDetect, LeaveTypeAdapter.TypeSelect
 /*FilterDialogListener*/ {
 
     lateinit var orderEntryListBinding: FragmentOrderEntryListBinding
-    var orderList: ArrayList<OrderListResponse> = arrayListOf()
+    var orderList: ArrayList<QuotationListResponse> = arrayListOf()
     var startDate = ""
     var endDate = ""
     private var selectedDateOptionPosition = 4 // THIS MONTH
@@ -115,9 +116,9 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         fun newInstance(
             isFromInquiry: Boolean
-        ): OrderEntryListFragment {
+        ): QuotationEntryListFragment {
             val args = Bundle()
-            val fragment = OrderEntryListFragment()
+            val fragment = QuotationEntryListFragment()
             fragment.arguments = args
             return fragment
         }
@@ -199,10 +200,10 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
-        orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
+        orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.quotation_entry_list)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
-        orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_order_entry)
+        orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_quotation_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.llBottom.visibility = View.VISIBLE
@@ -248,7 +249,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val loginData = appDao.getLoginData()
 
         val orderEntryListReq = JsonObject()
-        orderEntryListReq.addProperty("OrderId", 0)
+        orderEntryListReq.addProperty("QuotationId", 0)
         orderEntryListReq.addProperty("UserId", loginData.userId)
         orderEntryListReq.addProperty("AccountMasterId", selectedPartyDealerId)
         orderEntryListReq.addProperty("FromDate", startDate)
@@ -256,20 +257,20 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_INQUIRY_ENTRY"
 
         orderEntryListReq.addProperty("ParameterString", parameterString)
 
         CommonMethods.getBatteryPercentage(mActivity)
         val leaveListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getOrderList(orderEntryListReq)
+            ?.getQuotationList(orderEntryListReq)
 
 
-        leaveListCall?.enqueue(object : Callback<List<OrderListResponse>> {
+        leaveListCall?.enqueue(object : Callback<List<QuotationListResponse>> {
             override fun onResponse(
-                call: Call<List<OrderListResponse>>,
-                response: Response<List<OrderListResponse>>
+                call: Call<List<QuotationListResponse>>,
+                response: Response<List<QuotationListResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -296,7 +297,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             }
 
-            override fun onFailure(call: Call<List<OrderListResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<QuotationListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -308,14 +309,12 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
         })
-
     }
 
-
     inner class OrderEntryListAdapter(
-        orderList: List<OrderListResponse>
+        orderList: List<QuotationListResponse>
     ) : RecyclerView.Adapter<OrderEntryListAdapter.ViewHolder>() {
-        var filteredItems: List<OrderListResponse> = orderList
+        var filteredItems: List<QuotationListResponse> = orderList
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val binding = ItemOrderLayoutBinding.inflate(inflater, parent, false)
@@ -341,19 +340,19 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         inner class ViewHolder(private val binding: ItemOrderLayoutBinding) :
             RecyclerView.ViewHolder(binding.root) {
 
-            fun bind(orderData: OrderListResponse) {
+            fun bind(orderData: QuotationListResponse) {
 
-                binding.tvOrderDate.text = "Date : " + orderData.orderDate
-                binding.tvOrderNo.text = "Order No : " +orderData.categoryName+"/"+ orderData.documentNo
+                binding.tvOrderDate.text = "Date : " + orderData.quotationDate
+                binding.tvOrderNo.text = "Quotation No : " +orderData.categoryName+"/"+ orderData.documentNo
                 binding.tvParty.text = "Party : " + orderData.accountName
-                binding.tvAmount.text = "Amount : " + orderData.orderAmount
+                binding.tvAmount.text = "Amount : " + orderData.quotationAmount
                 binding.tvPlace.text = "Place : " + orderData.cityName
                 binding.tvBranch.text = "Branch : "+orderData.branchName
-                binding.tvStatus.text = "Status : "+orderData.orderStatusName
+                binding.tvStatus.text = "Status : "+orderData.quotationStatusName
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        AddOrderEntryFragment.newInstance(orderData.orderId ?: 0, orderData.allowEdit, orderData.allowDelete),
+                        AddQuotationEntryFragment.newInstance(orderData.quotationId ?: 0, orderData.allowEdit, orderData.allowDelete),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.rightInLeftOut
@@ -402,7 +401,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             R.id.tvAddOrderEntry -> {
                 CommonMethods.selectedPartyDealer = AccountMasterList()
                 mActivity.addFragment(
-                    AddOrderEntryFragment(),
+                    AddQuotationEntryFragment(),
                     addToBackStack = true,
                     ignoreIfCurrent = true,
                     animationType = AnimationType.fadeInfadeOut
@@ -489,7 +488,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
                 userDialog.showUserSearchDialog()
             } else {
-                CommonMethods.showToastMessage(
+                showToastMessage(
                     mActivity,
                     getString(R.string.company_list_not_found)
                 )
@@ -497,7 +496,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
         llSelectBranch.setOnClickListener {
             if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
-                CommonMethods.showToastMessage(
+                showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_company)
                 )
@@ -513,7 +512,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
                 userDialog.showUserSearchDialog()
             } else {
-                CommonMethods.showToastMessage(
+                showToastMessage(
                     mActivity,
                     getString(R.string.branch_list_not_found)
                 )
@@ -521,7 +520,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
         llSelectDivision.setOnClickListener {
             if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
-                CommonMethods.showToastMessage(
+                showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_branch)
                 )
@@ -537,7 +536,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
                 userDialog.showUserSearchDialog()
             } else {
-                CommonMethods.showToastMessage(
+                showToastMessage(
                     mActivity,
                     getString(R.string.branch_list_not_found)
                 )
@@ -613,7 +612,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun callCompanyListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -622,7 +621,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val objReq = JsonObject()
         objReq.addProperty("companyMasterId", ID_ZERO)
         objReq.addProperty("userId", loginData.userId)
-        objReq.addProperty("ParameterString", FORM_ID_ORDER_ENTRY)
+        objReq.addProperty("ParameterString", FORM_ID_QUOTATION_ENTRY)
 
         val companyCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -682,7 +681,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun callBranchListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -693,7 +692,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
         val branchCall = WebApiClient.getInstance(mActivity)
@@ -726,7 +725,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 callDivisionListApi()
                             }
                         } else {
-                            CommonMethods.showToastMessage(
+                            showToastMessage(
                                 mActivity,
                                 getString(R.string.branch_list_not_found)
                             )
@@ -759,7 +758,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun callDivisionListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -770,7 +769,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("userId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
         val divisionCall = WebApiClient.getInstance(mActivity)
@@ -803,7 +802,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 callCategoryListApi()
                             }
                         } else {
-                            CommonMethods.showToastMessage(
+                            showToastMessage(
                                 mActivity,
                                 getString(R.string.division_list_not_found)
                             )
@@ -836,11 +835,11 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun callCategoryListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
         if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
-            CommonMethods.showToastMessage(
+            showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.please_select_branch)
             )
@@ -853,7 +852,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         jsonReq.addProperty("UserId", loginData.userId)
         jsonReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
         val visitTypeCall = WebApiClient.getInstance(mActivity)
@@ -932,7 +931,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val fieldName = "FieldName=Order/Party"
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0} and $FORM_ID_ORDER_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0} and $FORM_ID_INQUIRY_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)

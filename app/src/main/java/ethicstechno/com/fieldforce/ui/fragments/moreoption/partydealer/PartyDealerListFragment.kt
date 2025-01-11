@@ -42,8 +42,6 @@ import ethicstechno.com.fieldforce.databinding.PartyDealerItemListBinding
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
-import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.AddVisitFragment
@@ -461,7 +459,7 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                                     mActivity.addFragment(
                                         AddVisitFragment.newInstance(
                                             partyDealerData,
-                                            VisitReportListResponse(),
+                                            0,
                                             false
                                         ),
                                         addToBackStack = true,

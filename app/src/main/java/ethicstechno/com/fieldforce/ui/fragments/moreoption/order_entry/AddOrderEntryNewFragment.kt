@@ -46,8 +46,8 @@ import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.orderentry.OrderDetailsResponse
-import ethicstechno.com.fieldforce.models.orderentry.ProductGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderDetailsResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.ui.adapter.GenericSpinnerAdapter
 import ethicstechno.com.fieldforce.ui.adapter.OrderDetailsAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment

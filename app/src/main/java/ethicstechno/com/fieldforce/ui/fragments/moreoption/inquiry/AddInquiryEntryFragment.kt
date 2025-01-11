@@ -1,4 +1,4 @@
-package ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry
+package ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry
 
 import android.Manifest
 import android.app.DatePickerDialog
@@ -46,9 +46,9 @@ import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryDetailsResponse
+import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
-import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderDetailsResponse
-import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
@@ -56,8 +56,8 @@ import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
 import ethicstechno.com.fieldforce.ui.adapter.GenericSpinnerAdapter
 import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
+import ethicstechno.com.fieldforce.ui.adapter.InquiryDetailsAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
-import ethicstechno.com.fieldforce.ui.adapter.OrderDetailsAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
@@ -71,7 +71,7 @@ import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_ACCOUNT_MASTER
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
-import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
@@ -92,8 +92,8 @@ import java.io.File
 import java.math.BigDecimal
 import java.util.Calendar
 
-class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
-    OrderDetailsAdapter.ProductItemClickListener, AddProductDialogFragment.OnOrderDetailsListener,
+class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
+    InquiryDetailsAdapter.ProductItemClickListener, AddInquiryDialogFragment.OnOrderDetailsListener,
     UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
     UserSearchDialogUtil.BranchDialogDetect, LeaveTypeAdapter.TypeSelect {
 
@@ -102,23 +102,23 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     //private var orderModeList: ArrayList<CommonDropDownListModel> = arrayListOf()
     private var accountMasterList: ArrayList<AccountMasterList> = arrayListOf()
     private var distributorList: ArrayList<AccountMasterList> = arrayListOf()
-    private var groupList: ArrayList<ProductGroupResponse> = arrayListOf()
-    private var productList: ArrayList<ProductGroupResponse> = arrayListOf()
+    private var groupList: ArrayList<ProductInquiryGroupResponse> = arrayListOf()
+    private var productList: ArrayList<ProductInquiryGroupResponse> = arrayListOf()
     private var selectedPartyDealerId: Int = -1
 
     //private var selectedCategoryId: Int = -1
     //private var selectedOrderModeId: Int = -1
     private var selectedDistributorId: Int = -1
     private var selectedGroupId: Int = 0
-    private lateinit var selectedProduct: ProductGroupResponse
-    private var selectedGroup: ProductGroupResponse? = null
+    private lateinit var selectedProduct: ProductInquiryGroupResponse
+    private var selectedGroup: ProductInquiryGroupResponse? = null
     private lateinit var searchDialog: SearchDialogUtil<AccountMasterList>
-    private lateinit var groupSearchDialog: SearchDialogUtil<ProductGroupResponse>
-    private lateinit var productSearchDialog: SearchDialogUtil<ProductGroupResponse>
+    private lateinit var groupSearchDialog: SearchDialogUtil<ProductInquiryGroupResponse>
+    private lateinit var productSearchDialog: SearchDialogUtil<ProductInquiryGroupResponse>
     private var productDialog: AlertDialog? = null
-    private var orderDetailsList: java.util.ArrayList<ProductGroupResponse> = arrayListOf()
-    private var holdDetailsDataList: java.util.ArrayList<ProductGroupResponse> = arrayListOf()
-    private lateinit var orderDetailsAdapter: OrderDetailsAdapter
+    private var orderDetailsList: java.util.ArrayList<ProductInquiryGroupResponse> = arrayListOf()
+    private var holdDetailsDataList: java.util.ArrayList<ProductInquiryGroupResponse> = arrayListOf()
+    private lateinit var orderDetailsAdapter: InquiryDetailsAdapter
     lateinit var tvSelectProduct: TextView
     lateinit var tvSelectGroup: TextView
     private lateinit var etQty: EditText
@@ -130,7 +130,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var userId = 0
     private var imageUrl = ""
     var isReadOnly = true
-    private lateinit var productDialogFragment: AddProductDialogFragment
+    private lateinit var productDialogFragment: AddInquiryDialogFragment
     val isExitFromAddOrder = false
     val companyMasterList: ArrayList<CompanyMasterResponse> = arrayListOf()
     val branchMasterList: ArrayList<BranchMasterResponse> = arrayListOf()
@@ -183,8 +183,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
 
     private val groupItemClickListener =
-        object : ItemClickListener<ProductGroupResponse> {
-            override fun onItemSelected(item: ProductGroupResponse) {
+        object : ItemClickListener<ProductInquiryGroupResponse> {
+            override fun onItemSelected(item: ProductInquiryGroupResponse) {
                 // Handle user item selection
                 groupSearchDialog.closeDialog()
                 tvSelectGroup.text = item.productGroupName
@@ -194,8 +194,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
 
     private val productItemClickListener =
-        object : ItemClickListener<ProductGroupResponse> {
-            override fun onItemSelected(item: ProductGroupResponse) {
+        object : ItemClickListener<ProductInquiryGroupResponse> {
+            override fun onItemSelected(item: ProductInquiryGroupResponse) {
                 // Handle user item selection
                 productSearchDialog.closeDialog()
                 tvSelectProduct.text = item.productName
@@ -210,12 +210,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId: Int,
             allowEdit: Boolean?,
             allowDelete: Boolean?,
-        ): AddOrderEntryFragment {
+        ): AddInquiryEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
             args.putBoolean(ARG_PARAM2, allowEdit ?: false)
             args.putBoolean(ARG_PARAM3, allowDelete ?: false)
-            val fragment = AddOrderEntryFragment()
+            val fragment = AddInquiryEntryFragment()
             fragment.arguments = args
             return fragment
         }
@@ -253,7 +253,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
         mActivity.bottomHide()
         binding.toolbar.tvHeader.text =
-            if (orderId > 0) getString(R.string.order_details) else getString(R.string.add_order_entry)
+            if (orderId > 0) getString(R.string.inquiry_details) else getString(R.string.add_inquiry_entry)
         binding.tvSubmit.text =
             if (orderId > 0) getString(R.string.update) else getString(R.string.submit)
 
@@ -501,7 +501,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun setOrderDetailsAdapter() {
-        orderDetailsAdapter = OrderDetailsAdapter(mActivity, orderDetailsList, this)
+        orderDetailsAdapter = InquiryDetailsAdapter(mActivity, orderDetailsList, this)
         val layoutManager = LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
         binding.rvProduct.layoutManager = layoutManager
         binding.rvProduct.adapter = orderDetailsAdapter
@@ -526,14 +526,14 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         jsonReq.addProperty("UserId", loginData.userId)
         jsonReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
-        val visitTypeCall = WebApiClient.getInstance(mActivity)
+        val categoryListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getCategoryMasterList(jsonReq)
 
-        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
+        categoryListCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
             override fun onResponse(
                 call: Call<List<CategoryMasterResponse>>,
                 response: Response<List<CategoryMasterResponse>>
@@ -615,7 +615,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (isForPartyDealer) "FieldName=Order/Party" else "FieldName=Order/Distributor"
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and EntryDate=$orderDateString and $FORM_ID_ORDER_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text}%'"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)
@@ -626,11 +626,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (isForPartyDealer) partyDealerPageNo else distributorPageNo
         )
 
-        val accountMasterCall = WebApiClient.getInstance(mActivity)
+        val partyDealerSearchListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getPartyDealerSearchList(jsonReq)
 
-        accountMasterCall?.enqueue(object : Callback<List<AccountMasterList>> {
+        partyDealerSearchListCall?.enqueue(object : Callback<List<AccountMasterList>> {
             override fun onResponse(
                 call: Call<List<AccountMasterList>>,
                 response: Response<List<AccountMasterList>>
@@ -708,7 +708,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(binding.tvDate.text.toString())
             val parameterString =
-                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString and $FORM_ID_ORDER_ENTRY"
+                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY"
             jsonReq.addProperty("ProductId", 0)
             jsonReq.addProperty("ProductGroupId", productGroupId)
             jsonReq.addProperty("ParameterString", parameterString)
@@ -718,14 +718,14 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         val productGroupCall = if (isForProductGroup) WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getProductGroupList(jsonReq) else WebApiClient.getInstance(mActivity)
+            ?.getInquiryProductGroupList(jsonReq) else WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getProductList(jsonReq)
+            ?.getInquiryProductList(jsonReq)
 
-        productGroupCall?.enqueue(object : Callback<List<ProductGroupResponse>> {
+        productGroupCall?.enqueue(object : Callback<List<ProductInquiryGroupResponse>> {
             override fun onResponse(
-                call: Call<List<ProductGroupResponse>>,
-                response: Response<List<ProductGroupResponse>>
+                call: Call<List<ProductInquiryGroupResponse>>,
+                response: Response<List<ProductInquiryGroupResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -734,9 +734,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                             if (isForProductGroup) {
                                 groupList.clear()
                                 groupList.add(
-                                    ProductGroupResponse(
-                                        orderId = 0,
-                                        orderDetailsId = 0,
+                                    ProductInquiryGroupResponse(
+                                        inquiryId = 0,
+                                        inquiryDetailsId = 0,
                                         productGroupId = 0,
                                         productGroupName = "All Group"
                                     )
@@ -779,7 +779,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
 
-            override fun onFailure(call: Call<List<ProductGroupResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<ProductInquiryGroupResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -805,16 +805,16 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
 
         val jsonReq = JsonObject()
-        jsonReq.addProperty("OrderId", orderId)
+        jsonReq.addProperty("InquiryId", orderId)
 
         val orderDetailsCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getOrderDetails(jsonReq)
+            ?.getInquiryDetails(jsonReq)
 
-        orderDetailsCall?.enqueue(object : Callback<List<OrderDetailsResponse>> {
+        orderDetailsCall?.enqueue(object : Callback<List<InquiryDetailsResponse>> {
             override fun onResponse(
-                call: Call<List<OrderDetailsResponse>>,
-                response: Response<List<OrderDetailsResponse>>
+                call: Call<List<InquiryDetailsResponse>>,
+                response: Response<List<InquiryDetailsResponse>>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -833,7 +833,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
 
-            override fun onFailure(call: Call<List<OrderDetailsResponse>>, t: Throwable) {
+            override fun onFailure(call: Call<List<InquiryDetailsResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 Log.e("TAG", "onFailure: " + t.message.toString())
                 if (mActivity != null) {
@@ -850,7 +850,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
 
-    private fun callDeleteOrderDetailsApi(item: ProductGroupResponse) {
+    private fun callDeleteOrderDetailsApi(item: ProductInquiryGroupResponse) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -860,12 +860,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
 
         val jsonReq = JsonObject()
-        jsonReq.addProperty("OrderDetailsId", item.orderDetailsId)
+        jsonReq.addProperty("InquiryDetailsId", item.inquiryDetailsId)
         jsonReq.addProperty("UserId", loginData.userId)
 
         val orderDetailsCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.deleteOrderDetails(jsonReq)
+            ?.deleteInquiryDetails(jsonReq)
 
         orderDetailsCall?.enqueue(object : Callback<CommonSuccessResponse> {
             override fun onResponse(
@@ -919,12 +919,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("UserId", userId)
-        jsonReq.addProperty("OrderId", orderId)
+        jsonReq.addProperty("InquiryId", orderId)
         jsonReq.addProperty("Remarks", remarks)
 
         val orderDetailsCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.deleteOrderEntry(jsonReq)
+            ?.deleteInquiryEntry(jsonReq)
 
         orderDetailsCall?.enqueue(object : Callback<CommonSuccessResponse> {
             override fun onResponse(
@@ -973,12 +973,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
 
     private fun setupOrderDetailsData(
-        orderDetails: OrderDetailsResponse,
+        orderDetails: InquiryDetailsResponse,
         appRegistrationData: AppRegistrationResponse
     ) {
         //accountMasterId = orderDetails.accountMasterId ?: 0
-        binding.tvDate.text = orderDetails.orderDate
-        binding.tvOrderMode.text = orderDetails.orderModeName
+        binding.tvDate.text = orderDetails.inquiryDate
+        binding.tvOrderMode.text = orderDetails.inquiryModeName
         selectedCategory = CategoryMasterResponse(
             categoryMasterId = orderDetails.categoryMasterId,
             categoryName = orderDetails.categoryName
@@ -1010,9 +1010,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             else -> binding.radioGroupModeOfCom.clearCheck()
         }
 
-        if (orderDetails.orderDetails != null && orderDetails.orderDetails.size > 0) {
+        if (orderDetails.inquiryDetails != null && orderDetails.inquiryDetails.size > 0) {
             orderDetailsList.clear()
-            orderDetailsList.addAll(orderDetails.orderDetails)
+            orderDetailsList.addAll(orderDetails.inquiryDetails)
             orderDetailsAdapter.refreshAdapter(orderDetailsList)
             handleOrderDetailsRVVisibility(orderDetailsList)
         }
@@ -1145,8 +1145,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             R.id.imgEdit -> {
                 CommonMethods.showAlertDialog(
                     mActivity,
-                    getString(R.string.edit_order_entry),
-                    getString(R.string.are_you_sure_you_want_to_edit_order_entry),
+                    getString(R.string.edit_inquiry_entry),
+                    getString(R.string.are_you_sure_you_want_to_edit_inquiry_entry),
                     object : PositiveButtonListener {
                         override fun okClickListener() {
                             binding.toolbar.imgEdit.visibility = View.GONE
@@ -1231,20 +1231,20 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun showProductDialogFragment() {
-        productDialogFragment = AddProductDialogFragment.newInstance(
+        productDialogFragment = AddInquiryDialogFragment.newInstance(
             binding.tvDate.text.toString(),
             selectedPartyDealerId,
             orderDetailsList,
             selectedCompany?.companyMasterId ?: 0,
             selectedBranch?.branchMasterId ?: 0,
             selectedDivision?.divisionMasterId ?: 0,
-            selectedCategory?.categoryMasterId ?: 0,
+            selectedCategory?.categoryMasterId ?: 0
         )
         productDialogFragment.setStyle(DialogFragment.STYLE_NO_TITLE, R.style.MyAppTheme)
         productDialogFragment.setOrderDetailsListener(this)
-        productDialogFragment.show(mActivity.supportFragmentManager, "AddProductDialogFragment")
+        productDialogFragment.show(mActivity.supportFragmentManager, "AddInquiryDialogFragment")
         productDialogFragment.setDialogDismissListener(object :
-            AddProductDialogFragment.DialogDismissListener {
+            AddInquiryDialogFragment.DialogDismissListener {
             override fun onDialogDismissed(isCartClicked: Boolean) {
                 Log.e("TAG", "onDialogDismissed: " + isCartClicked)
                 if (!isCartClicked) {
@@ -1300,7 +1300,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         if (binding.spCategory.selectedItemPosition == 0) {
             showToastMessage(
                 mActivity,
-                getString(R.string.please_select_order_category)
+                getString(R.string.please_select_inquiry_category)
             )
             return
         }
@@ -1315,8 +1315,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         CommonMethods.showAlertDialog(
             mActivity,
-            if (orderId > 0) getString(R.string.update_order_entry) else getString(R.string.more_order_entry),
-            if (orderId > 0) getString(R.string.update_order_entry_confirmation) else getString(R.string.order_entry_confirmation),
+            if (orderId > 0) getString(R.string.update_inquiry_entry) else getString(R.string.more_inquiry_entry),
+            if (orderId > 0) getString(R.string.update_inquiry_entry_confirmation) else getString(R.string.inquiry_entry_confirmation),
             object : PositiveButtonListener {
                 override fun okClickListener() {
                     createOrderRequest()
@@ -1339,7 +1339,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val objReq = JsonObject()
         objReq.addProperty("companyMasterId", ID_ZERO)
         objReq.addProperty("userId", loginData.userId)
-        objReq.addProperty("ParameterString", FORM_ID_ORDER_ENTRY)
+        objReq.addProperty("ParameterString", FORM_ID_INQUIRY_ENTRY)
 
         val companyCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -1410,7 +1410,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
         val branchCall = WebApiClient.getInstance(mActivity)
@@ -1487,7 +1487,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("userId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_INQUIRY_ENTRY"
         )
 
         val divisionCall = WebApiClient.getInstance(mActivity)
@@ -1562,13 +1562,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = loginData
         val objReq = JsonObject()
-        objReq.addProperty("OrderId", orderId)
+        objReq.addProperty("InquiryId", orderId)
         objReq.addProperty(
-            "OrderDate",
+            "InquiryDate",
             CommonMethods.convertToAppDateFormat(binding.tvDate.text.toString(), "MM/dd/yyyy")
         )
 
-        objReq.addProperty("OrderMode", 0)
+        objReq.addProperty("InquiryMode", 0)
         objReq.addProperty("CategoryMasterId", selectedCategory?.categoryMasterId)
         objReq.addProperty("AccountMasterId", selectedPartyDealerId)
         objReq.addProperty("ContactPersonName", binding.etContactPersonName.text.toString().trim())
@@ -1577,7 +1577,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("CompanyMasterId", selectedCompany?.companyMasterId)
         objReq.addProperty("BranchMasterId", selectedBranch?.branchMasterId)
         objReq.addProperty("DivisionMasterId", selectedDivision?.divisionMasterId)
-        objReq.addProperty("OrderStatusId", 1)
+        objReq.addProperty("InquiryStatusId", 1)
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty("ModeOfCommunication", selectedModeOfCommunication)
 
@@ -1632,8 +1632,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val objDetailsArray = JsonArray()
         for (i in orderDetailsList) {
             val objDetails = JsonObject()
-            objDetails.addProperty("OrderId", orderId)
-            objDetails.addProperty("OrderDetailsId", i.orderDetailsId)
+            objDetails.addProperty("InquiryId", orderId)
+            objDetails.addProperty("InquiryDetailsId", i.inquiryDetailsId)
             objDetails.addProperty("ProductId", i.productId)
             objDetails.addProperty("Quantity", i.qty)
             objDetails.addProperty("Rate", i.price)
@@ -1641,13 +1641,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("UserId", loginData.userId)
             objDetailsArray.add(objDetails)
         }
-        objReq.add("OrderDetails", objDetailsArray)
+        objReq.add("InquiryDetails", objDetailsArray)
 
         Log.e("TAG", "createOrderRequest: " + objReq)
 
         val addOrderCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.addOrderInsertUpdate(objReq)
+            ?.addInquiryInsertUpdate(objReq)
 
         addOrderCall?.enqueue(object : Callback<CommonSuccessResponse> {
             override fun onResponse(
@@ -1660,7 +1660,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                         Log.e("TAG", "onResponse: Order entry :: " + it.toString())
                         CommonMethods.showAlertDialog(
                             mActivity,
-                            mActivity.getString(R.string.more_order_entry),
+                            mActivity.getString(R.string.more_inquiry_entry),
                             it.returnMessage,
                             object : PositiveButtonListener {
                                 override fun okClickListener() {
@@ -1894,7 +1894,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun showAddProduct(
-        productModel: ProductGroupResponse?,
+        productModel: ProductInquiryGroupResponse?,
         orderDetailsPosition: Int
     ) {
         if (productDialog != null && productDialog!!.isShowing) {
@@ -2031,9 +2031,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }*/
-                val orderDetailsModel = ProductGroupResponse(
-                    orderDetailsId = productModel?.orderDetailsId ?: 0,
-                    orderId = productModel?.orderId ?: 0,
+                val orderDetailsModel = ProductInquiryGroupResponse(
+                    inquiryDetailsId = productModel?.inquiryDetailsId ?: 0,
+                    inquiryId = productModel?.inquiryId ?: 0,
                     productId = productModel?.productId ?: 0,
                     productName = productModel?.productName ?: "",
                     productGroupId = productModel?.productGroupId ?: 0,
@@ -2072,7 +2072,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
-    private fun handleOrderDetailsRVVisibility(orderDetailsList: ArrayList<ProductGroupResponse>) {
+    private fun handleOrderDetailsRVVisibility(orderDetailsList: ArrayList<ProductInquiryGroupResponse>) {
         if (orderDetailsList.size > 0) {
             binding.rvProduct.visibility = View.VISIBLE
             binding.tvNoItemFound.visibility = View.GONE
@@ -2082,30 +2082,30 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
-    override fun onEditClick(item: ProductGroupResponse, position: Int) {
+    override fun onEditClick(item: ProductInquiryGroupResponse, position: Int) {
         if (!isReadOnly) {
             showAddProduct(item, position)
         }
     }
 
-    override fun onDeleteClick(item: ProductGroupResponse, position: Int) {
+    override fun onDeleteClick(item: ProductInquiryGroupResponse, position: Int) {
         if (isReadOnly) {
             return
         }
         if (orderDetailsList.size == 1) {
             showToastMessage(
                 mActivity,
-                getString(R.string.one_item_required_for_order_entry)
+                getString(R.string.one_item_required_for_inquiry_entry)
             )
             return
         }
         CommonMethods.showAlertDialog(
             mActivity,
-            getString(R.string.delete_order_details),
+            getString(R.string.delete_inquiry_details),
             getString(R.string.are_you_sure_you_want_to_delete_this_product),
             okListener = object : PositiveButtonListener {
                 override fun okClickListener() {
-                    if (item.orderDetailsId > 0) {
+                    if (item.inquiryDetailsId > 0) {
                         callDeleteOrderDetailsApi(item)
                     } else {
                         orderDetailsList.remove(item)
@@ -2205,7 +2205,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         datePickerDialog.show()
     }
 
-    override fun onOrderDetailsSelected(productList: java.util.ArrayList<ProductGroupResponse>) {
+    override fun onOrderDetailsSelected(productList: java.util.ArrayList<ProductInquiryGroupResponse>) {
 
         if (productList.isNotEmpty()) { // Check if productList contains any items
             orderDetailsList = arrayListOf()
