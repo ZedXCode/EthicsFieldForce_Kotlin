@@ -37,41 +37,39 @@
 
     </LinearLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
+        android:id="@+id/clSearchLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_10sdp">
+        android:orientation="horizontal"
+        android:background="@drawable/edittext_background"
+        android:layout_margin="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginHorizontal="@dimen/_10sdp"
+        android:layout_height="wrap_content">
 
-        <!-- TextInputLayout -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout"
-            style="@style/TextInputLayoutStyle"
+        <EditText
+            android:id="@+id/edtSearch"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:layout_weight="1"
+            android:background="@null"
+            android:layout_height="@dimen/_40sdp"
+            android:text=""
+            android:drawableStart="@drawable/ic_search_small"
+            android:drawablePadding="@dimen/_8sdp"
+            android:layout_marginEnd="@dimen/_4sdp"
+            android:layout_gravity="start|center"
+            android:singleLine="true"
+            android:gravity="start|center"
+            android:hint="@string/search_here"
+            android:paddingStart="@dimen/_8sdp"
+            android:textSize="@dimen/_14ssp" />
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edtSearch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/_10sdp"
-                android:drawableStart="@drawable/ic_search_small"
-                android:drawablePadding="@dimen/_8sdp"
-                android:gravity="start|center"
-                android:hint="@string/search_here"
-                android:paddingStart="@dimen/_12sdp"
-                android:textSize="@dimen/_14ssp" />
-
-        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- TextView acting as a drawable -->
         <TextView
             android:id="@+id/tvSearchGO"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/_20sdp"
             android:background="@drawable/button_background_primary"
             android:backgroundTint="@color/colorPrimary"
             android:gravity="center"
@@ -80,40 +78,50 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:visibility="gone"
+            android:layout_gravity="center"
             app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/textInputLayout" />
 
-        <TextView
-            android:id="@+id/tvSearchClear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/_20sdp"
-            android:background="@drawable/button_background_primary"
-            android:backgroundTint="@color/colorRed"
-            android:gravity="center"
-            android:padding="8dp"
-            android:text="Clear"
-            android:textColor="@color/white"
-            android:textSize="14sp"
+        <ImageView
+            android:id="@+id/imgCloseSearch"
+            android:layout_width="@dimen/_24sdp"
             android:visibility="gone"
+            android:layout_gravity="center"
+            android:layout_height="@dimen/_24sdp"
+            android:layout_marginEnd="@dimen/_4sdp"
             app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textInputLayout" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            app:layout_constraintTop_toTopOf="@id/textInputLayout"
+            android:src="@drawable/ic_close_black"
+            app:tint="@color/colorGray" />
+    </LinearLayout>
 
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvItems"
             android:layout_width="match_parent"
             android:layout_height="0dp"
+            android:visibility="visible"
             android:layout_weight="1"
             android:layout_marginBottom="@dimen/_8sdp" />
+
+        <TextView
+            android:id="@+id/tvNoDataFound"
+            android:text="@string/no_data_found"
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:gravity="center"
+            style="@style/CommonTextViewBoldStyle"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_100sdp"/>
 
         <ProgressBar
             android:id="@+id/loader"

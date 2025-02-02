@@ -1,68 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
+        android:orientation="vertical"
         android:layout_height="match_parent"
         android:background="@color/colorscreenbackground">
 
         <include
             android:id="@+id/toolbar"
             layout="@layout/toolbar_header" />
-        <LinearLayout
-            android:id="@+id/llFetchPartyDealer"
-            android:layout_width="match_parent"
-            android:layout_below="@id/toolbar"
-            android:visibility="gone"
-            android:layout_height="wrap_content"
-            android:background="@color/colorGreen">
 
-            <TextView
-                android:id="@+id/tvFetchPartyDealer"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_30sdp"
+            android:background="@color/colorPrimary"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="-34dp"
+            android:background="@drawable/bg_top_curve">
+
+            <LinearLayout
+                android:id="@+id/llFetchPartyDealer"
                 android:layout_width="match_parent"
+                android:visibility="gone"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/_10sdp"
-                android:text="Fetching Party/Dealer List..."
-                android:textColor="@color/white" />
-        </LinearLayout>
+                android:background="@color/colorGreen">
 
+                <TextView
+                    android:id="@+id/tvFetchPartyDealer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/_10sdp"
+                    android:text="Fetching Party/Dealer List..."
+                    android:textColor="@color/white" />
+            </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvNoData"
-            style="@style/NoDataFound"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/_30sdp"
-            android:gravity="center"
-            android:text="@string/no_data_found"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvOrderEntry"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@id/llBottom"
-            android:layout_below="@id/llFetchPartyDealer"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_10sdp" />
-
-        <LinearLayout
-            android:id="@+id/llBottom"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical">
 
             <TextView
+                android:id="@+id/tvNoData"
+                style="@style/NoDataFound"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_30sdp"
+                android:gravity="center"
+                android:text="@string/no_data_found"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvOrderEntry"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_5sdp" />
+            <!--android:layout_above="@id/llBottom"-->
+            <!--        <LinearLayout-->
+            <!--            android:id="@+id/llBottom"-->
+            <!--            android:layout_width="match_parent"-->
+            <!--            android:layout_height="wrap_content"-->
+            <!--            android:layout_alignParentBottom="true"-->
+            <!--            android:orientation="vertical">-->
+
+            <!--            <TextView-->
+            <!--                android:id="@+id/tvAddOrderEntry"-->
+            <!--                style="@style/CommonButtonStyle"-->
+            <!--                android:layout_height="@dimen/_50sdp"-->
+            <!--                android:layout_alignParentBottom="true"-->
+            <!--                android:backgroundTint="@color/colorPrimary"-->
+            <!--                android:text="Add Order Entry" />-->
+            <!--        </LinearLayout>-->
+
+           <!-- <ImageView
                 android:id="@+id/tvAddOrderEntry"
-                style="@style/CommonButtonStyle"
+                android:layout_width="@dimen/_50sdp"
                 android:layout_height="@dimen/_50sdp"
+                android:layout_alignParentRight="true"
                 android:layout_alignParentBottom="true"
-                android:backgroundTint="@color/colorPrimary"
-                android:text="Add Order Entry" />
-        </LinearLayout>
-    </RelativeLayout>
+                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_20sdp"
+                android:layout_marginBottom="@dimen/_20sdp"
+                android:background="@drawable/bg_button_primary"
+                android:padding="15dp"
+                android:src="@drawable/ic_add"
+                app:tint="@color/white" />-->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tvAddOrderEntry"
+                android:layout_width="@dimen/_56sdp"
+                android:layout_height="@dimen/_56sdp"
+                android:layout_margin="@dimen/_16sdp"
+                app:cardCornerRadius="@dimen/_12sdp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                app:cardElevation="6dp"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/colorPrimary">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/white" />
+            </com.google.android.material.card.MaterialCardView>
+        </RelativeLayout>
+    </LinearLayout>
 </layout>

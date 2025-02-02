@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/colorscreenbackground">
@@ -10,74 +12,110 @@
             android:id="@+id/toolbar"
             layout="@layout/toolbar_header" />
 
-        <TextView
-            android:id="@+id/tvNoData"
-            style="@style/NoDataFound"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:visibility="gone"
-            android:textStyle="bold"
-            android:text="@string/no_data_found"
-            android:layout_marginTop="@dimen/_30sdp"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="@dimen/_30sdp"
+            android:background="@color/colorPrimary"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLeave"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_10sdp"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_above="@id/llBottom"
-            android:layout_below="@id/toolbar" />
-
-
-        <LinearLayout
-            android:id="@+id/llBottom"
-            android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical">
+            android:layout_marginTop="-34dp"
+            android:background="@drawable/bg_top_curve">
+        <!--            android:layout_marginTop="@dimen/_50sdp"-->
 
             <TextView
-                android:id="@+id/tvAddLeave"
-                style="@style/CommonButtonStyle"
-                android:backgroundTint="@color/colorPrimary"
+                android:id="@+id/tvNoData"
+                style="@style/NoDataFound"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:gravity="center"
                 android:visibility="gone"
-                android:layout_height="@dimen/_50sdp"
-                android:text="@string/add_leave_application" />
+                android:textStyle="bold"
+                android:text="@string/no_data_found"
+                android:layout_marginTop="@dimen/_30sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvLeave"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/llBottom"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_5sdp" />
 
             <LinearLayout
-                android:id="@+id/llAcceptReject"
+                android:id="@+id/llBottom"
                 android:visibility="gone"
-                android:layout_height="@dimen/_50sdp"
-                style="@style/LinearLayoutHorizontal">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvAccept"
-                    style="@style/CommonButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_margin="@dimen/_5sdp"
-                    android:backgroundTint="@color/colorGreen"
-                    android:text="@string/accept" />
+                <!--                <ImageView-->
+                <!--                    android:id="@+id/tvAddLeave"-->
+                <!--                    android:layout_width="@dimen/_70sdp"-->
+                <!--                    android:layout_height="@dimen/_70sdp"-->
+                <!--                    android:layout_alignParentRight="true"-->
+                <!--                    android:layout_alignParentBottom="true"-->
+                <!--                    android:layout_marginStart="@dimen/_20sdp"-->
+                <!--                    android:layout_marginTop="@dimen/_20sdp"-->
+                <!--                    android:layout_marginEnd="@dimen/_20sdp"-->
+                <!--                    android:layout_marginBottom="@dimen/_20sdp"-->
+                <!--                    android:background="@drawable/bg_button_primary"-->
+                <!--                    android:padding="10dp"-->
+                <!--                    android:src="@drawable/ic_add" />-->
 
-                <TextView
-                    android:id="@+id/tvReject"
-                    android:layout_margin="@dimen/_5sdp"
-                    style="@style/CommonButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:backgroundTint="@color/colorRed"
-                    android:text="@string/reject" />
+                <LinearLayout
+                    android:id="@+id/llAcceptReject"
+                    android:visibility="gone"
+                    android:layout_height="@dimen/_50sdp"
+                    style="@style/LinearLayoutHorizontal">
+
+                    <TextView
+                        android:id="@+id/tvAccept"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:layout_margin="@dimen/_5sdp"
+                        android:backgroundTint="@color/colorGreen"
+                        android:text="@string/accept" />
+
+                    <TextView
+                        android:id="@+id/tvReject"
+                        android:layout_margin="@dimen/_5sdp"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/colorRed"
+                        android:text="@string/reject" />
+                </LinearLayout>
+
             </LinearLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tvAddLeave"
+                android:layout_width="@dimen/_56sdp"
+                android:layout_height="@dimen/_56sdp"
+                android:layout_margin="@dimen/_16sdp"
+                app:cardCornerRadius="@dimen/_12sdp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                app:cardElevation="6dp"
+                android:visibility="gone"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/colorPrimary">
 
-
-        </LinearLayout>
-
-    </RelativeLayout>
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/white" />
+            </com.google.android.material.card.MaterialCardView>
+        </RelativeLayout>
+    </LinearLayout>
 </layout>

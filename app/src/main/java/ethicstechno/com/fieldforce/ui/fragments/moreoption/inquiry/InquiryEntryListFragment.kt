@@ -14,8 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.EditText
@@ -102,14 +100,15 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     private lateinit var partyDealerAdapter: PartyDealerListAdapter
     private lateinit var paginationLoader: ProgressBar
     private lateinit var tvSearchGO: TextView
-    private lateinit var tvSearchClear: TextView
+    private lateinit var imgSearchClose: ImageView
     private lateinit var edtSearchPartyDealer: EditText
     private var partyDealerPageNo = 1
     private var isScrolling = false
     private var isLastPage = false
     private var layoutManager: LinearLayoutManager? = null
     private var selectedPartyDealerId: Int = 0
-
+    lateinit var rvItems: RecyclerView
+    lateinit var tvPartyNotFound: TextView
 
     companion object {
 
@@ -202,10 +201,11 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.inquiry_entry_list)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
-        orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_inquiry_entry)
+        //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_inquiry_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
-        orderEntryListBinding.llBottom.visibility = View.VISIBLE
+        //orderEntryListBinding.tvAddOrderEntry.text = "Add Inquiry Entry"
+        //orderEntryListBinding.llBottom.visibility = View.VISIBLE
         selectedCompany = CompanyMasterResponse(companyMasterId = 0)
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
         selectedDivision = DivisionMasterResponse(divisionMasterId = 0)
@@ -340,14 +340,28 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(orderData: InquiryListResponse) {
+                binding.tvDateTitle.text = "Date"
+                binding.tvDateName.text = orderData.inquiryDate
 
-                binding.tvOrderDate.text = "Date : " + orderData.inquiryDate
-                binding.tvOrderNo.text = "Inquiry No : " +orderData.categoryName+"/"+ orderData.documentNo
-                binding.tvParty.text = "Party : " + orderData.accountName
-                binding.tvAmount.text = "Amount : " + orderData.inquiryAmount
-                binding.tvPlace.text = "Place : " + orderData.cityName
-                binding.tvBranch.text = "Branch : "+orderData.branchName
-                binding.tvStatus.text = "Status : "+orderData.inquiryStatusName
+                binding.tvOrderNoTitle.text = "Order No"
+                binding.tvOrderNoTitleName.text = orderData.categoryName+"/"+ orderData.documentNo
+
+                binding.tvPartyNameTitle.text = "Party"
+                binding.tvPartyName.text = orderData.accountName
+
+                binding.tvQuantityTitle.text = "Quantity"
+                binding.tvQuantityName.text = orderData.totalQuantity.toString()
+
+                binding.tvItemcountTitle.text = "Item count"
+                binding.tvItemcountName.text = orderData.productCount.toString()
+
+                binding.tvBranchTitle.text = "Branch"
+                binding.tvBranchName.text =  orderData.branchName
+
+                binding.tvAmountTitle.text = "Amount"
+                binding.tvAmountName.text =  orderData.inquiryAmount.toString()
+
+                binding.tvStatus.text = orderData.inquiryStatusName
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
@@ -418,12 +432,6 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
-    private fun startAnimation() {
-        val a: Animation = AnimationUtils.loadAnimation(mActivity, R.anim.blink_animation)
-        a.reset()
-        orderEntryListBinding.tvFetchPartyDealer.clearAnimation()
-        orderEntryListBinding.tvFetchPartyDealer.startAnimation(a)
-    }
 
     private fun showFilterDialog() {
 
@@ -461,10 +469,10 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
 
         flPartyDealer.setOnClickListener {
-            if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
+            /*if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                 showToastMessage(mActivity, "Please select order category")
                 return@setOnClickListener
-            }
+            }*/
             showPartyDealerListDialog()
         }
 
@@ -494,14 +502,15 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
         }
         llSelectBranch.setOnClickListener {
-            if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+            callBranchListApi(true)
+            /*if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
                 CommonMethods.showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_company)
                 )
                 return@setOnClickListener;
-            }
-            if (branchMasterList.size > 0) {
+            }*/
+            /*if (branchMasterList.size > 0) {
                 val userDialog = UserSearchDialogUtil(
                     mActivity,
                     type = FOR_BRANCH,
@@ -515,17 +524,18 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     mActivity,
                     getString(R.string.branch_list_not_found)
                 )
-            }
+            }*/
         }
         llSelectDivision.setOnClickListener {
-            if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+            callDivisionListApi(true)
+            /*if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
                 CommonMethods.showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_branch)
                 )
                 return@setOnClickListener;
-            }
-            if (divisionMasterList.size > 0) {
+            }*/
+            /*if (divisionMasterList.size > 0) {
                 val userDialog = UserSearchDialogUtil(
                     mActivity,
                     type = FOR_DIVISION,
@@ -537,12 +547,15 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             } else {
                 CommonMethods.showToastMessage(
                     mActivity,
-                    getString(R.string.branch_list_not_found)
+                    getString(R.string.division_list_not_found)
                 )
-            }
+            }*/
         }
 
         btnSubmit.setOnClickListener{
+            startDate = tvStartDate.text.toString()
+            endDate = tvEndDate.text.toString()
+            selectedDateOptionPosition = spDateOption.selectedItemPosition
             callOrderListApi()
             filterDialog.dismiss()
         }
@@ -652,6 +665,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                             }
                             callBranchListApi()
                         }
+                        callCategoryListApi()//for not independent
                     }
                 } else {
                     CommonMethods.showAlertDialog(
@@ -678,7 +692,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     }
 
-    private fun callBranchListApi() {
+    private fun callBranchListApi(isFromOnClick: Boolean = false) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -723,6 +737,16 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
                             }
+                            if(isFromOnClick){
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_BRANCH,
+                                    branchList = branchMasterList,
+                                    branchInterfaceDetect = this@InquiryEntryListFragment as UserSearchDialogUtil.BranchDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
+                            }
                         } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
@@ -755,7 +779,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     }
 
-    private fun callDivisionListApi() {
+    private fun callDivisionListApi(isFromOnClick: Boolean = false) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -800,6 +824,16 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
                             }
+                            if(isFromOnClick){
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_DIVISION,
+                                    divisionList = divisionMasterList,
+                                    divisionInterfaceDetect = this@InquiryEntryListFragment as UserSearchDialogUtil.DivisionDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
+                            }
                         } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
@@ -837,13 +871,13 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
+        /*if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
             CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.please_select_branch)
             )
             return;
-        }
+        }*/
         CommonMethods.showLoading(mActivity)
 
         val appRegistrationData = appDao.getAppRegistration()
@@ -981,6 +1015,8 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         if (response.isSuccessful) {
             response.body()?.let { data ->
                 if (data.isNotEmpty()) {
+                    rvItems.visibility = View.VISIBLE
+                    tvPartyNotFound.visibility = View.GONE
                     if (partyDealerPageNo == 1) {
                         accountMasterList.clear()
                         isLastPage = false
@@ -990,6 +1026,9 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     isScrolling = false
                 } else {
                     isLastPage = true
+                    rvItems.visibility = View.GONE
+                    tvPartyNotFound.visibility = View.VISIBLE
+                    accountMasterList.clear()
                 }
             }
         }
@@ -1008,13 +1047,15 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             val inflater =
                 mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val layout: View = inflater.inflate(R.layout.dialog_searchable_listing, null)
-            val rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            tvPartyNotFound = layout.findViewById<TextView>(R.id.tvNoDataFound)
             val imgClose = layout.findViewById<ImageView>(R.id.imgClose)
             edtSearchPartyDealer = layout.findViewById<EditText>(R.id.edtSearch)
             val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
             paginationLoader = layout.findViewById(R.id.loader)
             tvSearchGO = layout.findViewById(R.id.tvSearchGO)
-            tvSearchClear = layout.findViewById(R.id.tvSearchClear)
+            imgSearchClose = layout.findViewById(R.id.imgCloseSearch)
+            imgSearchClose.visibility = View.VISIBLE
 
             tvTitle.text = "Party/Dealer List"
 
@@ -1022,7 +1063,6 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             if (tvSelectPartyDealer.text.toString().trim().isNotEmpty()) {
                 edtSearchPartyDealer.setText(tvSelectPartyDealer.text.toString().trim())
-                tvSearchClear.visibility = View.VISIBLE
                 tvSearchGO.visibility = View.GONE
                 partyDealerPageNo = 1
             }
@@ -1030,18 +1070,15 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             tvSearchGO.setOnClickListener {
                 partyDealerPageNo = 1
                 callAccountMasterList()
-                tvSearchClear.visibility = View.VISIBLE
                 tvSearchGO.visibility = View.GONE
-            }
-            tvSearchClear.setOnClickListener {
-                edtSearchPartyDealer.setText("")
-                partyDealerPageNo = 1
-                callAccountMasterList()
-                tvSearchClear.visibility = View.GONE
-                tvSearchGO.visibility = View.VISIBLE
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
+            imgSearchClose.setOnClickListener{
+                edtSearchPartyDealer.setText("")
+                partyDealerPageNo = 1
+                callAccountMasterList()
+            }
 
             edtSearchPartyDealer.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(

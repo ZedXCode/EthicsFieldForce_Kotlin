@@ -10,14 +10,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.SearchView
-import androidx.core.text.HtmlCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -73,6 +73,12 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
+    private var partyDealerPageNo = 1
+    private var isScrolling = false
+    private var isLastPage = false
+    private var layoutManager: LinearLayoutManager? = null
+    private var isSearchTriggered = false
+
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -112,14 +118,39 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
     private fun initView() {
         mActivity.bottomHide()
         binding.toolbar.imgBack.visibility = View.VISIBLE
-        binding.toolbar.svView.visibility = View.VISIBLE
-        binding.toolbar.svView.queryHint = HtmlCompat.fromHtml(
-            mActivity.getString(R.string.search_here),
-            HtmlCompat.FROM_HTML_MODE_LEGACY
-        )
+        binding.toolbar.imgSearch.visibility = View.VISIBLE
         binding.toolbar.imgBack.setOnClickListener(this)
+        binding.toolbar.imgSearch.setOnClickListener(this)
+        binding.toolbar.imgSearchViewClose.setOnClickListener(this)
+        binding.toolbar.tvSearchGO.setOnClickListener(this)
         binding.toolbar.tvHeader.text = mActivity.getString(R.string.party_near_by_me)
         binding.tvAddPartyDealer.setOnClickListener(this)
+
+        setupRecyclerView(binding.rvVisit)
+        binding.toolbar.edtSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
+                // No action needed here
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val searchText = s.toString().trim()
+
+                if (searchText.isNotEmpty()) {
+                    binding.toolbar.tvSearchGO.visibility = View.VISIBLE
+                } else {
+                    binding.toolbar.tvSearchGO.visibility = View.GONE
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // No action needed here
+            }
+        })
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -162,30 +193,28 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         }
     }
 
-    private fun setupSearchFilter() {
-        binding.toolbar.svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (visitListAdapter != null) {
-                    visitListAdapter?.filter(newText.orEmpty())
-                }
-                return true
-            }
-        })
-        binding.toolbar.svView.setOnSearchClickListener {
-            binding.toolbar.imgBack.visibility = View.GONE
-        }
-        binding.toolbar.svView.setOnCloseListener {
-            binding.toolbar.imgBack.visibility = View.VISIBLE
-            false
-        }
-    }
-
     override fun onClick(p0: View?) {
         when (p0?.id) {
+            R.id.imgSearch -> {
+                binding.toolbar.clSearchView.visibility = View.VISIBLE
+                binding.toolbar.imgSearch.visibility = View.GONE
+            }
+
+            R.id.imgSearchViewClose -> {
+                binding.toolbar.clSearchView.visibility = View.GONE
+                binding.toolbar.imgSearch.visibility = View.VISIBLE
+                binding.toolbar.edtSearch.setText("")
+                partyDealerPageNo = 1
+                callVisitList(0, FOR_PARTY_DEALER_LIST)
+            }
+
+            R.id.tvSearchGO -> {
+                isSearchTriggered = true
+                partyDealerPageNo = 1
+                callVisitList(0, FOR_PARTY_DEALER_LIST)
+                binding.toolbar.tvSearchGO.visibility = View.GONE
+            }
+
             R.id.imgBack -> {
                 if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
                     mActivity.onBackPressedDispatcher.onBackPressed()
@@ -193,6 +222,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.tvAddPartyDealer -> {
                 //check trp is working or not
                 mActivity.addFragment(
@@ -211,7 +241,6 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
             if (AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE)) {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
                 binding.toolbar.imgBack.visibility = View.VISIBLE
-                binding.toolbar.svView.onActionViewCollapsed()
                 callVisitList(0, FOR_PARTY_DEALER_LIST)
             }
             mActivity.bottomHide()
@@ -221,7 +250,10 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
     private fun callVisitList(accountMasterId: Int, apiType: Int) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.network_error_msg))
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.network_error_msg)
+            )
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -231,7 +263,10 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         val visitListReq = JsonObject()
         visitListReq.addProperty("AccountMasterId", 0)
         visitListReq.addProperty("UserId", loginData.userId)
-        visitListReq.addProperty("ParameterString", "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude")
+        visitListReq.addProperty(
+            "ParameterString",
+            "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude"
+        )
 
         val partyDealerCall = when (apiType) {
             /*FOR_LOCATION_REDIRECT -> {
@@ -247,8 +282,13 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                     .webApi_without(appRegistrationData.apiHostingServer)
                     ?.getPartyDealerDetails(visitListReq)
             }
+
             else -> {
-                visitListReq.addProperty("ParameterString", "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude")
+                visitListReq.addProperty(
+                    "ParameterString",
+                    "$FORM_ID_VISIT AND Latitude=$currentLatitude AND Longitude=$currentLongitude and AccountName like '%${binding.toolbar.edtSearch.text}%'"
+                )
+                visitListReq.addProperty("PageNo", partyDealerPageNo)
                 WebApiClient.getInstance(mActivity)
                     .webApi_without(appRegistrationData.apiHostingServer)
                     ?.getPartyDealerList(visitListReq)
@@ -262,83 +302,92 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
-                    response.body()?.let {
-                        if (it.isNotEmpty()) {
-                            val partyDealerData = it[0]
-                            when (apiType) {
-                                FOR_LOCATION_REDIRECT -> {
-                                    if (partyDealerData.latitude > 0 && partyDealerData.longitude > 0) {
+                    if (apiType == FOR_PARTY_DEALER_LIST) {
+                        handleApiResponse(response)
+                    } else {
+                        response.body()?.let {
+                            if (it.isNotEmpty()) {
+                                val partyDealerData = it[0]
+                                when (apiType) {
+                                    FOR_LOCATION_REDIRECT -> {
+                                        if (partyDealerData.latitude > 0 && partyDealerData.longitude > 0) {
+                                            mActivity.addFragment(
+                                                MapViewFragment.newInstance(
+                                                    0,
+                                                    0,
+                                                    true,
+                                                    partyDealerData.latitude,
+                                                    partyDealerData.longitude,
+                                                    partyDealerData.accountName ?: "",
+                                                    partyDealerData.location ?: "",
+                                                    0.0,
+                                                    0.0,
+                                                    "",
+                                                    "",
+                                                    false,
+                                                ),
+                                                addToBackStack = true,
+                                                ignoreIfCurrent = true,
+                                                animationType = AnimationType.fadeInfadeOut
+                                            )
+                                        } else {
+                                            CommonMethods.showAlertDialog(
+                                                mActivity,
+                                                mActivity.getString(R.string.party_dealer),
+                                                getString(
+                                                    R.string.location_not_found
+                                                ),
+                                                isCancelVisibility = false,
+                                                okListener = null
+                                            )
+                                        }
+                                    }
+
+                                    FOR_DASHBOARD_REPORT_REDIRECT -> {
                                         mActivity.addFragment(
-                                            MapViewFragment.newInstance(
-                                                0,
-                                                0,
-                                                true,
-                                                partyDealerData.latitude,
-                                                partyDealerData.longitude,
-                                                partyDealerData.accountName ?: "",
-                                                partyDealerData.location ?: "",
-                                                0.0,
-                                                0.0,
-                                                "",
-                                                "",
+                                            DashboardDrillFragment.newInstance(
                                                 false,
+                                                DashboardListResponse(),
+                                                DashboardDrillResponse(),
+                                                partyDealerData.storeProcedureName ?: "",
+                                                partyDealerData.reportSetupId,
+                                                arrayListOf(),
+                                                partyDealerData.reportName ?: "",
+                                                partyDealerData.filter ?: "",
+                                                partyDealerData.reportGroupBy ?: "",
+                                                true,
+                                                isFromPartyDealerORVisit = true,
+                                                parameterString = partyDealerData.parameterString
+                                                    ?: "",
+                                                productFilter = false
+                                            ), true, true, AnimationType.fadeInfadeOut
+                                        )
+                                    }
+
+                                    FOR_PARTY_DEALER_UPDATE -> {
+                                        mActivity.addFragment(
+                                            AddPartyDealerFragment.newInstance(
+                                                isUpdate = true,
+                                                partyDealerData
                                             ),
                                             addToBackStack = true,
                                             ignoreIfCurrent = true,
                                             animationType = AnimationType.fadeInfadeOut
                                         )
-                                    } else {
-                                        CommonMethods.showAlertDialog(
-                                            mActivity,
-                                            mActivity.getString(R.string.party_dealer),
-                                            getString(
-                                                R.string.location_not_found
-                                            ),
-                                            isCancelVisibility = false,
-                                            okListener = null
-                                        )
+                                    }
+
+                                    else -> {
+                                        binding.rvVisit.visibility = View.VISIBLE
+                                        binding.tvNoData.visibility = View.GONE
+                                        visitList.clear()
+                                        visitList.addAll(it)
+                                        //setupPartyDealer()
                                     }
                                 }
-
-                                FOR_DASHBOARD_REPORT_REDIRECT -> {
-                                    mActivity.addFragment(
-                                        DashboardDrillFragment.newInstance(
-                                            false,
-                                            DashboardListResponse(),
-                                            DashboardDrillResponse(),
-                                            partyDealerData.storeProcedureName ?: "",
-                                            partyDealerData.reportSetupId,
-                                            arrayListOf(),
-                                            partyDealerData.reportName ?: "",
-                                            partyDealerData.filter ?: "",
-                                            partyDealerData.reportGroupBy ?: "",
-                                            true,
-                                            isFromPartyDealerORVisit = true,
-                                            parameterString = partyDealerData.parameterString ?: ""
-                                        ), true, true, AnimationType.fadeInfadeOut
-                                    )
-                                }
-
-                                FOR_PARTY_DEALER_UPDATE -> {
-                                    mActivity.addFragment(
-                                        AddPartyDealerFragment.newInstance(isUpdate = true, partyDealerData),
-                                        addToBackStack = true,
-                                        ignoreIfCurrent = true,
-                                        animationType = AnimationType.fadeInfadeOut
-                                    )
-                                }
-
-                                else -> {
-                                    binding.rvVisit.visibility = View.VISIBLE
-                                    binding.tvNoData.visibility = View.GONE
-                                    visitList.clear()
-                                    visitList.addAll(it)
-                                    setupPartyDealer()
-                                }
+                            } else {
+                                binding.rvVisit.visibility = View.GONE
+                                binding.tvNoData.visibility = View.VISIBLE
                             }
-                        } else {
-                            binding.rvVisit.visibility = View.GONE
-                            binding.tvNoData.visibility = View.VISIBLE
                         }
                     }
                 } else {
@@ -353,7 +402,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<AccountMasterList>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -366,12 +415,36 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
 
     }
 
-    private fun setupPartyDealer() {
-        visitListAdapter = VisitListAdapter(visitList)
-        binding.rvVisit.adapter = visitListAdapter
-        binding.rvVisit.layoutManager =
-            LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
+    private fun handleApiResponse(
+        response: Response<List<AccountMasterList>>
+    ) {
+        isSearchTriggered = false
+        if (response.isSuccessful) {
+            response.body()?.let { data ->
+                if (data.isNotEmpty()) {
+                    if (data.size == 1) {
+                        isSearchTriggered = true
+                    }
+                    binding.rvVisit.visibility = View.VISIBLE
+                    binding.tvNoData.visibility = View.GONE
+                    if (partyDealerPageNo == 1) {
+                        visitList.clear()
+                        isLastPage = false
+                    }
+                    visitList.addAll(data)
+                    visitListAdapter?.notifyDataSetChanged()
+                    isScrolling = false
+                } else {
+                    isLastPage = true
+                    if(partyDealerPageNo <= 1){
+                        binding.rvVisit.visibility = View.GONE
+                        binding.tvNoData.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
     }
+
 
     private fun locationEnableDialog() {
         try {
@@ -403,6 +476,7 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }
@@ -455,7 +529,6 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                     Handler(Looper.getMainLooper()).postDelayed({
                         CommonMethods.hideLoading()
                         callVisitList(0, FOR_PARTY_DEALER_LIST)
-                        setupSearchFilter()
                     }, 1000)
 
 
@@ -486,6 +559,29 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
         }
     }
 
+    private fun setupRecyclerView(rvItems: RecyclerView) {
+        layoutManager = LinearLayoutManager(mActivity, LinearLayoutManager.VERTICAL, false)
+        rvItems.layoutManager = layoutManager
+
+        visitListAdapter = VisitListAdapter(visitList)
+        rvItems.adapter = visitListAdapter
+
+        rvItems.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val visibleItemCount = layoutManager?.childCount ?: 0
+                val totalItemCount = layoutManager?.itemCount ?: 0
+                val firstVisibleItemPosition = layoutManager?.findFirstVisibleItemPosition() ?: 0
+
+                if (!isScrolling && !isLastPage && !isSearchTriggered && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                    isScrolling = true
+                    partyDealerPageNo++
+                    callVisitList(0, FOR_PARTY_DEALER_LIST)
+                }
+            }
+        })
+    }
 
     inner class VisitListAdapter(
         partyDealerList: ArrayList<AccountMasterList>

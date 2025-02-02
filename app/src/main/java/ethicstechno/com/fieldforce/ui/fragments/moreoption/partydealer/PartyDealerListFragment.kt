@@ -10,14 +10,15 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.SearchView
-import androidx.core.text.HtmlCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -74,6 +75,12 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
+    private var partyDealerPageNo = 1
+    private var isScrolling = false
+    private var isLastPage = false
+    private var layoutManager: LinearLayoutManager? = null
+    private var isSearchTriggered = false
+
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -132,14 +139,39 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
     private fun initView() {
         mActivity.bottomHide()
         binding.toolbar.imgBack.visibility = View.VISIBLE
-        binding.toolbar.svView.visibility = View.VISIBLE
-        binding.toolbar.svView.queryHint = HtmlCompat.fromHtml(
-            mActivity.getString(R.string.search_here),
-            HtmlCompat.FROM_HTML_MODE_LEGACY
-        )
+        binding.toolbar.imgSearch.visibility = View.VISIBLE
         binding.toolbar.imgBack.setOnClickListener(this)
+        binding.toolbar.imgSearch.setOnClickListener(this)
+        binding.toolbar.imgSearchViewClose.setOnClickListener(this)
+        binding.toolbar.tvSearchGO.setOnClickListener(this)
         binding.toolbar.tvHeader.text = mActivity.getString(R.string.party_dealer_list)
         binding.tvAddPartyDealer.setOnClickListener(this)
+        setupRecyclerView(binding.rvPartyDealer)
+        binding.toolbar.edtSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence?,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
+                // No action needed here
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val searchText = s.toString().trim()
+
+                if (searchText.isNotEmpty()) {
+                    binding.toolbar.tvSearchGO.visibility = View.VISIBLE
+                } else {
+                    binding.toolbar.tvSearchGO.visibility = View.GONE
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // No action needed here
+            }
+        })
+
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 executeAPIsAndSetupData()
@@ -159,29 +191,6 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                 FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
             }
-        }
-    }
-
-    private fun setupSearchFilter() {
-        binding.toolbar.svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (::partyDealerAdapter.isInitialized) {
-                    partyDealerAdapter.filter(newText.orEmpty())
-                }
-                //partyDealerAdapter.filter(newText.orEmpty())
-                return true
-            }
-        })
-        binding.toolbar.svView.setOnSearchClickListener {
-            binding.toolbar.imgBack.visibility = View.GONE
-        }
-        binding.toolbar.svView.setOnCloseListener {
-            binding.toolbar.imgBack.visibility = View.VISIBLE
-            false
         }
     }
 
@@ -215,6 +224,7 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }
@@ -267,7 +277,6 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                     Handler(Looper.getMainLooper()).postDelayed({
                         CommonMethods.hideLoading()
                         callPartyDealerList(0, FOR_PARTY_DEALER_LIST)
-                        setupSearchFilter()
                     }, 1000)
 
 
@@ -301,6 +310,29 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
 
     override fun onClick(p0: View?) {
         when (p0?.id) {
+            R.id.imgSearch -> {
+                binding.toolbar.clSearchView.visibility = View.VISIBLE
+                binding.toolbar.edtSearch.requestFocus()
+                val imm = mActivity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(binding.toolbar.edtSearch, InputMethodManager.SHOW_IMPLICIT)
+                binding.toolbar.imgSearch.visibility = View.GONE
+            }
+
+            R.id.imgSearchViewClose -> {
+                binding.toolbar.clSearchView.visibility = View.GONE
+                binding.toolbar.imgSearch.visibility = View.VISIBLE
+                binding.toolbar.edtSearch.setText("")
+                partyDealerPageNo = 1
+                callPartyDealerList(0, FOR_PARTY_DEALER_LIST)
+            }
+
+            R.id.tvSearchGO -> {
+                isSearchTriggered = true
+                partyDealerPageNo = 1
+                callPartyDealerList(0, FOR_PARTY_DEALER_LIST)
+                binding.toolbar.tvSearchGO.visibility = View.GONE
+            }
+
             R.id.imgBack -> {
                 if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
                     mActivity.onBackPressedDispatcher.onBackPressed()
@@ -331,7 +363,6 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
             if (AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE)) {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
                 binding.toolbar.imgBack.visibility = View.VISIBLE
-                binding.toolbar.svView.onActionViewCollapsed()
                 callPartyDealerList(0, FOR_PARTY_DEALER_LIST)
             }
         }
@@ -350,6 +381,9 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
         val partyDealerListReq = JsonObject()
         partyDealerListReq.addProperty("accountMasterId", accountMasterId)
         partyDealerListReq.addProperty("userId", loginData.userId)
+        if (apiType == FOR_PARTY_DEALER_LIST) {
+            partyDealerListReq.addProperty("pageNo", partyDealerPageNo)
+        }
 
         val partyDealerCall = when (apiType) {
 
@@ -359,8 +393,12 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                     .webApi_without(appRegistrationData.apiHostingServer)
                     ?.getPartyDealerDetails(partyDealerListReq)
             }
+
             else -> {
-                partyDealerListReq.addProperty("ParameterString", "$FORM_ID_PARTY_DEALER AND Latitude=$currentLatitude AND Longitude=$currentLongitude")
+                partyDealerListReq.addProperty(
+                    "ParameterString",
+                    "$FORM_ID_PARTY_DEALER AND Latitude=$currentLatitude AND Longitude=$currentLongitude and AccountName like '%${binding.toolbar.edtSearch.text}%'"
+                )
                 WebApiClient.getInstance(mActivity)
                     .webApi_without(appRegistrationData.apiHostingServer)
                     ?.getPartyDealerList(partyDealerListReq)
@@ -374,119 +412,129 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
-                    response.body()?.let {
-                        if (it.isNotEmpty()) {
-                            val partyDealerData = it[0]
-                            when (apiType) {
-                                FOR_LOCATION_REDIRECT -> {
-                                    if (partyDealerData.latitude > 0 && partyDealerData.longitude > 0) {
+                    if (apiType == FOR_PARTY_DEALER_LIST) {
+                        handleApiResponse(response)
+                    } else {
+                        response.body()?.let {
+                            if (it.isNotEmpty()) {
+                                val partyDealerData = it[0]
+                                when (apiType) {
+                                    FOR_LOCATION_REDIRECT -> {
+                                        if (partyDealerData.latitude > 0 && partyDealerData.longitude > 0) {
+                                            mActivity.addFragment(
+                                                MapViewFragment.newInstance(
+                                                    0,
+                                                    0,
+                                                    true,
+                                                    partyDealerData.latitude,
+                                                    partyDealerData.longitude,
+                                                    partyDealerData.accountName ?: "",
+                                                    partyDealerData.location ?: "",
+                                                    0.0,
+                                                    0.0,
+                                                    "",
+                                                    "",
+                                                    false,
+                                                ),
+                                                addToBackStack = true,
+                                                ignoreIfCurrent = true,
+                                                animationType = AnimationType.fadeInfadeOut
+                                            )
+                                        } else {
+                                            CommonMethods.showAlertDialog(
+                                                mActivity,
+                                                mActivity.getString(R.string.party_dealer),
+                                                getString(
+                                                    R.string.location_not_found
+                                                ),
+                                                isCancelVisibility = false,
+                                                okListener = null
+                                            )
+                                        }
+                                    }
+
+                                    FOR_DASHBOARD_REPORT_REDIRECT -> {
                                         mActivity.addFragment(
-                                            MapViewFragment.newInstance(
-                                                0,
-                                                0,
-                                                true,
-                                                partyDealerData.latitude,
-                                                partyDealerData.longitude,
-                                                partyDealerData.accountName ?: "",
-                                                partyDealerData.location ?: "",
-                                                0.0,
-                                                0.0,
-                                                "",
-                                                "",
+                                            DashboardDrillFragment.newInstance(
                                                 false,
+                                                DashboardListResponse(),
+                                                DashboardDrillResponse(),
+                                                partyDealerData.storeProcedureName ?: "",
+                                                partyDealerData.reportSetupId,
+                                                arrayListOf(),
+                                                partyDealerData.reportName ?: "",
+                                                partyDealerData.filter ?: "",
+                                                partyDealerData.reportGroupBy ?: "",
+                                                true,
+                                                isFromPartyDealerORVisit = true,
+                                                parameterString = partyDealerData.parameterString
+                                                    ?: "",
+                                                productFilter = false
+                                            ), true, true, AnimationType.fadeInfadeOut
+                                        )
+                                    }
+
+                                    FOR_PARTY_DEALER_VISIT -> {
+                                        /*val visitData = AccountMasterList(
+                                            partyDealerData.accountMasterId,
+                                            partyDealerData.categoryMasterId,
+                                            partyDealerData.categoryName ?: "",
+                                            partyDealerData.accountName ?: "",
+                                            partyDealerData.cityId,
+                                            partyDealerData.cityName ?: "",
+                                            partyDealerData.phoneNo ?: "",
+                                            partyDealerData.email ?: "",
+                                            partyDealerData.contactPersonName ?: "",
+                                            partyDealerData.latitude,
+                                            partyDealerData.longitude,
+                                            partyDealerData.location ?: "",
+                                            partyDealerData.isActive,
+                                            partyDealerData.userId,
+                                            partyDealerData.reportSetupId,
+                                            partyDealerData.reportName ?: "",
+                                            partyDealerData.apiName ?: "",
+                                            partyDealerData.storeProcedureName ?: "",
+                                            partyDealerData.reportGroupBy ?: "",
+                                            partyDealerData.filter ?: "",
+                                            partyDealerData.parameterString ?: ""
+                                        )*/
+
+                                        mActivity.addFragment(
+                                            AddVisitFragment.newInstance(
+                                                partyDealerData,
+                                                0,
+                                                false
                                             ),
                                             addToBackStack = true,
                                             ignoreIfCurrent = true,
                                             animationType = AnimationType.fadeInfadeOut
                                         )
-                                    } else {
-                                        CommonMethods.showAlertDialog(
-                                            mActivity,
-                                            mActivity.getString(R.string.party_dealer),
-                                            getString(
-                                                R.string.location_not_found
+                                    }
+
+                                    FOR_PARTY_DEALER_UPDATE -> {
+                                        mActivity.addFragment(
+                                            AddPartyDealerFragment.newInstance(
+                                                isUpdate = true,
+                                                partyDealerData
                                             ),
-                                            isCancelVisibility = false,
-                                            okListener = null
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
                                         )
                                     }
-                                }
 
-                                FOR_DASHBOARD_REPORT_REDIRECT -> {
-                                    mActivity.addFragment(
-                                        DashboardDrillFragment.newInstance(
-                                            false,
-                                            DashboardListResponse(),
-                                            DashboardDrillResponse(),
-                                            partyDealerData.storeProcedureName ?: "",
-                                            partyDealerData.reportSetupId,
-                                            arrayListOf(),
-                                            partyDealerData.reportName ?: "",
-                                            partyDealerData.filter ?: "",
-                                            partyDealerData.reportGroupBy ?: "",
-                                            true,
-                                            isFromPartyDealerORVisit = true,
-                                            parameterString = partyDealerData.parameterString ?: ""
-                                        ), true, true, AnimationType.fadeInfadeOut
-                                    )
+                                    else -> {
+                                        binding.rvPartyDealer.visibility = View.VISIBLE
+                                        binding.tvNoData.visibility = View.GONE
+                                        partyDealerList.clear()
+                                        partyDealerList.addAll(it)
+                                        setupPartyDealer()
+                                    }
                                 }
-
-                                FOR_PARTY_DEALER_VISIT -> {
-                                    /*val visitData = AccountMasterList(
-                                        partyDealerData.accountMasterId,
-                                        partyDealerData.categoryMasterId,
-                                        partyDealerData.categoryName ?: "",
-                                        partyDealerData.accountName ?: "",
-                                        partyDealerData.cityId,
-                                        partyDealerData.cityName ?: "",
-                                        partyDealerData.phoneNo ?: "",
-                                        partyDealerData.email ?: "",
-                                        partyDealerData.contactPersonName ?: "",
-                                        partyDealerData.latitude,
-                                        partyDealerData.longitude,
-                                        partyDealerData.location ?: "",
-                                        partyDealerData.isActive,
-                                        partyDealerData.userId,
-                                        partyDealerData.reportSetupId,
-                                        partyDealerData.reportName ?: "",
-                                        partyDealerData.apiName ?: "",
-                                        partyDealerData.storeProcedureName ?: "",
-                                        partyDealerData.reportGroupBy ?: "",
-                                        partyDealerData.filter ?: "",
-                                        partyDealerData.parameterString ?: ""
-                                    )*/
-
-                                    mActivity.addFragment(
-                                        AddVisitFragment.newInstance(
-                                            partyDealerData,
-                                            0,
-                                            false
-                                        ),
-                                        addToBackStack = true,
-                                        ignoreIfCurrent = true,
-                                        animationType = AnimationType.fadeInfadeOut
-                                    )
-                                }
-                                FOR_PARTY_DEALER_UPDATE -> {
-                                    mActivity.addFragment(
-                                        AddPartyDealerFragment.newInstance(isUpdate = true, partyDealerData),
-                                        addToBackStack = true,
-                                        ignoreIfCurrent = true,
-                                        animationType = AnimationType.fadeInfadeOut
-                                    )
-                                }
-
-                                else -> {
-                                    binding.rvPartyDealer.visibility = View.VISIBLE
-                                    binding.tvNoData.visibility = View.GONE
-                                    partyDealerList.clear()
-                                    partyDealerList.addAll(it)
-                                    setupPartyDealer()
-                                }
+                            } else {
+                                binding.rvPartyDealer.visibility = View.GONE
+                                binding.tvNoData.visibility = View.VISIBLE
                             }
-                        } else {
-                            binding.rvPartyDealer.visibility = View.GONE
-                            binding.tvNoData.visibility = View.VISIBLE
                         }
                     }
                 } else {
@@ -514,12 +562,70 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
 
     }
 
+    private fun handleApiResponse(
+        response: Response<List<AccountMasterList>>
+    ) {
+        isSearchTriggered = false
+        if (response.isSuccessful) {
+            response.body()?.let { data ->
+                if (data.isNotEmpty()) {
+                    if (data.size == 1) {
+                        isSearchTriggered = true
+                    }
+                    binding.rvPartyDealer.visibility = View.VISIBLE
+                    binding.tvNoData.visibility = View.GONE
+                    if (partyDealerPageNo == 1) {
+                        partyDealerList.clear()
+                        isLastPage = false
+                    }
+                    partyDealerList.addAll(data)
+                    partyDealerAdapter.notifyDataSetChanged()
+                    isScrolling = false
+                } else {
+                    isLastPage = true
+                    if(partyDealerPageNo <= 1){
+                        binding.rvPartyDealer.visibility = View.GONE
+                        binding.tvNoData.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
     private fun setupPartyDealer() {
         partyDealerAdapter = PartyDealerListAdapter(partyDealerList)
         binding.rvPartyDealer.adapter = partyDealerAdapter
         binding.rvPartyDealer.layoutManager =
             LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
     }
+
+    private fun setupRecyclerView(rvItems: RecyclerView) {
+        layoutManager = LinearLayoutManager(mActivity, LinearLayoutManager.VERTICAL, false)
+        rvItems.layoutManager = layoutManager
+
+        partyDealerAdapter =
+            PartyDealerListAdapter(
+                partyDealerList
+            )
+        rvItems.adapter = partyDealerAdapter
+
+        rvItems.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val visibleItemCount = layoutManager?.childCount ?: 0
+                val totalItemCount = layoutManager?.itemCount ?: 0
+                val firstVisibleItemPosition = layoutManager?.findFirstVisibleItemPosition() ?: 0
+
+                if (!isScrolling && !isLastPage && !isSearchTriggered && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                    isScrolling = true
+                    partyDealerPageNo++
+                    callPartyDealerList(0, FOR_PARTY_DEALER_LIST)
+                }
+            }
+        })
+    }
+
 
     inner class PartyDealerListAdapter(
         partyDealerList: ArrayList<AccountMasterList>

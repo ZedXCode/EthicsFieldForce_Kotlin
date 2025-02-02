@@ -19,6 +19,7 @@ import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseTypeListResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ShippingAddressResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
@@ -35,26 +36,34 @@ import ethicstechno.com.fieldforce.ui.adapter.DivisionAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.ExpenseTypeAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.PartyDealerAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.PlaceAdapterForSearchViewDialog
+import ethicstechno.com.fieldforce.ui.adapter.ShippingAddressAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.StateAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.UserAdapterForSearchViewDialog
 import ethicstechno.com.fieldforce.ui.adapter.ZoneAdapterForSearchViewDialog
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_CURRENCY
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_FREIGHT_TERMS
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_INDUSTRY
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_REFERENCE_SOURCE
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_REGION
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_STAGE
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_TRANSACTION_TYPE
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_VISIT_TYPE
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_COUNTRY
+import ethicstechno.com.fieldforce.utils.FOR_CURRENCY_TYPE
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
 import ethicstechno.com.fieldforce.utils.FOR_EXPENSE_TYPE
+import ethicstechno.com.fieldforce.utils.FOR_FREIGHT_TERMS
 import ethicstechno.com.fieldforce.utils.FOR_INDUSTRY_TYPE
 import ethicstechno.com.fieldforce.utils.FOR_PARTY_DEALER
 import ethicstechno.com.fieldforce.utils.FOR_PLACE
 import ethicstechno.com.fieldforce.utils.FOR_REFERENCE_SOURCE
 import ethicstechno.com.fieldforce.utils.FOR_REGION_TYPE
+import ethicstechno.com.fieldforce.utils.FOR_SHIPPING_ADDRESS
 import ethicstechno.com.fieldforce.utils.FOR_STAGE
 import ethicstechno.com.fieldforce.utils.FOR_STATE
+import ethicstechno.com.fieldforce.utils.FOR_TRANSACTION_TYPE
 import ethicstechno.com.fieldforce.utils.FOR_USER
 import ethicstechno.com.fieldforce.utils.FOR_VISIT_TYPE
 import ethicstechno.com.fieldforce.utils.FOR_ZONE
@@ -73,6 +82,7 @@ class UserSearchDialogUtil(
     private var companyList: ArrayList<CompanyMasterResponse> = arrayListOf(),
     private var branchList: ArrayList<BranchMasterResponse> = arrayListOf(),
     private var divisionList: ArrayList<DivisionMasterResponse> = arrayListOf(),
+    private var shippingList: ArrayList<ShippingAddressResponse> = arrayListOf(),
 
     userDialogInterfaceDetect: UserSearchDialogDetect? = null,
     placeDialogInterfaceDetect: PlaceSearchDialogDetect? = null,
@@ -84,7 +94,8 @@ class UserSearchDialogUtil(
     commonDropDownInterfaceDetect: CommonDropDownDialogDetect? = null,
     companyInterfaceDetect: CompanyDialogDetect? = null,
     branchInterfaceDetect: BranchDialogDetect? = null,
-    divisionInterfaceDetect: DivisionDialogDetect? = null
+    divisionInterfaceDetect: DivisionDialogDetect? = null,
+    shippingAddressInterfaceDetect: ShippingAddressDialogDetect? = null,
 ) : UserAdapterForSearchViewDialog.UserItemClick,
     PlaceAdapterForSearchViewDialog.PlaceItemClick,
     PartyDealerAdapterForSearchViewDialog.PartyDealerItemClick,
@@ -95,7 +106,8 @@ class UserSearchDialogUtil(
     CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
     CompanyAdapterForSearchViewDialog.CompanyItemClick,
     BranchAdapterForSearchViewDialog.BranchItemClick,
-    DivisionAdapterForSearchViewDialog.DivisionItemClick {
+    DivisionAdapterForSearchViewDialog.DivisionItemClick,
+    ShippingAddressAdapterForSearchViewDialog.ShippingAddressItemClick{
     private lateinit var userDialog: AlertDialog
     private var dialogInterfaceDetect: UserSearchDialogDetect? = userDialogInterfaceDetect
     private var placeDialogInterfaceDetect: PlaceSearchDialogDetect? = placeDialogInterfaceDetect
@@ -108,6 +120,7 @@ class UserSearchDialogUtil(
     private var companyInterfaceDetect: CompanyDialogDetect? = companyInterfaceDetect
     private var branchInterfaceDetect: BranchDialogDetect? = branchInterfaceDetect
     private var divisionInterfaceDetect: DivisionDialogDetect? = divisionInterfaceDetect
+    private var shippingAddressInterfaceDetect: ShippingAddressDialogDetect? = shippingAddressInterfaceDetect
     lateinit var userSearchViewAdapter: UserAdapterForSearchViewDialog
     lateinit var placeAdapterForSearchView: PlaceAdapterForSearchViewDialog
     lateinit var partyDealerAdapterForSearchViewDialog: PartyDealerAdapterForSearchViewDialog
@@ -119,6 +132,7 @@ class UserSearchDialogUtil(
     lateinit var companyAdapterForSearchViewDialog: CompanyAdapterForSearchViewDialog
     lateinit var branchAdapterForSearchViewDialog: BranchAdapterForSearchViewDialog
     lateinit var divisionAdapterForSearchViewDialog: DivisionAdapterForSearchViewDialog
+    lateinit var shippingAddressAdapterForSearchViewDialog: ShippingAddressAdapterForSearchViewDialog
 
     fun showUserSearchDialog() {
         try {
@@ -212,6 +226,36 @@ class UserSearchDialogUtil(
                     rvUser.layoutManager = LinearLayoutManager(activity)
                     rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
                 }
+                FOR_CURRENCY_TYPE -> {
+                    tvTitle.text = activity.getString(R.string.currency_list)
+                    commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
+                        commonDropDownList,
+                        this as CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
+                        DROP_DOWN_CURRENCY
+                    )
+                    rvUser.layoutManager = LinearLayoutManager(activity)
+                    rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
+                }
+                FOR_TRANSACTION_TYPE -> {
+                    tvTitle.text = activity.getString(R.string.transaction_list)
+                    commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
+                        commonDropDownList,
+                        this as CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
+                        DROP_DOWN_TRANSACTION_TYPE
+                    )
+                    rvUser.layoutManager = LinearLayoutManager(activity)
+                    rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
+                }
+                FOR_FREIGHT_TERMS -> {
+                    tvTitle.text = activity.getString(R.string.freight_terms_list)
+                    commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
+                        commonDropDownList,
+                        this as CommonDropDownAdapterNewForSearchViewDialog.CommonDropDownItemClick,
+                        DROP_DOWN_FREIGHT_TERMS
+                    )
+                    rvUser.layoutManager = LinearLayoutManager(activity)
+                    rvUser.adapter = commonDropDownAdapterNewForSearchViewDialog
+                }
                 FOR_INDUSTRY_TYPE -> {
                     tvTitle.text = activity.getString(R.string.indstry_type_list)
                     commonDropDownAdapterNewForSearchViewDialog = CommonDropDownAdapterNewForSearchViewDialog(
@@ -278,6 +322,15 @@ class UserSearchDialogUtil(
                     )
                     rvUser.layoutManager = LinearLayoutManager(activity)
                     rvUser.adapter = divisionAdapterForSearchViewDialog
+                }
+                FOR_SHIPPING_ADDRESS -> {
+                    tvTitle.text = activity.getString(R.string.shipping_address_list)
+                    shippingAddressAdapterForSearchViewDialog = ShippingAddressAdapterForSearchViewDialog(
+                        shippingList,
+                        this as ShippingAddressAdapterForSearchViewDialog.ShippingAddressItemClick,
+                    )
+                    rvUser.layoutManager = LinearLayoutManager(activity)
+                    rvUser.adapter = shippingAddressAdapterForSearchViewDialog
                 }
             }
 
@@ -410,7 +463,58 @@ class UserSearchDialogUtil(
                         }
                     })
                 }
-                FOR_REGION_TYPE, FOR_INDUSTRY_TYPE, FOR_REFERENCE_SOURCE, FOR_STAGE, FOR_VISIT_TYPE -> {
+                FOR_COMPANY -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            val filteredList = companyList.filter { item ->
+                                (item.companyName ?: "").contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            companyAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<CompanyMasterResponse>,
+                            )
+                            return true
+                        }
+                    })
+                }
+                FOR_BRANCH -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            val filteredList = branchList.filter { item ->
+                                (item.branchName ?: "").contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            branchAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<BranchMasterResponse>,
+                            )
+                            return true
+                        }
+                    })
+                }
+                FOR_DIVISION -> {
+                    svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            val filteredList = divisionList.filter { item ->
+                                (item.divisionName ?: "").contains(newText.orEmpty(), ignoreCase = true)
+                            }
+                            divisionAdapterForSearchViewDialog.refreshAdapter(
+                                filteredList as ArrayList<DivisionMasterResponse>,
+                            )
+                            return true
+                        }
+                    })
+                }
+                FOR_REGION_TYPE, FOR_INDUSTRY_TYPE, FOR_REFERENCE_SOURCE, FOR_STAGE, FOR_VISIT_TYPE, FOR_CURRENCY_TYPE, FOR_TRANSACTION_TYPE, FOR_FREIGHT_TERMS -> {
                     svView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {
                             return false
@@ -482,6 +586,10 @@ class UserSearchDialogUtil(
         fun divisionSelect(dropDownData: DivisionMasterResponse)
     }
 
+    interface ShippingAddressDialogDetect {
+        fun shippingAddressSelect(shippingAddress: ShippingAddressResponse)
+    }
+
     override fun onUserOnClick(userData: UserListResponse) {
         userDialog.dismiss()
         dialogInterfaceDetect?.userSelect(userData)
@@ -535,5 +643,10 @@ class UserSearchDialogUtil(
     override fun onDivisionItemClick(divisionResponse: DivisionMasterResponse) {
         userDialog.dismiss()
         divisionInterfaceDetect?.divisionSelect(divisionResponse)
+    }
+
+    override fun onShippingAddressItemClick(shippingAddressResponse: ShippingAddressResponse) {
+        userDialog.dismiss()
+        shippingAddressInterfaceDetect?.shippingAddressSelect(shippingAddressResponse)
     }
 }

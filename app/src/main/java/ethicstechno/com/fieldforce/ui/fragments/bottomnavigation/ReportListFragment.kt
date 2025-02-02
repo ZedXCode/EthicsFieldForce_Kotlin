@@ -1,5 +1,6 @@
 package ethicstechno.com.fieldforce.ui.fragments.bottomnavigation
 
+import AnimationType
 import addFragment
 import android.os.Bundle
 import android.util.Log
@@ -220,7 +221,8 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                                 report.reportName,
                                 report.filter,
                                 report.reportGroupBy,
-                                true
+                                true,
+                                productFilter = report.productFilter
                             ), true, true, AnimationType.fadeInfadeOut
                         )
                     } else {

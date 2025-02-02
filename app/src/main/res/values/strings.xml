@@ -111,7 +111,7 @@
     <string name="more_expense_entry" translatable="false">Expense &#10; Entry</string>
     <string name="more_expense_approval" translatable="false">Expense &#10; Approval</string>
     <string name="more_party_dealer" translatable="false">Party/Dealer</string>
-    <string name="more_visit" translatable="false">Visit</string>
+    <string name="more_visit" translatable="false">Visit Follow-Up</string>
     <string name="more_leave_application" translatable="false">Leave &#10; Application</string>
     <string name="more_leave_approval" translatable="false">Leave &#10; Approval</string>
     <string name="more_tour_plan" translatable="false">Tour &#10; Plan</string>
@@ -191,6 +191,7 @@
     <string name="reset" translatable="false">Reset</string>
     <string name="select_city" translatable="false">Select City</string>
     <string name="select_party" translatable="false">Select Party</string>
+    <string name="select_consignee" translatable="false">Select Consignee</string>
     <string name="expense_approval_list" translatable="false">Expense Approval List</string>
     <string name="expense_details" translatable="false">Expense Details</string>
     <string name="edit_this_expense" translatable="false">Now, You can edit this expense</string>
@@ -332,8 +333,8 @@
     <string name="add_product_item" translatable="false">Add Product Item</string>
     <string name="please_select_product_group" translatable="false">Please select product group</string>
     <string name="select_product" translatable="false">Select Product</string>
-    <string name="add_order_entry" translatable="false">Add Order Entry</string>
-    <string name="add_inquiry_entry" translatable="false">Add Quotation</string>
+    <string name="add_order_entry" translatable="false">Add Order</string>
+    <string name="add_inquiry_entry" translatable="false">Add Inquiry</string>
     <string name="add_quotation_entry" translatable="false">Add Quotation</string>
     <string name="please_selected_order_mode" translatable="false">Please selected order mode</string>
     <string name="please_select_order_category" translatable="false">Please select order category</string>
@@ -345,29 +346,29 @@
     <string name="select_distributor" translatable="false">Select Distributor</string>
     <string name="distributor_validation" translatable="false">Please select distributor</string>
     <string name="product_validation" translatable="false">Please add product</string>
-    <string name="order_entry_confirmation" translatable="false">Are you sure you want to add order entry?</string>
+    <string name="order_entry_confirmation" translatable="false">Are you sure you want to add order?</string>
     <string name="inquiry_entry_confirmation" translatable="false">Are you sure you want to add inquiry?</string>
     <string name="quotation_entry_confirmation" translatable="false">Are you sure you want to add quotation?</string>
-    <string name="order_entry_list" translatable="false">Order Entry List</string>
+    <string name="order_entry_list" translatable="false">Order List</string>
     <string name="inquiry_entry_list" translatable="false">Inquiry List</string>
     <string name="quotation_entry_list" translatable="false">Quotation List</string>
     <string name="inquiry_list" translatable="false">Inquiry List</string>
     <string name="select_group" translatable="false">Select Group</string>
     <string name="please_enter_quantity" translatable="false">Please enter quantity</string>
     <string name="please_enter_amount" translatable="false">Please enter amount</string>
-    <string name="update_order_entry" translatable="false">Update Order Entry</string>
+    <string name="update_order_entry" translatable="false">Update Order</string>
     <string name="update_inquiry_entry" translatable="false">Update inquiry</string>
     <string name="update_quotation_entry" translatable="false">Update quotation</string>
     <string name="update_order_entry_confirmation" translatable="false">Are you sure you want to Update Order entry?</string>
     <string name="update_inquiry_entry_confirmation" translatable="false">Are you sure you want to Update Inquiry?</string>
     <string name="update_quotation_entry_confirmation" translatable="false">Are you sure you want to Update Quotation?</string>
-    <string name="one_item_required_for_order_entry" translatable="false">One Item required for Order Entry</string>
+    <string name="one_item_required_for_order_entry" translatable="false">One Item required for Order</string>
     <string name="one_item_required_for_inquiry_entry" translatable="false">One Item required for Inquiry</string>
     <string name="one_item_required_for_quotation_entry" translatable="false">One Item required for Quotation</string>
     <string name="delete" translatable="false">Delete</string>
-    <string name="delete_order_entry" translatable="false">Delete Order Entry</string>
-    <string name="are_you_sure_you_want_to_delete_order_entry" translatable="false">Are you sure you want to delete order entry?</string>
-    <string name="are_you_sure_you_want_to_edit_order_entry" translatable="false">Are you sure you want to edit order entry?</string>
+    <string name="delete_order_entry" translatable="false">Delete Order</string>
+    <string name="are_you_sure_you_want_to_delete_order_entry" translatable="false">Are you sure you want to delete order?</string>
+    <string name="are_you_sure_you_want_to_edit_order_entry" translatable="false">Are you sure you want to edit order?</string>
     <string name="are_you_sure_you_want_to_edit_inquiry_entry" translatable="false">Are you sure you want to edit inquiry?</string>
     <string name="are_you_sure_you_want_to_edit_quotation_entry" translatable="false">Are you sure you want to edit quotation?</string>
     <string name="add_product" translatable="false">Add Product</string>
@@ -375,7 +376,7 @@
     <string name="inquiry_details" translatable="false">Inquiry Details</string>
     <string name="quotation_details" translatable="false">Quotation Details</string>
     <string name="no_image_found" translatable="false">No Image Found</string>
-    <string name="edit_order_entry" translatable="false">Edit Order Entry</string>
+    <string name="edit_order_entry" translatable="false">Edit Order</string>
     <string name="edit_inquiry_entry" translatable="false">Edit Inquiry</string>
     <string name="edit_quotation_entry" translatable="false">Edit Quotation</string>
     <string name="are_you_sure_you_want_to_exit" translatable="false">Are you sure you want to exit?</string>
@@ -384,16 +385,25 @@
     <string name="delete_order_details" translatable="false">Delete Order Details</string>
     <string name="are_you_sure_you_want_to_delete_this_product" translatable="false">Are you sure you want to delete this product?</string>
     <string name="select_region" translatable="false">Select Region</string>
+    <string name="select_currency" translatable="false">Select Currency</string>
+    <string name="select_transaction_type" translatable="false">Select Transaction Type</string>
+    <string name="select_freight_type" translatable="false">Select Freight Terms</string>
     <string name="region" translatable="false">Region</string>
     <string name="industry_type" translatable="false">Industry Type</string>
     <string name="select_industry_type" translatable="false">Select Industry Type</string>
     <string name="region_list" translatable="false">Region List</string>
+    <string name="currency_list" translatable="false">Currency List</string>
+    <string name="transaction_list" translatable="false">Transaction Type List</string>
+    <string name="freight_terms_list" translatable="false">Freight Terms List</string>
     <string name="indstry_type_list" translatable="false">Industry Type List</string>
     <string name="reference_source" translatable="false">Reference Source</string>
     <string name="select_reference_resource" translatable="false">Select Reference Resource</string>
     <string name="reference_source_list" translatable="false">Reference Source List</string>
     <string name="place_list_not_found" translatable="false">Place list not found</string>
     <string name="region_list_not_found" translatable="false">Region List not found</string>
+    <string name="freight_list_not_found" translatable="false">Freight Terms List not found</string>
+    <string name="shipping_address_list_not_found" translatable="false">Shipping Address List not found</string>
+    <string name="transaction_list_not_found" translatable="false">Transaction types not found</string>
     <string name="industry_list_not_found" translatable="false">Industry List not found</string>
     <string name="reference_source_list_not_found" translatable="false">Reference Source List not found</string>
     <string name="company" translatable="false">Company</string>
@@ -402,9 +412,11 @@
     <string name="division" translatable="false">Division</string>
     <string name="select_division" translatable="false">Select Division</string>
     <string name="optional_fields" translatable="false">Company/Branch/Division</string>
+    <string name="shipping_and_other_details" translatable="false">Shipping &amp; Other Details</string>
     <string name="company_list" translatable="false">Company List</string>
     <string name="branch_list" translatable="false">Branch List</string>
     <string name="division_list" translatable="false">Division List</string>
+    <string name="shipping_address_list" translatable="false">Shipping Address List</string>
     <string name="company_list_not_found" translatable="false">Company List not found</string>
     <string name="branch_list_not_found" translatable="false">Branch List not found</string>
     <string name="enter_valid_contact_person_phone" translatable="false">Please enter valid contact person phone</string>
@@ -441,4 +453,13 @@
     <string name="selected_products" translatable="false">Selected Products</string>
     <string name="add_inquiry" translatable="false">Add Inquiry</string>
     <string name="no_visit_details_found" translatable="false">No visit details found</string>
+    <string name="currency" translatable="false">Currency</string>
+    <string name="transaction_type" translatable="false">Transaction Type</string>
+    <string name="freight_terms_type" translatable="false">Freight Terms</string>
+    <string name="consignee_name" translatable="false">Consignee Name</string>
+    <string name="shipping_address" translatable="false">Shipping Address</string>
+    <string name="dispatch_date" translatable="false">Dispatch Date</string>
+    <string name="payment_terms_days" translatable="false">Payment Terms Days</string>
+    <string name="terms_and_condition" translatable="false"><![CDATA[Terms & Condition]]></string>
+    <string name="no_product_found" translatable="false">No Product Found</string>
 </resources>

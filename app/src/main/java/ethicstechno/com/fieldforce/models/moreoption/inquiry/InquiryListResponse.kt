@@ -43,5 +43,7 @@ class InquiryListResponse(
     @SerializedName("Success") var success: Boolean? = null,
     @SerializedName("ReturnMessage") var returnMessage: String? = null,
     @SerializedName("AllowEdit") var allowEdit: Boolean? = false,
-    @SerializedName("AllowDelete") var allowDelete: Boolean? = false
+    @SerializedName("AllowDelete") var allowDelete: Boolean? = false,
+    @SerializedName("ProductCount") var productCount: Double? = 0.00,
+    @SerializedName("TotalQuantity") var totalQuantity: Double? = 0.00
 )

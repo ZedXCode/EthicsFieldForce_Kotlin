@@ -46,9 +46,9 @@ import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
+import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryDetailsResponse
 import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
-import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
@@ -153,11 +153,13 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private lateinit var partyDealerAdapter: PartyDealerListAdapter
     private lateinit var paginationLoader: ProgressBar
     private lateinit var tvSearchGO: TextView
-    private lateinit var tvSearchClear: TextView
     private lateinit var edtSearchPartyDealer: EditText
     private var isCompanyChange = false
     private var allowEdit : Boolean = false
     private var allowDelete : Boolean = false
+    private var isSearchTriggered = false
+    lateinit var rvItems: RecyclerView
+    lateinit var tvNoDataFound: TextView
     //var accountMasterId : Int = 0
 
 
@@ -577,24 +579,35 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             mActivity,
             R.layout.simple_spinner_item,
             categoryList,
-            this,
+            this
         )
         binding.spCategory.adapter = adapter
+
+        // Set the selected item based on the condition
         if (isCompanyChange && categoryList.size == 2) {
-            selectedCategory = CategoryMasterResponse(
-                categoryMasterId = categoryList[1].categoryMasterId,
-                categoryName = categoryList[1].categoryName
-            )
+            selectedCategory = categoryList[1]
             binding.spCategory.setSelection(1)
-            categoryList[1]
+        } else if (isCompanyChange) {
+            binding.spCategory.setSelection(0)
         } else {
-            if(isCompanyChange) {
-                binding.spCategory.setSelection(0)
-                categoryList[0]
-            }else{
-                val selectedCategoryIndex =
-                    categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
-                binding.spCategory.setSelection(selectedCategoryIndex)
+            val selectedCategoryIndex = categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+            binding.spCategory.setSelection(selectedCategoryIndex)
+        }
+
+        // Handle item selection
+        binding.spCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedType = categoryList[position]
+                if ((selectedType.categoryMasterId ?: 0) > 0) {
+                    selectedCategory = selectedType
+                    binding.tvPartyDealer.text = ""
+                    selectedPartyDealerId = 0
+                    Log.e("TAG", "DropDown :: onTypeSelect: ${selectedType.categoryName}")
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Handle if no item is selected (optional)
             }
         }
     }
@@ -615,7 +628,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (isForPartyDealer) "FieldName=Order/Party" else "FieldName=Order/Distributor"
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text}%'"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY and $fieldName and AccountName like '%${edtSearchPartyDealer.text}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)
@@ -665,11 +678,17 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         response: Response<List<AccountMasterList>>,
         isForPartyDealer: Boolean
     ) {
+        isSearchTriggered = false
         paginationLoader.visibility = View.GONE
 
         if (response.isSuccessful) {
             response.body()?.let { data ->
                 if (data.isNotEmpty()) {
+                    if (data.size == 1) {
+                        isSearchTriggered = true
+                    }
+                    rvItems.visibility = View.VISIBLE
+                    tvNoDataFound.visibility = View.GONE
                     if (isForPartyDealer) {
                         if (partyDealerPageNo == 1) {
                             accountMasterList.clear()
@@ -708,7 +727,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(binding.tvDate.text.toString())
             val parameterString =
-                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY"
+                "ProductGroupId=$productGroupId and AccountMasterId=$selectedPartyDealerId EntryDate=$orderDateString and $FORM_ID_INQUIRY_ENTRY "
             jsonReq.addProperty("ProductId", 0)
             jsonReq.addProperty("ProductGroupId", productGroupId)
             jsonReq.addProperty("ParameterString", parameterString)
@@ -1079,19 +1098,19 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             R.id.flPartyDealer -> {
                 avoidDoubleClicks(binding.flPartyDealer)
-                if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
+                /*if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
-                }
+                }*/
                 showPartyDealerListDialog(true)
             }
 
             R.id.flSelectDistributor -> {
                 avoidDoubleClicks(binding.flPartyDealer)
-                if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
+                /*if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
                     return
-                }
+                }*/
                 showPartyDealerListDialog(false)
             }
 
@@ -1362,12 +1381,13 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                             )
                             companyMasterList.addAll(it)
-                            if (isCompanyChange && it.size == 1) {
+                            if (it.size == 1) {
                                 selectedCompany = CompanyMasterResponse(
                                     companyMasterId = companyMasterList[1].companyMasterId,
                                     companyName = companyMasterList[1].companyName
                                 )
                                 binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+                                isCompanyChange = true
                             }
                             callBranchListApi()
                         }
@@ -1648,7 +1668,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val addOrderCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.addInquiryInsertUpdate(objReq)
-
+        binding.tvSubmit.isEnabled = false
         addOrderCall?.enqueue(object : Callback<CommonSuccessResponse> {
             override fun onResponse(
                 call: Call<CommonSuccessResponse>,
@@ -1656,6 +1676,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
+                    binding.tvSubmit.isEnabled = true
                     response.body()?.let { it ->
                         Log.e("TAG", "onResponse: Order entry :: " + it.toString())
                         CommonMethods.showAlertDialog(
@@ -1681,6 +1702,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                         )
                     }
                 } else {
+                    binding.tvSubmit.isEnabled = true
                     CommonMethods.showAlertDialog(
                         mActivity,
                         "Error",
@@ -1691,6 +1713,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             override fun onFailure(call: Call<CommonSuccessResponse>, t: Throwable) {
+                binding.tvSubmit.isEnabled = true
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -1738,13 +1761,15 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             val inflater =
                 mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val layout: View = inflater.inflate(R.layout.dialog_searchable_listing, null)
-            val rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
             val imgClose = layout.findViewById<ImageView>(R.id.imgClose)
             edtSearchPartyDealer = layout.findViewById<EditText>(R.id.edtSearch)
             val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
             paginationLoader = layout.findViewById(R.id.loader)
             tvSearchGO = layout.findViewById(R.id.tvSearchGO)
-            tvSearchClear = layout.findViewById(R.id.tvSearchClear)
+            tvNoDataFound = layout.findViewById(R.id.tvNoDataFound)
+            val imgCloseSearch: ImageView = layout.findViewById(R.id.imgCloseSearch)
+            imgCloseSearch.visibility = View.VISIBLE
 
             tvTitle.text = if (isFromPartyDealer) "Party/Dealer List" else "Distributor List"
 
@@ -1753,7 +1778,6 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (isFromPartyDealer) {
                 if (binding.tvPartyDealer.text.toString().trim().isNotEmpty()) {
                     edtSearchPartyDealer.setText(binding.tvPartyDealer.text.toString().trim())
-                    tvSearchClear.visibility = View.VISIBLE
                     tvSearchGO.visibility = View.GONE
                     partyDealerPageNo = 1
                 }
@@ -1761,13 +1785,13 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             } else {
                 if (binding.tvSelectDistributor.text.toString().trim().isNotEmpty()) {
                     edtSearchPartyDealer.setText(binding.tvSelectDistributor.text.toString().trim())
-                    tvSearchClear.visibility = View.VISIBLE
                     tvSearchGO.visibility = View.GONE
                     distributorPageNo = 1
                 }
                 callAccountMasterList(false)
             }
             tvSearchGO.setOnClickListener {
+                isSearchTriggered = true
                 if (isFromPartyDealer) {
                     partyDealerPageNo = 1
                     callAccountMasterList(true)
@@ -1775,20 +1799,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     distributorPageNo = 1
                     callAccountMasterList(false)
                 }
-                tvSearchClear.visibility = View.VISIBLE
                 tvSearchGO.visibility = View.GONE
-            }
-            tvSearchClear.setOnClickListener {
-                edtSearchPartyDealer.setText("")
-                if (isFromPartyDealer) {
-                    partyDealerPageNo = 1
-                    callAccountMasterList(true)
-                } else {
-                    distributorPageNo = 1
-                    callAccountMasterList(false)
-                }
-                tvSearchClear.visibility = View.GONE
-                tvSearchGO.visibility = View.VISIBLE
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
@@ -1860,7 +1871,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 val totalItemCount = layoutManager?.itemCount ?: 0
                 val firstVisibleItemPosition = layoutManager?.findFirstVisibleItemPosition() ?: 0
 
-                if (!isScrolling && !isLastPage && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                if (!isScrolling && !isLastPage && !isSearchTriggered && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
                     isScrolling = true
                     if (isFromPartyDealer) partyDealerPageNo++ else distributorPageNo++
                     callAccountMasterList(isFromPartyDealer)
@@ -2031,6 +2042,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }*/
+                val qtyText = etQty.text.toString().trim()
+                val priceText = etPrice.text.toString().trim()
+                val amountText = etAmount.text.toString().trim()
                 val orderDetailsModel = ProductInquiryGroupResponse(
                     inquiryDetailsId = productModel?.inquiryDetailsId ?: 0,
                     inquiryId = productModel?.inquiryId ?: 0,
@@ -2041,9 +2055,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     unit = productModel?.unit ?: "",
                     altUnit = productModel?.altUnit ?: "",
                     salesPrice = productModel?.salesPrice ?: BigDecimal.ZERO,
-                    qty = etQty.text.toString().toBigDecimal(),
-                    price = etPrice.text.toString().toBigDecimal(),
-                    amount = etAmount.text.toString().toBigDecimal()
+                    qty = if (qtyText.isNotEmpty()) qtyText.toBigDecimal() else BigDecimal.ZERO,
+                    price = if (priceText.isNotEmpty()) priceText.toBigDecimal() else BigDecimal.ZERO,
+                    amount = if (amountText.isNotEmpty()) amountText.toBigDecimal() else BigDecimal.ZERO
                 )
 
                 if (productModel == null) {
@@ -2234,6 +2248,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun branchSelect(dropDownData: BranchMasterResponse) {
         selectedBranch = dropDownData
+        binding.tvPartyDealer.text = ""
+        selectedPartyDealerId = 0
         binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
         resetSelection(
             resetBranch = false,
@@ -2247,6 +2263,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun divisionSelect(dropDownData: DivisionMasterResponse) {
         selectedDivision = dropDownData
+        binding.tvPartyDealer.text = ""
+        selectedPartyDealerId = 0
         binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
         resetSelection(
             resetBranch = false,
@@ -2259,7 +2277,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     override fun onTypeSelect(typeData: CategoryMasterResponse) {
-        selectedCategory = typeData
+        //selectedCategory = typeData
     }
 
     private fun resetSelection(

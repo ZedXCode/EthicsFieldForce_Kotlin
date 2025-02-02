@@ -114,10 +114,10 @@
 
                     <View
                         android:id="@+id/viewSelectedGroup"
-                        android:visibility="gone"
-                        android:background="@drawable/selected_filter_background"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_38sdp"/>
+                        android:layout_height="@dimen/_38sdp"
+                        android:background="@drawable/selected_filter_background"
+                        android:visibility="gone" />
 
 
                     <ImageView
@@ -129,11 +129,21 @@
                         android:src="@drawable/ic_drop_down" />
                 </FrameLayout>
 
+                <ImageView
+                    android:id="@+id/imgGroupClear"
+                    android:layout_width="@dimen/_20sdp"
+                    android:layout_height="@dimen/_20sdp"
+                    android:layout_gravity="end|center"
+                    android:layout_marginStart="@dimen/_5sdp"
+                    android:layout_marginEnd="@dimen/_5sdp"
+                    android:src="@drawable/ic_close_black"
+                    android:visibility="gone" />
+
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:id="@+id/clSearchLayout"
-                    android:visibility="gone"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:visibility="gone">
 
                     <!-- TextInputLayout -->
                     <com.google.android.material.textfield.TextInputLayout
@@ -149,13 +159,13 @@
                             android:id="@+id/edtSearch"
                             android:layout_width="match_parent"
                             android:layout_height="@dimen/_50sdp"
+                            android:layout_gravity="start|center"
                             android:drawableStart="@drawable/ic_search_small"
                             android:drawablePadding="@dimen/_8sdp"
-                            android:layout_gravity="start|center"
-                            android:singleLine="true"
                             android:gravity="start|center"
                             android:hint="@string/search_here"
                             android:paddingStart="@dimen/_12sdp"
+                            android:singleLine="true"
                             android:textSize="@dimen/_14ssp" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -178,43 +188,26 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@id/textInputLayout" />
 
-                    <TextView
-                        android:id="@+id/tvSearchClear"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/_40sdp"
-                        android:background="@drawable/button_background_primary"
-                        android:backgroundTint="@color/colorRed"
-                        android:gravity="center"
-                        android:padding="8dp"
-                        android:text="Clear"
-                        android:textColor="@color/white"
-                        android:textSize="14sp"
-                        android:visibility="gone"
-                        app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@id/textInputLayout" />
-
                     <ImageView
                         android:id="@+id/imgCloseSearch"
                         android:layout_width="@dimen/_24sdp"
                         android:layout_height="@dimen/_24sdp"
                         android:layout_marginEnd="@dimen/_4sdp"
+                        android:src="@drawable/ic_close_black"
                         app:layout_constraintBottom_toBottomOf="@id/textInputLayout"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@id/textInputLayout"
-                        android:src="@drawable/ic_close_black"
                         app:tint="@color/colorGray" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
                 <ImageView
                     android:id="@+id/imgSearch"
-                    android:src="@drawable/ic_search"
                     android:layout_width="@dimen/_30sdp"
-                    android:layout_gravity="center"
-                    android:padding="@dimen/_4sdp"
-                    android:layout_marginStart="@dimen/_2sdp"
                     android:layout_height="@dimen/_30sdp"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="@dimen/_2sdp"
+                    android:padding="@dimen/_4sdp"
+                    android:src="@drawable/ic_search"
                     app:tint="@color/colorPrimary" />
 
                 <androidx.appcompat.widget.SearchView
@@ -222,10 +215,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/_38sdp"
                     android:layout_gravity="center"
-                    android:visibility="gone"
                     android:gravity="center"
                     android:hint="@string/search_here"
                     android:queryHint="Search Here.."
+                    android:visibility="gone"
                     app:queryBackground="@drawable/edittext_background"
                     app:searchHintIcon="@drawable/ic_search"
                     app:searchIcon="@drawable/ic_search_small" />
@@ -235,16 +228,16 @@
             <LinearLayout
                 android:id="@+id/llFilter1"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/_6sdp"
                 android:layout_marginEnd="@dimen/_6sdp"
-                android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_marginEnd="@dimen/_4sdp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/_4sdp"
+                    android:layout_marginEnd="@dimen/_4sdp"
                     android:layout_weight="1">
 
                     <TextView
@@ -261,10 +254,10 @@
 
                     <View
                         android:id="@+id/viewSelectedFilter2"
-                        android:visibility="gone"
-                        android:background="@drawable/selected_filter_background"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_38sdp"/>
+                        android:layout_height="@dimen/_38sdp"
+                        android:background="@drawable/selected_filter_background"
+                        android:visibility="gone" />
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
@@ -276,8 +269,8 @@
 
                 <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_marginStart="@dimen/_4sdp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:layout_marginTop="@dimen/_4sdp"
                     android:layout_weight="1">
 
@@ -295,10 +288,10 @@
 
                     <View
                         android:id="@+id/viewSelectedFilter3"
-                        android:visibility="gone"
-                        android:background="@drawable/selected_filter_background"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_38sdp"/>
+                        android:layout_height="@dimen/_38sdp"
+                        android:background="@drawable/selected_filter_background"
+                        android:visibility="gone" />
 
 
                     <ImageView
@@ -323,8 +316,8 @@
                 <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/_4sdp"
                     android:layout_marginTop="@dimen/_4sdp"
+                    android:layout_marginEnd="@dimen/_4sdp"
                     android:layout_weight="1">
 
                     <TextView
@@ -341,10 +334,10 @@
 
                     <View
                         android:id="@+id/viewSelectedFilter4"
-                        android:visibility="gone"
-                        android:background="@drawable/selected_filter_background"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_38sdp"/>
+                        android:layout_height="@dimen/_38sdp"
+                        android:background="@drawable/selected_filter_background"
+                        android:visibility="gone" />
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
@@ -356,8 +349,8 @@
 
                 <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_marginStart="@dimen/_4sdp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:layout_marginTop="@dimen/_4sdp"
                     android:layout_weight="1">
 
@@ -375,10 +368,10 @@
 
                     <View
                         android:id="@+id/viewSelectedFilter5"
-                        android:visibility="gone"
-                        android:background="@drawable/selected_filter_background"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_38sdp"/>
+                        android:layout_height="@dimen/_38sdp"
+                        android:background="@drawable/selected_filter_background"
+                        android:visibility="gone" />
 
                     <ImageView
                         android:layout_width="@dimen/_20sdp"
@@ -392,24 +385,56 @@
 
         </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/cbSelectedItems"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_6sdp"
-            android:buttonTint="@color/colorMaroon"
-            android:text="Selected Products"
-            android:textColor="@color/colorMaroon"
-            android:textStyle="bold"
-            android:visibility="gone" />
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:layout_marginHorizontal="@dimen/_10sdp"
+            android:layout_height="wrap_content">
+
+            <Switch
+                android:id="@+id/switchQty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Qty" />
+            <TextView
+                android:text="Alt Qty"
+                android:textColor="@color/black"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+
+            <CheckBox
+                android:id="@+id/cbSelectedItems"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_6sdp"
+                android:buttonTint="@color/colorMaroon"
+                android:text="Selected Products"
+                android:textColor="@color/colorMaroon"
+                android:textStyle="bold"
+                android:visibility="gone" />
+        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvProduct"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_marginTop="@dimen/_4sdp"
+            android:layout_weight="1"
             tools:listitem="@layout/product_layout" />
+
+        <TextView
+            android:id="@+id/tvNoDataFound"
+            style="@style/CommonTextViewBoldStyle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:text="@string/no_product_found"
+            android:textSize="@dimen/_18ssp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/loader"
@@ -418,9 +443,9 @@
             android:layout_gravity="center"
             android:layout_marginTop="@dimen/_10sdp"
             android:layout_marginBottom="@dimen/_4sdp"
-            android:visibility="gone"
             android:indeterminate="true"
-            android:indeterminateTint="@color/colorPrimary" />
+            android:indeterminateTint="@color/colorPrimary"
+            android:visibility="gone" />
 
     </LinearLayout>
 </layout>

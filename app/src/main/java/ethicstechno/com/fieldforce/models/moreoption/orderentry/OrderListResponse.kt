@@ -43,5 +43,8 @@ class OrderListResponse(
     @SerializedName("Success") var success: Boolean? = null,
     @SerializedName("ReturnMessage") var returnMessage: String? = null,
     @SerializedName("AllowEdit") var allowEdit: Boolean? = false,
-    @SerializedName("AllowDelete") var allowDelete: Boolean? = false
+    @SerializedName("AllowDelete") var allowDelete: Boolean? = false,
+    @SerializedName("ProductCount") var productCount: Double? = null,
+    @SerializedName("TotalQuantity") var totalQuantity: Double? = null
+
 )

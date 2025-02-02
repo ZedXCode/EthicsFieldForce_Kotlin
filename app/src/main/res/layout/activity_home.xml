@@ -51,13 +51,30 @@
             app:itemTextColor="@color/drawer_item"
             app:menu="@menu/menu_home">
 
-            <ImageView
-                android:id="@+id/imgBottom"
-                android:layout_width="@dimen/_110sdp"
-                android:layout_height="@dimen/_110sdp"
-                android:layout_gravity="center|bottom"
-                android:layout_marginBottom="@dimen/_5sdp" />
+            <!-- Custom layout for the content of the NavigationView -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <!-- Placeholder for Navigation Items -->
+                <FrameLayout
+                    android:id="@+id/navigationMenuContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_above="@id/imgBottom" />
+
+                <!-- Bottom Icon -->
+                <ImageView
+                    android:id="@+id/imgBottom"
+                    android:layout_width="@dimen/_110sdp"
+                    android:layout_height="@dimen/_110sdp"
+                    android:layout_gravity="center|bottom"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true" />
+
+            </RelativeLayout>
         </com.google.android.material.navigation.NavigationView>
+
 
     </androidx.drawerlayout.widget.DrawerLayout>
 

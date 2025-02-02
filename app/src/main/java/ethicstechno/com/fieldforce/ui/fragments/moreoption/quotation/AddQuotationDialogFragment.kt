@@ -55,6 +55,7 @@ import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
+import hideKeyboard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
@@ -111,6 +112,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
     private var branchId = 0
     private var divisionId = 0
     private var categoryId = 0
+    private var isSearchTriggered = false
 
     interface DialogDismissListener {
         fun onDialogDismissed(isCartClicked: Boolean)
@@ -140,11 +142,14 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
     private val groupItemClickListener = object : ItemClickListener<DropDownItem> {
         override fun onItemSelected(item: DropDownItem) {
             // Handle user item selection
+            binding.imgGroupClear.visibility = View.VISIBLE
             binding.viewSelectedGroup.visibility = View.VISIBLE
             groupSearchDialog.closeDialog()
             binding.tvSelectGroup.text = item.dropdownValue
             selectedGroupId = (item.dropdownKeyId ?: "0").toInt()
             selectedGroup = item
+            isSearchTriggered = true
+            partyDealerPageNo = 1
             callProductGroupListApi(false, selectedGroupId)
         }
     }
@@ -205,13 +210,15 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
             Log.e("TAG", "initView: " + selectedProductAdapterList.size)
         }
         binding.tvSelectGroup.setOnClickListener(this)
+        binding.imgGroupClear.setOnClickListener(this)
         binding.tvFilter2.setOnClickListener(this)
         binding.tvFilter3.setOnClickListener(this)
         binding.tvFilter4.setOnClickListener(this)
         binding.tvFilter5.setOnClickListener(this)
         binding.imgSearch.setOnClickListener(this)
         binding.tvSearchGO.setOnClickListener(this)
-        binding.tvSearchClear.setOnClickListener(this)
+        binding.imgGroupClear.setOnClickListener(this)
+        //binding.tvSearchClear.setOnClickListener(this)
         binding.imgCloseSearch.setOnClickListener(this)
         setProductAdapter()
         binding.edtSearch.addTextChangedListener(object : TextWatcher {
@@ -250,21 +257,37 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
 
 
         binding.fabCart.setOnClickListener {
+            if (binding.switchQty.isChecked) {
+                var newProductAdapterList: ArrayList<ProductQuotationGroupResponse> = arrayListOf()
+                for (i in selectedProductAdapterList) {
+                    i.salesPrice = (i.salesPrice ?: BigDecimal.ZERO) / (i.conversionFactor
+                        ?: 0.0).toBigDecimal()
+                    newProductAdapterList.add(i)
+                }
+            }
+            Log.e("TAG", "initView: " + selectedProductAdapterList.toString())
             showCartItems(selectedProductAdapterList)
         }
         binding.imgBack.setOnClickListener(this)
         setupSelectedProducts()
+
+        binding.switchQty.setOnCheckedChangeListener { _, isChecked ->
+            //partyDealerPageNo = 1
+            //isSearchTriggered = true
+            //callProductGroupListApi(false, selectedGroupId)
+            productAdapter.refreshAdapter(productList, binding.cbSelectedItems.isChecked)
+        }
     }
 
     private suspend fun executeAPIsAndSetupData() {
         withContext(Dispatchers.IO) {
             try {
-                val callProductGroupApi = async { callProductGroupListApi(true, 0) }
+                //val callProductGroupApi = async { callProductGroupListApi(true, 0) }
                 binding.loader.visibility = View.VISIBLE
                 val callProductListApi = async { callProductGroupListApi(false, 0) }
                 val callCommonFilterApi = async { callCommonProductFilterApi() }
 
-                callProductGroupApi.await()
+                //callProductGroupApi.await()
                 callProductListApi.await()
                 callCommonFilterApi.await()
 
@@ -285,6 +308,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                         productAdapter.refreshAdapter(selectedProductAdapterList, true)
                     }
                 } else {
+                    partyDealerPageNo = 1
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -335,13 +359,15 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if(!binding.cbSelectedItems.isChecked) {
+                if (!binding.cbSelectedItems.isChecked) {
                     val visibleItemCount = layoutManager?.childCount ?: 0
                     val totalItemCount = layoutManager?.itemCount ?: 0
                     val firstVisibleItemPosition =
                         layoutManager?.findFirstVisibleItemPosition() ?: 0
 
-                    if (!isScrolling && !isLastPage && (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0) {
+                    if (!isScrolling && !isLastPage && !isSearchTriggered &&
+                        (visibleItemCount + firstVisibleItemPosition >= totalItemCount) && firstVisibleItemPosition >= 0
+                    ) {
                         isScrolling = true
                         partyDealerPageNo++
                         callProductGroupListApi(false, selectedGroupId)
@@ -372,9 +398,9 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
             val orderDateString =
                 CommonMethods.convertDateStringForOrderEntry(orderDate)
             val parameterString =
-                "CompanyMasterId=$companyId and BranchMasterId=$branchId and DivisionMasterid=$divisionId and CategoryMasterId=$categoryId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and FormId=$FORM_ID_QUOTATION_ENTRY" +
+                "CompanyMasterId=$companyId and BranchMasterId=$branchId and DivisionMasterid=$divisionId and CategoryMasterId=$categoryId and AccountMasterId=$partyDealerId and EntryDate=$orderDateString and $FORM_ID_QUOTATION_ENTRY" +
                         " and ProductGroupId=$productGroupId and " +
-                        "$header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds) and ProductName like '${binding.edtSearch.text.toString()}%'"
+                        "$header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds) and ProductName like '%${binding.edtSearch.text.toString()}%'"
             jsonReq.addProperty("ProductId", 0)
             jsonReq.addProperty("ProductGroupId", productGroupId)
             jsonReq.addProperty("ParameterString", parameterString)
@@ -393,19 +419,32 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                 response: Response<List<ProductQuotationGroupResponse>>
             ) {
                 //CommonMethods.hideLoading()
+                isSearchTriggered = false
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!isForProductGroup) {
                             if (it.isNotEmpty()) {
+                                //isSearchTriggered = false
+                                if (it.size == 1) {
+                                    isSearchTriggered = true
+                                }
+                                binding.rvProduct.visibility = View.VISIBLE
+                                binding.tvNoDataFound.visibility = View.GONE
                                 if (partyDealerPageNo == 1) {
                                     productList.clear()
                                     isLastPage = false
                                 }
+                                //productList.clear()
                                 productList.addAll(it)
                                 productAdapter.refreshAdapter(productList, false)
                                 isScrolling = false
                             } else {
                                 isLastPage = true
+                                if (partyDealerPageNo <= 1) {
+                                    binding.rvProduct.visibility = View.GONE
+                                    binding.tvNoDataFound.visibility = View.VISIBLE
+                                }
+                                //productList.clear()
                             }
                             setupSearchFilter()
                             binding.loader.visibility = View.GONE
@@ -430,6 +469,11 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                         }
                     }
                 } else {
+                    isLastPage = true
+                    if (partyDealerPageNo <= 1) {
+                        binding.rvProduct.visibility = View.GONE
+                        binding.tvNoDataFound.visibility = View.VISIBLE
+                    }
                     binding.loader.visibility = View.GONE
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -468,11 +512,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("userId", loginData.userId)
-        jsonReq.addProperty(
-            "parameterString",
-            "ProductGroupId=CompanyMasterId=${companyId} and BranchMasterId=${branchId} and DivisionMasterid=${divisionId} and CategoryMasterId=${categoryId} and $selectedGroupId and $header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) " +
-                    "AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds)"
-        )
+        jsonReq.addProperty("parameterString", "CompanyMasterId=${companyId} and BranchMasterId=${branchId} and DivisionMasterid=${divisionId} and CategoryMasterId=${categoryId} and $FORM_ID_QUOTATION_ENTRY")
 
         val commonProductFilterCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -561,6 +601,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                 binding.imgSearch.visibility = View.GONE
                 binding.clSearchLayout.visibility = View.VISIBLE
             }
+
             R.id.imgCloseSearch -> {
                 binding.imgSearch.visibility = View.VISIBLE
                 binding.clSearchLayout.visibility = View.GONE
@@ -570,25 +611,32 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                 callProductGroupListApi(false, selectedGroupId)
                 binding.cbSelectedItems.isChecked = false
                 binding.cbSelectedItems.visibility = View.GONE
+                mActivity.hideKeyboard()
             }
+
             R.id.tvSearchGO -> {
-                binding.tvSearchClear.visibility = View.VISIBLE
+                isSearchTriggered = true
                 binding.tvSearchGO.visibility = View.GONE
                 partyDealerPageNo = 1
                 callProductGroupListApi(false, selectedGroupId)
             }
-            R.id.tvSearchClear -> {
-                binding.tvSearchClear.visibility = View.GONE
-                binding.tvSearchGO.visibility = View.VISIBLE
-                partyDealerPageNo = 1
-                binding.edtSearch.setText("")
-                callProductGroupListApi(false, selectedGroupId)
-                binding.cbSelectedItems.isChecked = false
-                binding.cbSelectedItems.visibility = View.GONE
-                callProductGroupListApi(false, selectedGroupId)
-            }
+
             R.id.tvSelectGroup -> {
                 showGroupDialog()
+            }
+
+            R.id.imgGroupClear -> {
+                binding.tvSelectGroup.text = ""
+                binding.tvSelectGroup.hint = mActivity.getString(R.string.select_group)
+                selectedGroupId = 0
+                selectedGroup = DropDownItem(
+                    dropdownKeyId = "0",
+                    dropdownValue = mActivity.getString(R.string.select_group)
+                )
+                binding.viewSelectedGroup.visibility = View.GONE
+                binding.imgGroupClear.visibility = View.VISIBLE
+                partyDealerPageNo = 1
+                callProductGroupListApi(false, 0)
             }
 
             R.id.tvFilter2 -> {
@@ -600,6 +648,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                     binding.viewSelectedFilter2.visibility = if (selectedItemList2.isEmpty()) View.GONE else View.VISIBLE
                     filter2KeyIds =
                         if (selectedItemList2.isEmpty()) "" else selectedItemList2.joinToString("|") { "${it.dropdownKeyId}" }
+                    partyDealerPageNo = 1
                     callProductGroupListApi(false, selectedGroupId)
 
                 }
@@ -618,6 +667,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                     binding.viewSelectedFilter3.visibility = if (selectedItemList3.isEmpty()) View.GONE else View.VISIBLE
                     filter3KeyIds =
                         if (selectedItemList3.isEmpty()) "" else selectedItemList3.joinToString("|") { "${it.dropdownKeyId}" }
+                    partyDealerPageNo = 1
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -635,6 +685,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                     binding.viewSelectedFilter4.visibility = if (selectedItemList4.isEmpty()) View.GONE else View.VISIBLE
                     filter4KeyIds =
                         if (selectedItemList4.isEmpty()) "" else selectedItemList4.joinToString("|") { "${it.dropdownKeyId}" }
+                    partyDealerPageNo = 1
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -652,6 +703,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                     binding.viewSelectedFilter5.visibility = if (selectedItemList5.isEmpty()) View.GONE else View.VISIBLE
                     filter5KeyIds =
                         if (selectedItemList5.isEmpty()) "" else selectedItemList5.joinToString("|") { "${it.dropdownKeyId}" }
+                    partyDealerPageNo = 1
                     callProductGroupListApi(false, selectedGroupId)
                 }
             }
@@ -660,7 +712,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
 
     private fun showGroupDialog() {
         try {
-            if (groupList.size > 0) {
+            if (groupListNew.size > 0) {
                 groupSearchDialog = SearchDialogUtil(
                     activity = mActivity,
                     items = groupListNew,
@@ -960,6 +1012,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
             private var etPrice: EditText = itemView.findViewById(R.id.etPrice)
             private var etAmount: EditText = itemView.findViewById(R.id.etAmount)
             private var tvUnit: TextView = itemView.findViewById(R.id.tvUnit)
+            private var tvQtyMode: TextView = itemView.findViewById(R.id.tvQtyMode)
             private var tvProductName: TextView = itemView.findViewById(R.id.tvProductName)
             private var tvSchemeValue: TextView = itemView.findViewById(R.id.tvSchemeValue)
             var lylMain: LinearLayout = itemView.findViewById(R.id.lylMain)
@@ -967,25 +1020,26 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
             fun bind(item: ProductQuotationGroupResponse, position: Int) {
                 try {
 
-                    if((item.scheme ?: "").isNotEmpty()){
+                    if ((item.scheme ?: "").isNotEmpty()) {
                         tvSchemeValue.visibility = View.VISIBLE
-                        tvSchemeValue.text = item.scheme.toString()
+                        tvSchemeValue.text = "-" + item.scheme.toString()
                     }
 
                     etQty.clearTextWatcher()
                     etPrice.clearTextWatcher()
                     etAmount.clearTextWatcher()
+                    /*if(etQty.text.toString().isNotEmpty() && etQty.text.toString().toBigDecimal() > BigDecimal.ZERO){
+                        if (binding.switchQty.isChecked) {
+                            tvQtyMode.text = item.unit + (etQty.text.toString()
+                                .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
+                                ?: BigDecimal.ZERO)).toString()
+                        } else {
+                            tvQtyMode.text = item.altUnit + (etQty.text.toString()
+                                .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
+                                ?: BigDecimal.ZERO)).toString()
+                        }
+                    }*/
 
-                    // Only set the values if they're non-null and non-zero
-                    if (item.price != null && item.price > BigDecimal.ZERO) {
-                        etPrice.setText(
-                            item.price.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
-                        )
-                    } else {
-                        etPrice.setText(
-                            item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
-                        )
-                    }
                     etQty.setText(item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
                     etAmount.setText(item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
 
@@ -993,7 +1047,57 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                     etAmount.isEnabled = item.isPriceEditable == true
 
                     // Ensure unit and product name are correctly displayed
-                    tvUnit.text = item.unit ?: ""
+                    if (binding.switchQty.isChecked) {
+                        tvUnit.text = item.altUnit ?: ""
+                        val newQty = (etQty.text.toString()
+                            .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
+                            ?: BigDecimal.ZERO))
+                        tvQtyMode.text = if (newQty != null && newQty > BigDecimal.ZERO) item.unit + newQty else item.unit
+                        if (item.salesPrice != null && (item.salesPrice ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                            val newSalePrice = (item.salesPrice ?: BigDecimal.ZERO) / (item.conversionFactor ?: 0.0).toBigDecimal()
+                            etPrice.setText(newSalePrice.toString())
+                        } else {
+                            etPrice.setText(
+                                item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        }
+                        if (item.amount != null && (item.amount ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                            val newSaleAmount =
+                                (item.amount ?: BigDecimal.ZERO) / (item.conversionFactor
+                                    ?: 0.0).toBigDecimal()
+                            etAmount.setText(newSaleAmount.toString())
+                        } else {
+                            etAmount.setText(
+                                item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        }
+                    } else {
+                        tvUnit.text = item.unit ?: ""
+                        val newQty = (etQty.text.toString()
+                            .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
+                            ?: BigDecimal.ZERO))
+                        tvQtyMode.text =
+                            if (newQty != null && newQty > BigDecimal.ZERO) item.altUnit + newQty else item.altUnit
+                        // Only set the values if they're non-null and non-zero
+                        if (item.salesPrice != null && (item.salesPrice ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                            etPrice.setText(
+                                item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        } else {
+                            etPrice.setText(
+                                item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        }
+                        if (item.amount != null && (item.amount ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                            etAmount.setText(
+                                item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        } else {
+                            etAmount.setText(
+                                item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                            )
+                        }
+                    }
 
                     // Set initial values
                     tvProductName.text = item.productName.toString()
@@ -1011,6 +1115,25 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                             } else {
                                 calculateAmount(item, etQty, etPrice, etAmount)
                                 item.qty = qtyValue
+                            }
+                        }
+                        if (etQty.text.toString().isNotEmpty()) {
+                            if (binding.switchQty.isChecked) {
+                                item.finalQty = (etQty.text.toString()
+                                    .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
+                                    ?: BigDecimal.ZERO))
+                                tvQtyMode.text = item.unit + item.finalQty
+                            } else {
+                                item.finalQty = (etQty.text.toString()
+                                    .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
+                                    ?: BigDecimal.ZERO))
+                                tvQtyMode.text = item.altUnit + item.finalQty
+                            }
+                        } else {
+                            if (binding.switchQty.isChecked) {
+                                tvQtyMode.text = item.unit
+                            } else {
+                                tvQtyMode.text = item.altUnit
                             }
                         }
                     }

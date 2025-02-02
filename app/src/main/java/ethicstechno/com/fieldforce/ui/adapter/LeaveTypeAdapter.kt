@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 
 class LeaveTypeAdapter(
@@ -16,6 +15,13 @@ class LeaveTypeAdapter(
     private var leaveTypeListResponse: ArrayList<CategoryMasterResponse>,
     onTypeSelect: TypeSelect
 ) : ArrayAdapter<CategoryMasterResponse>(context, spinnerLayout, leaveTypeListResponse) {
+
+    fun refreshAdapter(leaveTypeList : ArrayList<CategoryMasterResponse>){
+        leaveTypeListResponse.clear()
+        leaveTypeListResponse = leaveTypeList
+        notifyDataSetChanged()
+    }
+
     private val mContext: Context = context
     private val typeSelect = onTypeSelect
 

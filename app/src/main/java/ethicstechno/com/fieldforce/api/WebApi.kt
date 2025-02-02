@@ -23,10 +23,12 @@ import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryListResponse
 import ethicstechno.com.fieldforce.models.moreoption.inquiry.ProductInquiryGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationResponse
+import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeDrpdownResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderDetailsResponse
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
+import ethicstechno.com.fieldforce.models.moreoption.orderentry.ShippingAddressResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.quotation.ProductQuotationGroupResponse
 import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationDetailsResponse
@@ -99,8 +101,14 @@ interface WebApi {
     @POST("api/Trip/GetTripListByAttendanceId")
     fun getTripListByAttendanceId(@Body jsonObject: JsonObject): Call<List<TripListByAttendanceIdResponse>>
 
-    @POST("api/Expense/GetExpenseList")
+//    @POST("api/Expense/GetExpenseList")
+//    fun getExpenseList(@Body jsonObject: JsonObject): Call<List<ExpenseListResponse>>
+
+    @POST("/api/Expense/GetExpenseEntryList")
     fun getExpenseList(@Body jsonObject: JsonObject): Call<List<ExpenseListResponse>>
+
+    @POST("/api/Expense/GetExpenseEntryDetails")
+    fun getExpenseListDetail(@Body jsonObject: JsonObject): Call<List<ExpenseDetailListResponse>>
 
     @POST("api/Expense/GetExpenseToApprove")
     fun getExpenseApprovalList(@Body jsonObject: JsonObject): Call<List<ExpenseListResponse>>
@@ -114,14 +122,20 @@ interface WebApi {
     @POST("api/Expense/GetExpenseLimit")
     fun getExpenseLimit(@Body jsonObject: JsonObject): Call<List<ExpenseLimitResponse>>
 
-    @POST("api/Expense/ExpenseAdd")
-    fun addExpense(@Body jsonObject: JsonObject): Call<AddExpenseResponse>
+//    @POST("api/Expense/ExpenseAdd")
+//    fun addExpense(@Body jsonObject: JsonObject): Call<AddExpenseResponse>
+
+    @POST("api/Expense/ExpenseInsertUpdate")
+    fun insertUpdateExpense(@Body jsonObject: JsonObject): Call<AddExpenseResponse>
 
     @POST("api/Expense/ExpenseUpdate")
     fun updateExpense(@Body jsonObject: JsonObject): Call<AddExpenseResponse>
 
     @POST("api/Attendance/LeaveTypeGet")
     fun getLeaveTypeList(@Body jsonObject: JsonObject): Call<List<LeaveTypeListResponse>>
+
+    @POST("/api/v1/dropdownmasterdetails/get")
+    fun getLeaveTypeListCall(@Body jsonObject: JsonObject): Call<List<LeaveTypeDrpdownResponse>>
 
     @POST("api/Trip/GetVehicleTypeList")
     fun getVehicleTypeList(): Call<List<VehicleTypeListResponse>>
@@ -138,8 +152,14 @@ interface WebApi {
         @Body jsonObject: JsonObject
     ): Call<List<DashboardDrillResponse>>
 
-    @POST("api/Attendance/LeaveApplicationGet")
+//    @POST("api/Attendance/LeaveApplicationGet")
+//    fun getLeaveApplicationList(@Body jsonObject: JsonObject): Call<List<LeaveApplicationListResponse>>
+
+    @POST("api/Attendance/GetLeaveApplicationEntryList")
     fun getLeaveApplicationList(@Body jsonObject: JsonObject): Call<List<LeaveApplicationListResponse>>
+
+    @POST("/api/Attendance/GetLeaveApplicationEntryDetails")
+    fun getLeaveApplicationDetailList(@Body jsonObject: JsonObject): Call<List<LeaveDetailListResponse>>
 
     @POST("api/Attendance/LeaveApprovalPendingGet")
     fun getLeaveApplicationApprovalList(@Body jsonObject: JsonObject): Call<List<LeaveApplicationListResponse>>
@@ -364,5 +384,7 @@ interface WebApi {
     @POST("api/DropDown/GetProductSearchListGet")
     fun getCommonProductFilterList(@Body jsonObject: JsonObject): Call<CommonProductFilterResponse>
 
+    @POST("api/AccountMaster/ShippingAddressGet")
+    fun getShippingAddress(@Body jsonObject: JsonObject): Call<List<ShippingAddressResponse>>
 
 }

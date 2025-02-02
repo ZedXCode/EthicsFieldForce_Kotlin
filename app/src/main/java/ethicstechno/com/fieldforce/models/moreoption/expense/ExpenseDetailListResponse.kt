@@ -3,9 +3,8 @@ package ethicstechno.com.fieldforce.models.moreoption.expense
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
-
 @Parcelize
-data class ExpenseListResponse(
+data class ExpenseDetailListResponse(
     @SerializedName("ExpenseId") val expenseId: Int,
     @SerializedName("UserId") val userId: Int,
     @SerializedName("AttendanceId") val attendanceId: Int,
@@ -47,8 +46,6 @@ data class ExpenseListResponse(
     @SerializedName("UpdateDateTime") val updateDateTime: String,
     @SerializedName("DeleteBy") val deleteBy: Int,
     @SerializedName("DeleteDateTime") val deleteDateTime: String,
-    @SerializedName("Success") val success: Boolean,
-    @SerializedName("ReturnMessage") val returnMessage: String?,
     @SerializedName("ExpenseTypeName") val expenseTypeName: String,
     @SerializedName("ControlModeName") val controlModeName: String,
     @SerializedName("VehicleTypeName") val vehicleTypeName: String,
@@ -57,24 +54,36 @@ data class ExpenseListResponse(
     @SerializedName("ExpenseFinalRejectedStatus") val expenseFinalRejectedStatus: String?,
     @SerializedName("FromDate") val fromDate: String,
     @SerializedName("ToDate") val toDate: String,
-    @SerializedName("ExpenseStatusName") val expenseStatusName: String,
-    @SerializedName("CityName") val cityName: String,
-    @SerializedName("DocumentNo") val doccumentNo: Int,
-
     @SerializedName("CompanyName") val companyName: String,
     @SerializedName("BranchName") val branchName: String,
     @SerializedName("DivisionName") val divisionName: String,
-    var isChecked: Boolean = false
-) : Parcelable {
-    constructor() : this(
-        0, 0, 0, "", "", 0, 0, 0, 0, 0,
-        0.0, 0.0, 0.0, 0.0, 0.0, "",
-        "", 0, false, "", 0,
-        0.0, false, "", 0, "",
-        false, "", 0, false, "",
-        0, "", "", 0, "", "", "", "",
-        0, "", false, "", "", "", "", "",
-        "", "", "", "", "", "",0,"","",
-        "",false
-    )
+    @SerializedName("CategoryName") val categoryName: String,
+    @SerializedName("CategoryMasterId") var categoryMasterId: Int? = null,
+    @SerializedName("Success") val success: Boolean,
+    @SerializedName("ReturnMessage") val returnMessage: String?,
+    @SerializedName("ExpenseStatusName") val expenseStatusName: String?,
+    @SerializedName("CityName") val cityName: String?,
+    @SerializedName("CompanyMasterId") val companyMasterId: Int?,
+    @SerializedName("BranchMasterId") val branchMasterId: Int?,
+    @SerializedName("DivisionMasterId") val divisionMasterId: Int?,
+    @SerializedName("FilePath1") val filePath1: String?,
+    @SerializedName("FilePath2") val filePath2: String?,
+    @SerializedName("FilePath3") val filePath3: String?,
+    @SerializedName("FilePath4") val filePath4: String?,
+    @SerializedName("DocumentNo") val documentNo: Int?,
+    @SerializedName("AllowEdit") val allowEdit: Boolean?,
+    @SerializedName("AllowDelete") val allowDelete: Boolean?,
+    @SerializedName("Status") val status: String?
+)
+    : Parcelable {constructor() : this(
+    0, 0, 0, "", "", 0, 0, 0, 0, 0,
+    0.0, 0.0, 0.0, 0.0, 0.0, "",
+    "", 0, false, "", 0,
+    0.0, false, "", 0, "",
+    false, "", 0, false, "",
+    0, "", "", 0, "", "", "", "",
+    0, "", "", "", "", "", "", "",
+    "", "", "", "", "", "",0,false,"","","",
+    0,0,0,"","","","",0,false,false,""
+)
 }

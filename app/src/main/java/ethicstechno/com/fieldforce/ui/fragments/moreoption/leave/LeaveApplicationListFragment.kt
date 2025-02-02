@@ -3,6 +3,7 @@ package ethicstechno.com.fieldforce.ui.fragments.moreoption.leave
 import AnimationType
 import addFragment
 import android.app.Dialog
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -12,8 +13,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.AbsListView
+import android.widget.AdapterView
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
@@ -31,28 +35,78 @@ import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
+import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
+import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.APPROVE_STATUS
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CUSTOM_RANGE
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FORM_ID_LEAVE_APPLICATION_ENTRY
+import ethicstechno.com.fieldforce.utils.FOR_BRANCH
+import ethicstechno.com.fieldforce.utils.FOR_COMPANY
+import ethicstechno.com.fieldforce.utils.FOR_DIVISION
+import ethicstechno.com.fieldforce.utils.ID_ZERO
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
+import ethicstechno.com.fieldforce.utils.LAST_30_DAYS
+import ethicstechno.com.fieldforce.utils.LAST_7_DAYS
+import ethicstechno.com.fieldforce.utils.REJECT_STATUS
+import ethicstechno.com.fieldforce.utils.THIS_MONTH
+import ethicstechno.com.fieldforce.utils.TODAY
+import ethicstechno.com.fieldforce.utils.YESTERDAY
+import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
-    FilterDialogListener {
+    FilterDialogListener, UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
+    UserSearchDialogUtil.BranchDialogDetect,
+    LeaveTypeAdapter.TypeSelect {
 
     lateinit var leaveApplicationBinding: FragmentLeaveListBinding
     var leaveApplicationList: ArrayList<LeaveApplicationListResponse> = arrayListOf()
     var startDate = ""
     var endDate = ""
     private var selectedDateOptionPosition = 4 // THIS MONTH
+    private var leaveApplicationId = 0 // THIS MONTH
+    private var selectedStatusPosition: Int = 0
     private var selectedStatus = 0 // THIS MONTH
     var isForApproval = false
     var leaveApplicationForDelete: ArrayList<String> = arrayListOf()
     var leaveApplicationAdapter=  LeaveListAdapter(leaveApplicationList)
+
+    private lateinit var tvSelectCompany: TextView
+    private lateinit var tvSelectBranch: TextView
+    private lateinit var tvSelectDivision: TextView
+
+    private lateinit var llSelectCompany: LinearLayout
+    private lateinit var llSelectBranch: LinearLayout
+    private lateinit var llSelectDivision: LinearLayout
+
+    private lateinit var llStatus: LinearLayout
+    private lateinit var spStatus: Spinner
+
+    lateinit var spCategory: Spinner
+
+    val companyMasterList: ArrayList<CompanyMasterResponse> = arrayListOf()
+    val branchMasterList: ArrayList<BranchMasterResponse> = arrayListOf()
+    val divisionMasterList: ArrayList<DivisionMasterResponse> = arrayListOf()
+
+    var selectedCompany: CompanyMasterResponse? = null
+    var selectedBranch: BranchMasterResponse? = null
+    var selectedDivision: DivisionMasterResponse? = null
+    private var selectedCategory: CategoryMasterResponse? = null
+
+    val categoryList: ArrayList<CategoryMasterResponse> = arrayListOf()
 
     companion object {
 
@@ -164,6 +218,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                 .webApi_without(appRegistrationData.apiHostingServer)
                 ?.getLeaveApplicationApprovalList(expenseListReq)
         } else {
+            expenseListReq.addProperty("leaveApplicationId",leaveApplicationId )
             expenseListReq.addProperty("LeaveApprovalStatus", selectedStatus)
             expenseListReq.addProperty("FromDate", startDate)
             expenseListReq.addProperty("ToDate", endDate)
@@ -253,6 +308,8 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                 if (isForApproval) {
                     binding.cbApprove.visibility = View.VISIBLE
                     binding.llTop.visibility = View.VISIBLE
+
+                    binding.tvUserName.visibility = View.VISIBLE
                     binding.tvUserName.text = leaveData.userName
 
                     binding.cbApprove.isChecked =
@@ -278,28 +335,64 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                     binding.cbApprove.visibility = View.GONE
                     binding.llTop.visibility = View.GONE
                 }
+//                binding.tvLabel1.text = getString(R.string.date)
+//                binding.tvValue1.text = " : " + leaveData.leaveApplicationDate
+//
+//                binding.tvLabel2.text = getString(R.string.type)
+//                binding.tvValue2.text = " : " + leaveData.leaveTypeName
+//
+//                binding.tvLabel3.text = getString(R.string.from)
+//                binding.tvValue3.text = " : " + leaveData.leaveFromDate
+//
+//                binding.tvLabel4.text = getString(R.string.to_date)
+//                binding.tvValue4.text = " : " + leaveData.leaveToDate
+//
+//                binding.tvLabel5.text = getString(R.string.days)
+//                binding.tvValue5.text = " : " + leaveData.totalLeaveDays
+//
+//                binding.tvLabel6.text = getString(R.string.status)
+//                binding.tvValue6.text = " : " + leaveData.leaveApprovalStatusName
+
                 binding.tvLabel1.text = getString(R.string.date)
-                binding.tvValue1.text = " : " + leaveData.leaveApplicationDate
+                binding.tvValue1.text = "" + leaveData.leaveApplicationDate
 
                 binding.tvLabel2.text = getString(R.string.type)
-                binding.tvValue2.text = " : " + leaveData.leaveCategoryName
+                binding.tvValue2.text = "" + leaveData.leaveTypeName
 
                 binding.tvLabel3.text = getString(R.string.from)
-                binding.tvValue3.text = " : " + leaveData.leaveFromDate
+                binding.tvValue3.text = "" + leaveData.leaveFromDate
 
-                binding.tvLabel4.text = getString(R.string.to_date)
-                binding.tvValue4.text = " : " + leaveData.leaveToDate
+                // binding.tvLabel4.text = getString(R.string.to_date)
+                // binding.tvValue4.text = "" + leaveData.leaveToDate
 
                 binding.tvLabel5.text = getString(R.string.days)
-                binding.tvValue5.text = " : " + leaveData.totalLeaveDays
+                binding.tvValue5.text = "" + leaveData.totalLeaveDays
 
-                binding.tvLabel6.text = getString(R.string.status)
-                binding.tvValue6.text = " : " + leaveData.leaveApprovalStatusName
+//                binding.tvLabel6.text = getString(R.string.status)
+//                binding.tvValue6.text = "" + leaveData.leaveApprovalStatusName
+
+                binding.tvLabel6.text = getString(R.string.to_date)
+                binding.tvValue6.text ="" + leaveData.leaveToDate
+
+                binding.tvValue4.text = "" + leaveData.leaveApprovalStatusName
+
+
+                when (leaveData.leaveApprovalStatusName) {
+                    "Raised" -> {
+                        binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                    }
+                    "Approved" -> {
+                        binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                    }
+                    "Rejected" -> {
+                        binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
+                    }
+                }
 
                 binding.llMain.setOnClickListener {
                     if (isForApproval) {
                         mActivity.addFragment(
-                            AddLeaveApplicationFragment.newInstance(
+                            AddLeaveApplicationFragment.newInstance(leaveData.leaveApplicationId,
                                 true,
                                 leaveData,
                                 true
@@ -307,7 +400,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                         )
                     } else {
                         mActivity.addFragment(
-                            AddLeaveApplicationFragment.newInstance(
+                            AddLeaveApplicationFragment.newInstance(leaveData.leaveApplicationId,
                                 true,
                                 leaveData,
                                 false
@@ -360,15 +453,16 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
             }
             R.id.imgFilter -> {
-                CommonMethods.showFilterDialog(
-                    this,
-                    mActivity,
-                    startDate,
-                    endDate,
-                    selectedDateOptionPosition,
-                    true,
-                    selectedStatusPosition = selectedStatus
-                )
+//                CommonMethods.showFilterDialog(
+//                    this,
+//                    mActivity,
+//                    startDate,
+//                    endDate,
+//                    selectedDateOptionPosition,
+//                    true,
+//                    selectedStatusPosition = selectedStatus
+//                )
+                showFilterDialog()
             }
             R.id.tvAccept -> {
                 showRemarksDialog(true)
@@ -379,6 +473,570 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
+    private fun showFilterDialog() {
+
+        val filterDialog = Dialog(mActivity)
+
+        filterDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        filterDialog.setCancelable(true)
+        filterDialog.setContentView(R.layout.filter_expense_entry_list)
+
+        val spDateOption: Spinner = filterDialog.findViewById(R.id.spDateOption)
+        val tvStartDate: TextView = filterDialog.findViewById(R.id.tvStartDate)
+        val tvEndDate: TextView = filterDialog.findViewById(R.id.tvEndDate)
+        tvSelectCompany = filterDialog.findViewById(R.id.tvSelectCompany)
+        tvSelectBranch = filterDialog.findViewById(R.id.tvSelectBranch)
+        tvSelectDivision = filterDialog.findViewById(R.id.tvSelectDivision)
+
+        spStatus = filterDialog.findViewById(R.id.spStatus)
+        llStatus = filterDialog.findViewById(R.id.llStatus)
+
+        llSelectCompany = filterDialog.findViewById(R.id.llSelectCompany)
+        llSelectBranch = filterDialog.findViewById(R.id.llSelectBranch)
+        llSelectDivision = filterDialog.findViewById(R.id.llSelectDivision)
+        spCategory = filterDialog.findViewById(R.id.spCategory)
+
+        val btnSubmit = filterDialog.findViewById<TextView>(R.id.btnSubmit)
+
+        callCompanyListApi()
+
+        val adapter = DateOptionAdapter(
+            mActivity,
+            R.layout.simple_spinner_item,
+            CommonMethods.statusList,
+        )
+        spStatus.adapter = adapter
+        spStatus.setSelection(selectedStatusPosition)
+
+        tvStartDate.setOnClickListener {
+            if (spDateOption.selectedItem == CUSTOM_RANGE) {
+                CommonMethods.openStartDatePickerDialog(true, mActivity, tvStartDate, tvEndDate)
+            }
+        }
+        tvEndDate.setOnClickListener {
+            if (spDateOption.selectedItem == CUSTOM_RANGE) {
+                CommonMethods.openStartDatePickerDialog(false, mActivity, tvStartDate, tvEndDate)
+            }
+        }
+        val adapter1 = DateOptionAdapter(
+            mActivity,
+            R.layout.simple_spinner_item,
+            CommonMethods.dateTypeList,
+        )
+        spDateOption.adapter = adapter1
+        spDateOption.setSelection(selectedDateOptionPosition)
+
+        llSelectCompany.setOnClickListener {
+            if (companyMasterList.size > 0) {
+                val userDialog = UserSearchDialogUtil(
+                    mActivity,
+                    type = FOR_COMPANY,
+                    companyList = companyMasterList,
+                    companyInterfaceDetect = this as UserSearchDialogUtil.CompanyDialogDetect,
+                    userDialogInterfaceDetect = null
+                )
+                userDialog.showUserSearchDialog()
+            } else {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    getString(R.string.company_list_not_found)
+                )
+            }
+        }
+        llSelectBranch.setOnClickListener {
+            if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    mActivity.getString(R.string.please_select_company)
+                )
+                return@setOnClickListener;
+            }
+            if (branchMasterList.size > 0) {
+                val userDialog = UserSearchDialogUtil(
+                    mActivity,
+                    type = FOR_BRANCH,
+                    branchList = branchMasterList,
+                    branchInterfaceDetect = this as UserSearchDialogUtil.BranchDialogDetect,
+                    userDialogInterfaceDetect = null
+                )
+                userDialog.showUserSearchDialog()
+            } else {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    getString(R.string.branch_list_not_found)
+                )
+            }
+        }
+        llSelectDivision.setOnClickListener {
+            if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    mActivity.getString(R.string.please_select_branch)
+                )
+                return@setOnClickListener;
+            }
+            if (divisionMasterList.size > 0) {
+                val userDialog = UserSearchDialogUtil(
+                    mActivity,
+                    type = FOR_DIVISION,
+                    divisionList = divisionMasterList,
+                    divisionInterfaceDetect = this as UserSearchDialogUtil.DivisionDialogDetect,
+                    userDialogInterfaceDetect = null
+                )
+                userDialog.showUserSearchDialog()
+            } else {
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    getString(R.string.branch_list_not_found)
+                )
+            }
+        }
+
+        btnSubmit.setOnClickListener{
+            callLeaveApplicationListApi()
+            filterDialog.dismiss()
+        }
+
+        spDateOption.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                when (spDateOption.selectedItem) {
+                    TODAY -> {
+                        CommonMethods.setStartEndDate(
+                            CommonMethods.getCurrentDate(),
+                            CommonMethods.getCurrentDate(),
+                            tvStartDate, tvEndDate
+                        )
+                    }
+
+                    YESTERDAY -> {
+                        CommonMethods.setStartEndDate(
+                            CommonMethods.getYesterdayDate(),
+                            CommonMethods.getYesterdayDate(),
+                            tvStartDate, tvEndDate
+                        )
+                    }
+
+                    LAST_7_DAYS -> {
+                        CommonMethods.setStartEndDate(
+                            CommonMethods.getStartDateForLast7Days(),
+                            CommonMethods.getCurrentDate(),
+                            tvStartDate, tvEndDate
+                        )
+                    }
+
+                    LAST_30_DAYS -> {
+                        CommonMethods.setStartEndDate(
+                            CommonMethods.getStartDateForLast30Days(),
+                            CommonMethods.getCurrentDate(),
+                            tvStartDate, tvEndDate
+                        )
+                    }
+
+                    THIS_MONTH -> {
+                        CommonMethods.setStartEndDate(
+                            CommonMethods.getStartDateOfCurrentMonth(),
+                            CommonMethods.getCurrentDate(),
+                            tvStartDate, tvEndDate
+                        )
+                    }
+
+                    CUSTOM_RANGE -> {
+                    }
+
+                }
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
+
+        }
+
+        val window = filterDialog.window
+        window!!.setLayout(
+            AbsListView.LayoutParams.MATCH_PARENT,
+            AbsListView.LayoutParams.WRAP_CONTENT
+        )
+        filterDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        filterDialog.show()
+    }
+
+    private fun callCompanyListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("companyMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty("ParameterString", FORM_ID_LEAVE_APPLICATION_ENTRY)
+
+        val companyCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getCompanyMasterList(objReq)
+
+        companyCall?.enqueue(object : Callback<List<CompanyMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<CompanyMasterResponse>>,
+                response: Response<List<CompanyMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            companyMasterList.clear()
+                            companyMasterList.add(
+                                CompanyMasterResponse(
+                                    companyMasterId = 0,
+                                    companyName = mActivity.getString(R.string.select_company),
+                                )
+                            )
+                            companyMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedCompany = CompanyMasterResponse(
+                                    companyMasterId = companyMasterList[1].companyMasterId,
+                                    companyName = companyMasterList[1].companyName
+                                )
+                                tvSelectCompany.text = selectedCompany?.companyName ?: ""
+                            }
+                            callBranchListApi()
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CompanyMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callBranchListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("BranchMasterId", ID_ZERO)
+        objReq.addProperty("UserId", loginData.userId)
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_LEAVE_APPLICATION_ENTRY"
+        )
+
+        val branchCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getBranchMasterList(objReq)
+
+        branchCall?.enqueue(object : Callback<List<BranchMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<BranchMasterResponse>>,
+                response: Response<List<BranchMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            branchMasterList.clear()
+                            branchMasterList.add(
+                                BranchMasterResponse(
+                                    branchMasterId = 0,
+                                    branchName = mActivity.getString(R.string.select_branch)
+                                )
+                            )
+                            branchMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedBranch = BranchMasterResponse(
+                                    branchMasterId = branchMasterList[1].branchMasterId,
+                                    branchName = branchMasterList[1].branchName
+                                )
+                                tvSelectBranch.text = selectedBranch?.branchName ?: ""
+                                callDivisionListApi()
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.branch_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<BranchMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callDivisionListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val objReq = JsonObject()
+        objReq.addProperty("divisionMasterId", ID_ZERO)
+        objReq.addProperty("userId", loginData.userId)
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_LEAVE_APPLICATION_ENTRY"
+        )
+
+        val divisionCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDivisionMasterList(objReq)
+
+        divisionCall?.enqueue(object : Callback<List<DivisionMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<DivisionMasterResponse>>,
+                response: Response<List<DivisionMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            divisionMasterList.clear()
+                            divisionMasterList.add(
+                                DivisionMasterResponse(
+                                    divisionMasterId = 0,
+                                    divisionName = mActivity.getString(R.string.select_division)
+                                )
+                            )
+                            divisionMasterList.addAll(it)
+                            if (it.size == 1) {
+                                selectedDivision = DivisionMasterResponse(
+                                    divisionMasterId = divisionMasterList[1].divisionMasterId,
+                                    divisionName = divisionMasterList[1].divisionName
+                                )
+                                tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+                                callCategoryListApi()
+                            }
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.division_list_not_found)
+                            )
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<DivisionMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callCategoryListApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
+            CommonMethods.showToastMessage(
+                mActivity,
+                mActivity.getString(R.string.please_select_branch)
+            )
+            return;
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val jsonReq = JsonObject()
+        jsonReq.addProperty("UserId", loginData.userId)
+        jsonReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_LEAVE_APPLICATION_ENTRY"
+        )
+
+        val visitTypeCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getCategoryMasterList(jsonReq)
+
+        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
+            override fun onResponse(
+                call: Call<List<CategoryMasterResponse>>,
+                response: Response<List<CategoryMasterResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.isNotEmpty()) {
+                            categoryList.clear()
+                            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+                            categoryList.addAll(it)
+                            setupCategorySpinner()
+                        }
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        mActivity.getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<List<CategoryMasterResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
+    private fun setupCategorySpinner() {
+        val adapter = LeaveTypeAdapter(
+            mActivity,
+            R.layout.simple_spinner_item,
+            categoryList,
+            this,
+        )
+        spCategory.adapter = adapter
+        if (categoryList.size == 2) {
+            selectedCategory = CategoryMasterResponse(
+                categoryMasterId = categoryList[1].categoryMasterId,
+                categoryName = categoryList[1].categoryName
+            )
+            spCategory.setSelection(1)
+            categoryList[1]
+        } else {
+            spCategory.setSelection(0)
+            categoryList[0]
+        }
+    }
+
+    override fun companySelect(dropDownData: CompanyMasterResponse) {
+        selectedCompany = dropDownData
+        tvSelectCompany.text = selectedCompany?.companyName ?: ""
+        resetSelection(
+            resetBranch = true,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if ((selectedCompany?.companyMasterId ?: 0) > 0) {
+            callBranchListApi()
+        }
+    }
+
+    override fun branchSelect(dropDownData: BranchMasterResponse) {
+        selectedBranch = dropDownData
+        tvSelectBranch.text = selectedBranch?.branchName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = true,
+            resetCategory = true
+        )
+        if ((selectedBranch?.branchMasterId ?: 0) > 0) {
+            callDivisionListApi()
+        }
+    }
+
+    override fun divisionSelect(dropDownData: DivisionMasterResponse) {
+        selectedDivision = dropDownData
+        tvSelectDivision.text = selectedDivision?.divisionName ?: ""
+        resetSelection(
+            resetBranch = false,
+            resetDivision = false,
+            resetCategory = true
+        )
+        if ((selectedDivision?.divisionMasterId ?: 0) > 0) {
+            callCategoryListApi()
+        }
+    }
+
+    override fun onTypeSelect(typeData: CategoryMasterResponse) {
+        selectedCategory = typeData
+    }
+
+    private fun resetSelection(
+        resetBranch: Boolean,
+        resetDivision: Boolean,
+        resetCategory: Boolean
+    ) {
+        if (resetBranch) {
+            selectedBranch = null
+            tvSelectBranch.hint = mActivity.getString(R.string.select_branch)
+            tvSelectBranch.text = ""
+            branchMasterList.clear()
+        }
+        if (resetDivision) {
+            selectedDivision = null
+            tvSelectDivision.hint = mActivity.getString(R.string.select_division)
+            tvSelectDivision.text = ""
+            divisionMasterList.clear()
+        }
+        if (resetCategory) {
+            selectedCategory = null
+            //tvCategory.hint = mActivity.getString(R.string.select_category)
+            //tvCategory.text = ""
+            categoryList.clear()
+            categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
+            setupCategorySpinner()
+        }
+    }
 
     private fun showRemarksDialog(isLeaveApprove: Boolean) {
         val companyDialog = Dialog(mActivity)

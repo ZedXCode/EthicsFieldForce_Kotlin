@@ -1,52 +1,53 @@
-package ethicstechno.com.fieldforce.models.moreoption.leave
+package ethicstechno.com.fieldforce.models.moreoption.expense
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
-
 @Parcelize
-data class LeaveApplicationListResponse(
+data class LeaveDetailListResponse(
     @SerializedName("LeaveApplicationId") val leaveApplicationId: Int,
     @SerializedName("UserId") val userId: Int,
     @SerializedName("UserName") val userName: String,
     @SerializedName("LeaveApplicationDate") val leaveApplicationDate: String,
-    @SerializedName("CategoryMasterId") val categoryMasterId: Int,
-    @SerializedName("DDMLeaveTypeId") val ddmLeaveTypeId: Int,
+    @SerializedName("LeaveCategoryMasterId") val leaveCategoryMasterId: Int,
+    @SerializedName("DDMLeaveTypeId") val dDMLeaveTypeId: Int,
     @SerializedName("LeaveTypeName") val leaveTypeName: String,
-    @SerializedName("CategoryName") val categoryName: String,
+    @SerializedName("LeaveCategoryName") val leaveCategoryName: String,
     @SerializedName("LeaveFromDate") val leaveFromDate: String,
     @SerializedName("LeaveToDate") val leaveToDate: String,
-    @SerializedName("TotalLeaveDays") val totalLeaveDays: Double,
+    @SerializedName("TotalLeaveDays") val totalLeaveDays: Int,
     @SerializedName("IsHalfDayLeave") val isHalfDayLeave: Boolean,
     @SerializedName("LeaveReason") val leaveReason: String,
     @SerializedName("ReportingToUserId") val reportingToUserId: Int,
     @SerializedName("ReportingToUserName") val reportingToUserName: String,
     @SerializedName("CreateDateTime") val createDateTime: String,
     @SerializedName("LeaveApprovalStatus") val leaveApprovalStatus: Int,
-    @SerializedName("LeaveApprovalStatusName") val leaveApprovalStatusName: String?,
-    @SerializedName("LeaveApprovalDateTime") val leaveApprovalDateTime: String?,
-    @SerializedName("LeaveApprovalRemarks") val leaveApprovalRemarks: String?,
-    @SerializedName("FromDate") val fromDate: String?,
-    @SerializedName("ToDate") val toDate: String?,
+    @SerializedName("LeaveApprovalStatusName") val leaveApprovalStatusName: String,
+    @SerializedName("LeaveApprovalDateTime") val leaveApprovalDateTime: String,
+    @SerializedName("LeaveApprovalRemarks") val leaveApprovalRemarks: String,
+    @SerializedName("FromDate") val fromDate: String,
+    @SerializedName("ToDate") val toDate: String,
     @SerializedName("DocumentNo") val documentNo: Int,
-    @SerializedName("ParameterString") val parameterString: String?,
+    @SerializedName("ParameterString") val parameterString: String,
     @SerializedName("CompanyMasterId") val companyMasterId: Int,
     @SerializedName("BranchMasterId") val branchMasterId: Int,
     @SerializedName("DivisionMasterId") val divisionMasterId: Int,
-    @SerializedName("AllowEdit") val allowEdit: Boolean,
-    @SerializedName("AllowDelete") val allowDelete: Boolean,
-    @SerializedName("Status") val status: String?,
+    @SerializedName("AllowEdit") val allowEdit: Boolean?,
+    @SerializedName("AllowDelete") val allowDelete: Boolean?,
+    @SerializedName("Status") val status: String,
     @SerializedName("CompanyName") val companyName: String,
     @SerializedName("BranchName") val branchName: String,
     @SerializedName("DivisionName") val divisionName: String,
-    @SerializedName("Success") val success: Boolean,
+    @SerializedName("Success") val success: Boolean?,
     @SerializedName("ReturnMessage") val returnMessage: String?,
-    var isChecked: Boolean = false
-) : Parcelable {
-    // Empty constructor
-    constructor() : this(
-        0, 0, "", "", 0, 0, "", "", "", "", 0.0, false, "",
-        0, "", "", 0, "", null, null, null, null, 0, null,
-        0, 0, 0, false, false, null, "", "", "", false, null, false
-    )
+    @SerializedName("CategoryName") val categoryName: String
+)
+    : Parcelable {constructor() : this(
+    0, 0, "", "",0, 0, "", "", "", "", 0,
+    false, "", 0, "", "", 0,
+    "", "", "", "", "",
+    0, "", 0, 0, 0,
+    false, false, "", "", "",
+    "", false, "",""
+)
 }

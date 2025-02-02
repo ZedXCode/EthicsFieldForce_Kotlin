@@ -18,8 +18,7 @@ data class DashboardListResponse(
     @SerializedName("ReportGroupBy") val reportGroupBy: String,
     @SerializedName("Filter") val filter: String,
     @SerializedName("UserId") val userId: Int,
-    @SerializedName("SerialNo") val serialNo: Int
-) : Parcelable {
+    @SerializedName("SerialNo") val serialNo: Int) : Parcelable {
     constructor() : this(
         0,
         "",

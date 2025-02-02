@@ -3,42 +3,43 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:background="@color/colorscreenbackground"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/colorscreenbackground">
 
         <include
             android:id="@+id/toolbar"
-            android:layout_alignParentTop="true"
             layout="@layout/toolbar_header"
+            android:layout_width="match_parent"
             android:layout_height="@dimen/_50sdp"
-            android:layout_width="match_parent" />
+            android:layout_alignParentTop="true" />
 
         <TextView
             android:id="@+id/tvNoData"
             style="@style/NoDataFound"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:visibility="gone"
-            android:textStyle="bold"
-            android:text="@string/no_data_found"
-            android:layout_marginTop="@dimen/_30sdp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_30sdp"
+            android:gravity="center"
+            android:text="@string/no_data_found"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPartyDealer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/tvAddPartyDealer"
             android:layout_below="@id/toolbar"
             android:layout_marginTop="@dimen/_10sdp"
-            android:layout_marginBottom="@dimen/_5sdp"
-            android:layout_above="@id/tvAddPartyDealer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_marginBottom="@dimen/_5sdp" />
 
         <TextView
             android:id="@+id/tvAddPartyDealer"
+            style="@style/CommonButtonStyle"
             android:layout_alignParentBottom="true"
             android:backgroundTint="@color/colorPrimary"
-            android:text="@string/add_party_dealer"
-            style="@style/CommonButtonStyle"/>
+            android:text="@string/add_party_dealer" />
 
     </RelativeLayout>
 

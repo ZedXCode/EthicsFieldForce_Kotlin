@@ -215,7 +215,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             R.id.imgMenu ->
                 mActivity.openDrawer()
             R.id.imgStartImageFile -> {
-                if (selectedVehicleType?.vehicleTypeId == VEHICLE_TYPE_NA) {
+                if (selectedVehicleType?.vehicleTypeName == VEHICLE_TYPE_NA) {
                     CommonMethods.showToastMessage(
                         mActivity,
                         getString(R.string.no_image_required)
@@ -225,7 +225,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 askCameraGalleryPermission()
             }
             R.id.imgEndImageFile -> {
-                if (selectedVehicleType?.vehicleTypeId == VEHICLE_TYPE_NA) {
+                if (selectedVehicleType?.vehicleTypeName == VEHICLE_TYPE_NA) {
                     CommonMethods.showToastMessage(mActivity, getString(R.string.no_image_required))
                     return
                 }
@@ -291,7 +291,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
     }
 
     private fun endTripValidation() {
-        if (selectedVehicleType?.vehicleTypeId != VEHICLE_TYPE_NA && binding.etEndMeterReading.text.toString()
+        if (selectedVehicleType?.vehicleTypeName != VEHICLE_TYPE_NA && binding.etEndMeterReading.text.toString()
                 .trim().isEmpty()
         ) {
             CommonMethods.showToastMessage(
@@ -301,13 +301,13 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             return
         }
 
-        if (selectedVehicleType?.vehicleTypeId != VEHICLE_TYPE_NA && binding.etStartMeterReading.text.toString()
+        if (selectedVehicleType?.vehicleTypeName != VEHICLE_TYPE_NA && binding.etStartMeterReading.text.toString()
                 .toInt() > binding.etEndMeterReading.text.toString().toInt()
         ) {
             CommonMethods.showToastMessage(mActivity, getString(R.string.enter_valid_meter_reading))
             return
         }
-        if (selectedVehicleType?.vehicleTypeId != VEHICLE_TYPE_NA && base64String.isEmpty()) {
+        if (selectedVehicleType?.vehicleTypeName != VEHICLE_TYPE_NA && base64String.isEmpty()) {
             CommonMethods.showToastMessage(
                 mActivity,
                 getString(R.string.end_meter_reading_upload_validation_msg)
@@ -335,7 +335,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             )
             return
         }
-        if (selectedVehicleType?.vehicleTypeId != VEHICLE_TYPE_NA && binding.etStartMeterReading.text.toString()
+        if (selectedVehicleType?.vehicleTypeName != VEHICLE_TYPE_NA && binding.etStartMeterReading.text.toString()
                 .trim().isEmpty()
         ) {
             CommonMethods.showToastMessage(
@@ -344,7 +344,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             )
             return
         }
-        if (selectedVehicleType?.vehicleTypeId != VEHICLE_TYPE_NA && base64String.isEmpty()) {
+        if (selectedVehicleType?.vehicleTypeName != VEHICLE_TYPE_NA && base64String.isEmpty()) {
             CommonMethods.showToastMessage(
                 mActivity,
                 getString(R.string.start_meter_reading_upload_validation_msg)

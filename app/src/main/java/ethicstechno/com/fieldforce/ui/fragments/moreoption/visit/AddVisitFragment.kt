@@ -343,29 +343,32 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
 
     private suspend fun executeAPIsAndSetupData() {
-        withContext(Dispatchers.IO) {
-            try {
-                val visitListDeferred = async { callCommonDropDownListApi(DROP_DOWN_VISIT_TYPE) }
-                val companyListDeferred = async { callCompanyListApi() }
-                //val branchListDeferred = async { callBranchListApi() }
-                //val divisionListDeferred = async { callDivisionListApi() }
-                val stageListDeferred = async { callCommonDropDownListApi(DROP_DOWN_STAGE) }
-                //val categoryListDeferred = async { callCateogyListApi() }
+        if(!isReadOnly) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val visitListDeferred =
+                        async { callCommonDropDownListApi(DROP_DOWN_VISIT_TYPE) }
+                    val companyListDeferred = async { callCompanyListApi() }
+                    //val branchListDeferred = async { callBranchListApi() }
+                    //val divisionListDeferred = async { callDivisionListApi() }
+                    val stageListDeferred = async { callCommonDropDownListApi(DROP_DOWN_STAGE) }
+                    //val categoryListDeferred = async { callCateogyListApi() }
 
-                //categoryListDeferred.await()
-                visitListDeferred.await()
-                companyListDeferred.await()
-                //branchListDeferred.await()
-                //divisionListDeferred.await()
-                stageListDeferred.await()
-                if (!isReadOnly) {
-                    val visitFromPlaceDeferred = async { callGetVisitFromPlaceApi() }
-                    visitFromPlaceDeferred.await()
-                } else {
+                    //categoryListDeferred.await()
+                    visitListDeferred.await()
+                    companyListDeferred.await()
+                    //branchListDeferred.await()
+                    //divisionListDeferred.await()
+                    stageListDeferred.await()
+                    if (!isReadOnly) {
+                        val visitFromPlaceDeferred = async { callGetVisitFromPlaceApi() }
+                        visitFromPlaceDeferred.await()
+                    } else {
+                    }
+                } catch (e: Exception) {
+                    FirebaseCrashlytics.getInstance().recordException(e)
+                    Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
                 }
-            } catch (e: Exception) {
-                FirebaseCrashlytics.getInstance().recordException(e)
-                Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
             }
         }
     }
@@ -922,7 +925,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                             )
                             companyMasterList.addAll(it)
-                            if (isCompanyChange && it.size == 1) {
+                            if (it.size == 1) {
+                                isCompanyChange = true
                                 selectedCompany = CompanyMasterResponse(
                                     companyMasterId = companyMasterList[1].companyMasterId,
                                     companyName = companyMasterList[1].companyName
@@ -1109,7 +1113,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                     userDialogInterfaceDetect = null
                                 )
                                 userDialog.showUserSearchDialog()*/
-                                callCategoryListApi()
+                                //callCategoryListApi()
                             }
                         }else{
                             CommonMethods.showToastMessage(
@@ -1257,7 +1261,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                             )
                             inquiryList.addAll(it)
-                            showCustomDialog(it)
+                            showInquiryDialog(it)
                         } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
@@ -1293,7 +1297,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     }
 
-    private fun showCustomDialog(inquiries: List<InquiryResponse>) {
+    private fun showInquiryDialog(inquiries: List<InquiryResponse>, isViewOnly : Boolean = false) {
         val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
         inquiryDialog = builder.create()
         inquiryDialog!!.setCancelable(false)
@@ -1308,7 +1312,16 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         val btnSubmit = layout.findViewById<Button>(R.id.btnSubmit)
         val imgBack = layout.findViewById<ImageView>(R.id.imgBack)
         val edtSearch = layout.findViewById<EditText>(R.id.edtSearch)
-        val adapter = InquiryAdapter(mActivity, inquiries)
+        val tvClearAll = layout.findViewById<TextView>(R.id.tvClearAll)
+        val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
+        val adapter = InquiryAdapter(mActivity, inquiries, isViewOnly)
+
+        if(isViewOnly){
+            btnSubmit.visibility = View.GONE
+            cbAll.visibility = View.GONE
+            tvClearAll.visibility = View.GONE
+            tvTitle.setText("Inquiry/Quotation List")
+        }
 
         edtSearch.addTextChangedListener(object : TextWatcher {
 
@@ -1669,6 +1682,34 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.tvStartTime.text = CommonMethods.convertToAmPm(visitReportData.startTime)
         binding.tvEndTime.text = CommonMethods.convertToAmPm(visitReportData.endTime)
         binding.tvSelectStage.text = visitReportData.dmdStageName.ifEmpty { "" }
+        if(visitReportData.listInquiryFilter.isNotEmpty()){
+            inquiryList.addAll(visitReportData.listInquiryFilter)
+            binding.tvTotalSelectedItem.text = inquiryList.size.toString() + " Inquiry/Quotation Selected"
+            binding.tvTotalSelectedItem.setTextColor(ContextCompat.getColor(mActivity, R.color.colorGreen))
+            binding.tvTotalSelectedItem.setOnClickListener{
+                showInquiryDialog(inquiryList, true)
+            }
+            if(visitReportData.selfieFilePath.isNotEmpty()) {
+                binding.tvSelfiUploaded.setTextColor(
+                    ContextCompat.getColor(
+                        mActivity,
+                        R.color.colorGreen
+                    )
+                )
+                binding.tvSelfiUploaded.text = "View Photo"
+            }
+            binding.tvSelfiUploaded.setOnClickListener{
+                if(visitReportData.selfieFilePath.isNotEmpty()){
+                    binding.tvSelfiUploaded.setTextColor(ContextCompat.getColor(mActivity, R.color.colorGreen))
+                    ImagePreviewCommonDialog.showImagePreviewDialog(
+                        mActivity,
+                        appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer + visitReportData.selfieFilePath
+                    )
+                }
+            }
+        }
+
         disableRadioModeOfCom(false)
         disableRadioStatus(false)
         selectedModeOfCommunication = visitReportData.modeOfCommunication ?: 0
@@ -2061,7 +2102,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
     }
 
-    class InquiryAdapter(private val context: Context, private val items: List<InquiryResponse>) :
+    class InquiryAdapter(private val context: Context, private val items: List<InquiryResponse>, private val isViewOnly: Boolean = false) :
         RecyclerView.Adapter<InquiryAdapter.ItemViewHolder>() {
 
         private var filteredItems: MutableList<InquiryResponse> = items.toMutableList()
@@ -2084,6 +2125,9 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             val item = filteredItems[position]
             holder.bind(item)
 
+            if(isViewOnly){
+                holder.itemCheckBox.visibility = View.GONE
+            }
             // Clear previous listeners
             holder.itemCheckBox.setOnCheckedChangeListener(null)
 

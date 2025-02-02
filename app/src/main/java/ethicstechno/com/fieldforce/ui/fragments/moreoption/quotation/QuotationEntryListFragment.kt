@@ -14,8 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.AbsListView
 import android.widget.AdapterView
 import android.widget.EditText
@@ -51,7 +49,6 @@ import ethicstechno.com.fieldforce.utils.CUSTOM_RANGE
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
 import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
@@ -103,14 +100,15 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     private lateinit var partyDealerAdapter: PartyDealerListAdapter
     private lateinit var paginationLoader: ProgressBar
     private lateinit var tvSearchGO: TextView
-    private lateinit var tvSearchClear: TextView
+    private lateinit var imgSearchClose: ImageView
     private lateinit var edtSearchPartyDealer: EditText
     private var partyDealerPageNo = 1
     private var isScrolling = false
     private var isLastPage = false
     private var layoutManager: LinearLayoutManager? = null
     private var selectedPartyDealerId: Int = 0
-
+    lateinit var rvItems: RecyclerView
+    lateinit var tvPartyNotFound: TextView
 
     companion object {
 
@@ -203,10 +201,10 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.quotation_entry_list)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
-        orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_quotation_entry)
+        //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_quotation_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
-        orderEntryListBinding.llBottom.visibility = View.VISIBLE
+        //orderEntryListBinding.llBottom.visibility = View.VISIBLE
         selectedCompany = CompanyMasterResponse(companyMasterId = 0)
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
         selectedDivision = DivisionMasterResponse(divisionMasterId = 0)
@@ -257,7 +255,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_INQUIRY_ENTRY"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_QUOTATION_ENTRY"
 
         orderEntryListReq.addProperty("ParameterString", parameterString)
 
@@ -342,13 +340,52 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             fun bind(orderData: QuotationListResponse) {
 
-                binding.tvOrderDate.text = "Date : " + orderData.quotationDate
-                binding.tvOrderNo.text = "Quotation No : " +orderData.categoryName+"/"+ orderData.documentNo
-                binding.tvParty.text = "Party : " + orderData.accountName
-                binding.tvAmount.text = "Amount : " + orderData.quotationAmount
-                binding.tvPlace.text = "Place : " + orderData.cityName
-                binding.tvBranch.text = "Branch : "+orderData.branchName
-                binding.tvStatus.text = "Status : "+orderData.quotationStatusName
+                binding.tvDateTitle.text = "Date"
+                binding.tvDateName.text = orderData.quotationDate
+
+                binding.tvOrderNoTitle.text = "Order No"
+                binding.tvOrderNoTitleName.text = orderData.categoryName+"/"+ orderData.documentNo
+
+                binding.tvPartyNameTitle.text = "Party"
+                binding.tvPartyName.text = orderData.accountName
+
+                binding.tvQuantityTitle.text = "Quantity"
+                binding.tvQuantityName.text = orderData.totalQuantity.toString()
+
+                binding.tvItemcountTitle.text = "Item count"
+                binding.tvItemcountName.text = orderData.productCount.toString()
+
+                binding.tvBranchTitle.text = "Branch"
+                binding.tvBranchName.text =  orderData.branchName
+
+                binding.tvAmountTitle.text = "Amount"
+                binding.tvAmountName.text =  orderData.quotationAmount.toString()
+
+                binding.tvStatus.text = orderData.quotationStatusName
+
+//
+//                binding.tvLabel3.text = "Date"
+//                binding.tvValue3.text = orderData.quotationDate
+//
+//                binding.tvLabel1.text = "Order No"
+//                binding.tvValue1.text = orderData.categoryName+"/"+ orderData.documentNo
+//
+//
+//                binding.tvLabel5.text = "Party"
+//                binding.tvValue5.text = orderData.accountName
+//
+//                //binding.tvAmount.text = "Amount : " + orderData.orderAmount
+//
+//                binding.tvLabel4.text = "Amount"
+//                binding.tvValue4.text = orderData.quotationAmount.toString()
+//
+//                binding.tvLabel2.text = "Place"
+//                binding.tvValue2.text = orderData.cityName
+//
+//                binding.tvLabel6.text = "Branch"
+//                binding.tvValue6.text = orderData.branchName
+//
+//                binding.tvStatus.text = orderData.quotationStatusName
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
@@ -419,12 +456,6 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
-    private fun startAnimation() {
-        val a: Animation = AnimationUtils.loadAnimation(mActivity, R.anim.blink_animation)
-        a.reset()
-        orderEntryListBinding.tvFetchPartyDealer.clearAnimation()
-        orderEntryListBinding.tvFetchPartyDealer.startAnimation(a)
-    }
 
     private fun showFilterDialog() {
 
@@ -462,10 +493,10 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         }
 
         flPartyDealer.setOnClickListener {
-            if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
+            /*if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                 showToastMessage(mActivity, "Please select order category")
                 return@setOnClickListener
-            }
+            }*/
             showPartyDealerListDialog()
         }
 
@@ -495,14 +526,15 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
         }
         llSelectBranch.setOnClickListener {
-            if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
-                showToastMessage(
+            callBranchListApi(true)
+            /*if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
+                CommonMethods.showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_company)
                 )
                 return@setOnClickListener;
-            }
-            if (branchMasterList.size > 0) {
+            }*/
+            /*if (branchMasterList.size > 0) {
                 val userDialog = UserSearchDialogUtil(
                     mActivity,
                     type = FOR_BRANCH,
@@ -512,21 +544,22 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
                 userDialog.showUserSearchDialog()
             } else {
-                showToastMessage(
+                CommonMethods.showToastMessage(
                     mActivity,
                     getString(R.string.branch_list_not_found)
                 )
-            }
+            }*/
         }
         llSelectDivision.setOnClickListener {
-            if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
-                showToastMessage(
+            callDivisionListApi(true)
+            /*if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
+                CommonMethods.showToastMessage(
                     mActivity,
                     mActivity.getString(R.string.please_select_branch)
                 )
                 return@setOnClickListener;
-            }
-            if (divisionMasterList.size > 0) {
+            }*/
+            /*if (divisionMasterList.size > 0) {
                 val userDialog = UserSearchDialogUtil(
                     mActivity,
                     type = FOR_DIVISION,
@@ -536,14 +569,17 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 )
                 userDialog.showUserSearchDialog()
             } else {
-                showToastMessage(
+                CommonMethods.showToastMessage(
                     mActivity,
-                    getString(R.string.branch_list_not_found)
+                    getString(R.string.division_list_not_found)
                 )
-            }
+            }*/
         }
 
         btnSubmit.setOnClickListener{
+            startDate = tvStartDate.text.toString()
+            endDate = tvEndDate.text.toString()
+            selectedDateOptionPosition = spDateOption.selectedItemPosition
             callOrderListApi()
             filterDialog.dismiss()
         }
@@ -653,6 +689,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                             }
                             callBranchListApi()
                         }
+                        callCategoryListApi()//for not independent
                     }
                 } else {
                     CommonMethods.showAlertDialog(
@@ -679,9 +716,9 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     }
 
-    private fun callBranchListApi() {
+    private fun callBranchListApi(isFromOnClick: Boolean = false) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
-            showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -692,7 +729,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_INQUIRY_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_QUOTATION_ENTRY"
         )
 
         val branchCall = WebApiClient.getInstance(mActivity)
@@ -723,6 +760,16 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                                 tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
+                            }
+                            if(isFromOnClick){
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_BRANCH,
+                                    branchList = branchMasterList,
+                                    branchInterfaceDetect = this@QuotationEntryListFragment as UserSearchDialogUtil.BranchDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
                             }
                         } else {
                             showToastMessage(
@@ -756,7 +803,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     }
 
-    private fun callDivisionListApi() {
+    private fun callDivisionListApi(isFromOnClick: Boolean = false) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -769,7 +816,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("userId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_INQUIRY_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_QUOTATION_ENTRY"
         )
 
         val divisionCall = WebApiClient.getInstance(mActivity)
@@ -801,8 +848,18 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
                             }
+                            if(isFromOnClick){
+                                val userDialog = UserSearchDialogUtil(
+                                    mActivity,
+                                    type = FOR_DIVISION,
+                                    divisionList = divisionMasterList,
+                                    divisionInterfaceDetect = this@QuotationEntryListFragment as UserSearchDialogUtil.DivisionDialogDetect,
+                                    userDialogInterfaceDetect = null
+                                )
+                                userDialog.showUserSearchDialog()
+                            }
                         } else {
-                            showToastMessage(
+                            CommonMethods.showToastMessage(
                                 mActivity,
                                 getString(R.string.division_list_not_found)
                             )
@@ -838,13 +895,13 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
         }
-        if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
-            showToastMessage(
+        /*if (selectedDivision == null || selectedDivision?.divisionMasterId == 0) {
+            CommonMethods.showToastMessage(
                 mActivity,
                 mActivity.getString(R.string.please_select_branch)
             )
             return;
-        }
+        }*/
         CommonMethods.showLoading(mActivity)
 
         val appRegistrationData = appDao.getAppRegistration()
@@ -852,7 +909,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         jsonReq.addProperty("UserId", loginData.userId)
         jsonReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_INQUIRY_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_QUOTATION_ENTRY"
         )
 
         val visitTypeCall = WebApiClient.getInstance(mActivity)
@@ -931,7 +988,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val fieldName = "FieldName=Order/Party"
         val parameterString =
             "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0} and $FORM_ID_INQUIRY_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
+                    " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0} and $FORM_ID_QUOTATION_ENTRY and $fieldName and AccountName like '${edtSearchPartyDealer.text.toString()}%'"
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("AccountMasterId", 0)
@@ -982,6 +1039,8 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         if (response.isSuccessful) {
             response.body()?.let { data ->
                 if (data.isNotEmpty()) {
+                    rvItems.visibility = View.VISIBLE
+                    tvPartyNotFound.visibility = View.GONE
                     if (partyDealerPageNo == 1) {
                         accountMasterList.clear()
                         isLastPage = false
@@ -991,6 +1050,9 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     isScrolling = false
                 } else {
                     isLastPage = true
+                    rvItems.visibility = View.GONE
+                    tvPartyNotFound.visibility = View.VISIBLE
+                    accountMasterList.clear()
                 }
             }
         }
@@ -1009,13 +1071,15 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             val inflater =
                 mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val layout: View = inflater.inflate(R.layout.dialog_searchable_listing, null)
-            val rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            rvItems = layout.findViewById<RecyclerView>(R.id.rvItems)
+            tvPartyNotFound = layout.findViewById<TextView>(R.id.tvNoDataFound)
             val imgClose = layout.findViewById<ImageView>(R.id.imgClose)
             edtSearchPartyDealer = layout.findViewById<EditText>(R.id.edtSearch)
             val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
             paginationLoader = layout.findViewById(R.id.loader)
             tvSearchGO = layout.findViewById(R.id.tvSearchGO)
-            tvSearchClear = layout.findViewById(R.id.tvSearchClear)
+            imgSearchClose = layout.findViewById(R.id.imgCloseSearch)
+            imgSearchClose.visibility = View.VISIBLE
 
             tvTitle.text = "Party/Dealer List"
 
@@ -1023,7 +1087,6 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             if (tvSelectPartyDealer.text.toString().trim().isNotEmpty()) {
                 edtSearchPartyDealer.setText(tvSelectPartyDealer.text.toString().trim())
-                tvSearchClear.visibility = View.VISIBLE
                 tvSearchGO.visibility = View.GONE
                 partyDealerPageNo = 1
             }
@@ -1031,18 +1094,15 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             tvSearchGO.setOnClickListener {
                 partyDealerPageNo = 1
                 callAccountMasterList()
-                tvSearchClear.visibility = View.VISIBLE
                 tvSearchGO.visibility = View.GONE
-            }
-            tvSearchClear.setOnClickListener {
-                edtSearchPartyDealer.setText("")
-                partyDealerPageNo = 1
-                callAccountMasterList()
-                tvSearchClear.visibility = View.GONE
-                tvSearchGO.visibility = View.VISIBLE
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
+            imgSearchClose.setOnClickListener{
+                edtSearchPartyDealer.setText("")
+                partyDealerPageNo = 1
+                callAccountMasterList()
+            }
 
             edtSearchPartyDealer.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(

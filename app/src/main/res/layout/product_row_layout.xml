@@ -29,7 +29,6 @@
                     android:paddingTop="1dp"
                     android:layout_marginStart="@dimen/_1sdp"
                     android:paddingBottom="1dp"
-                    android:singleLine="true"
                     android:textColor="@color/white"
                     android:textSize="13sp" />
 
@@ -161,6 +160,7 @@
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:layout_gravity="center"
                 android:layout_weight="0.2"
                 android:orientation="horizontal">

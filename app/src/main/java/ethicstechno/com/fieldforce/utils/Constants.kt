@@ -26,6 +26,10 @@ const val ARG_PARAM12 = "arg_12"
 const val ARG_PARAM13 = "arg_13"
 const val ARG_PARAM14 = "arg_14"
 const val ARG_PARAM15 = "arg_15"
+
+const val ARG_PARAM16 = "arg_16"
+const val ARG_PARAM17 = "arg_17"
+
 const val USER_NAME = "username"
 const val USER_PWD = "password"
 
@@ -39,16 +43,23 @@ const val CUSTOM_RANGE = "Custom Range"
 const val ORDER_MODE = "OrderMode"
 const val ORDER_CATEGORY = "Order/Category"
 const val DROP_DOWN_REGION = "Region"
+const val DROP_DOWN_LEAVE = "Leave"
 const val DROP_DOWN_INDUSTRY = "IndustryType"
 const val DROP_DOWN_REFERENCE_SOURCE = "ReferenceSource"
 const val DROP_DOWN_STAGE = "Stage"
 const val DROP_DOWN_VISIT_TYPE = "VisitType"
+const val DROP_DOWN_CURRENCY = "Currency"
+const val DROP_DOWN_TRANSACTION_TYPE = "TransactionType"
+const val DROP_DOWN_FREIGHT_TERMS = "FreightTerms"
 
 const val FORM_ID_PARTY_DEALER = "FormId=204"
 const val FORM_ID_VISIT = "FormId=205"
 const val FORM_ID_ORDER_ENTRY = "FormId=214"
 const val FORM_ID_INQUIRY_ENTRY = "FormId=212"
 const val FORM_ID_QUOTATION_ENTRY = "FormId=213"
+const val FORM_ID_EXPENSE_ENTRY = "FormId=207"
+const val FORM_ID_LEAVE_APPLICATION_ENTRY = "FormId=210"
+
 
 const val CONTROL_TYPE_FIX_PER_KM = 3
 
@@ -80,6 +91,10 @@ const val FOR_BRANCH = 12
 const val FOR_DIVISION = 13
 const val FOR_STAGE = 14
 const val FOR_VISIT_TYPE = 15
+const val FOR_CURRENCY_TYPE = 17
+const val FOR_TRANSACTION_TYPE = 18
+const val FOR_FREIGHT_TERMS = 19
+const val FOR_SHIPPING_ADDRESS = 20
 
 const val STATUS_ALL = "All"
 const val STATUS_RAISED = "Raised"
@@ -102,7 +117,7 @@ const val IS_TRIP_START = "is_trip_start"
 const val IS_DATA_UPDATE = "is_data_update"
 const val IS_VALID = "Valid"
 
-const val VEHICLE_TYPE_NA = 13
+const val VEHICLE_TYPE_NA = "N/A"
 
 
 const val EXPENSE_APPROVED = "Approved"
@@ -133,3 +148,8 @@ const val IMAGE_FILE_1 = 1
 const val IMAGE_FILE_2 = 2
 const val IMAGE_FILE_3 = 3
 const val IMAGE_FILE_4 = 4
+
+const val TYPE_PARTY_DEALER = 1
+const val TYPE_DISTRIBUTOR = 2
+const val TYPE_CONSIGNEE = 3
+

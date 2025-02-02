@@ -30,7 +30,8 @@ class ProductQuotationGroupResponse(
     @SerializedName("ReturnMessage") var returnMessage: String? = "",
     @SerializedName("Quantity") var qty: BigDecimal = BigDecimal.ZERO,
     @SerializedName("Amount") var amount: BigDecimal = BigDecimal.ZERO,
-    @SerializedName("Rate") var price: BigDecimal = BigDecimal.ZERO
+    @SerializedName("Rate") var price: BigDecimal = BigDecimal.ZERO,
+    var finalQty: BigDecimal = BigDecimal.ZERO
 ) : Parcelable {
     override fun toString(): String {
         return productGroupName

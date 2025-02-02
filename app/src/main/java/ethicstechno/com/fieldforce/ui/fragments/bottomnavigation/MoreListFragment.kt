@@ -100,16 +100,16 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
 
     private fun createModelList() {
         moreList.clear()
-        moreList.add(MoreModel(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_expense_entry))
-        moreList.add(MoreModel(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_expense_approval))
         moreList.add(MoreModel(MORE_PARTY_DEALER, getString(R.string.more_party_dealer), R.drawable.ic_party_dealer))
         moreList.add(MoreModel(MORE_VISIT, getString(R.string.more_visit), R.drawable.ic_visit))
-        moreList.add(MoreModel(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_leave_application))
-        moreList.add(MoreModel(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_leave_approval))
         moreList.add(MoreModel(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_tour_plan))
-        moreList.add(MoreModel(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_order_entry))
         moreList.add(MoreModel(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_order_entry))
         moreList.add(MoreModel(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_order_entry))
+        moreList.add(MoreModel(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_order_entry))
+        moreList.add(MoreModel(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_expense_entry))
+        moreList.add(MoreModel(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_expense_approval))
+        moreList.add(MoreModel(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_leave_application))
+        moreList.add(MoreModel(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_leave_approval))
     }
 
     private fun setupMoreAdapter() {
@@ -350,7 +350,8 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         i.reportName,
                         i.filter,
                         i.reportGroupBy,
-                        true
+                        true,
+                        productFilter = false
                     ),true, true, AnimationType.fadeInfadeOut
                 )
             }

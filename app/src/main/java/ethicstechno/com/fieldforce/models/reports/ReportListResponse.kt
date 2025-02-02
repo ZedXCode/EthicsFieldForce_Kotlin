@@ -16,5 +16,6 @@ data class ReportListResponse(
     @SerializedName("Filter") val filter: String = "",
     @SerializedName("UserId") val userId: Int = 0,
     @SerializedName("SerialNo") val serialNo: Int = 0,
+    @SerializedName("ProductFilter") val productFilter: Boolean = false,
     val isDynamicReport: Boolean = true
 )

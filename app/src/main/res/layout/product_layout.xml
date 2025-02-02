@@ -7,32 +7,38 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardMain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:background="@color/white"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="6dp">
+            app:cardCornerRadius="@dimen/_15sdp"
+            app:cardElevation="@dimen/_4sdp"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:layout_marginEnd="@dimen/_8sdp"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:layout_marginBottom="@dimen/_6sdp"
+            app:strokeWidth="@dimen/_1sdp"
+            app:strokeColor="@color/cardStrokeColor"
+            app:cardBackgroundColor="@color/cardBackground">
 
             <LinearLayout
                 android:id="@+id/lylMain"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/white"
                 android:orientation="horizontal"
-                android:padding="@dimen/_4sdp">
+                android:padding="8dp">
 
                 <ImageView
                     android:id="@+id/imgProduct"
-                    android:layout_width="@dimen/_50sdp"
-                    android:layout_height="@dimen/_50sdp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:scaleType="centerCrop"
                     android:src="@drawable/ic_image_load_error" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/_2sdp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -42,14 +48,14 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/lato_black"
                         android:textColor="@color/productTextColor"
-                        android:textSize="@dimen/_10ssp" />
+                        android:textSize="14sp"
+                        android:text="Product Name" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_3sdp"
-                        android:orientation="horizontal"
-                        android:weightSum="10">
+                        android:layout_marginTop="4dp"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/tvUnit"
@@ -57,7 +63,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="3"
                             android:fontFamily="@font/lato_regular"
-                            android:hint="Qty"
+                            android:text="Qty"
                             android:textStyle="bold" />
 
                         <TextView
@@ -65,7 +71,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="3"
                             android:fontFamily="@font/lato_regular"
-                            android:hint="Price"
+                            android:text="Price"
                             android:textStyle="bold" />
 
                         <TextView
@@ -73,65 +79,80 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="4"
                             android:fontFamily="@font/lato_regular"
-                            android:hint="Amt"
+                            android:text="Amt"
                             android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/_5sdp"
-                        android:layout_marginBottom="@dimen/_3sdp"
-                        android:orientation="horizontal"
-                        android:weightSum="10">
+                        android:layout_marginVertical="6dp"
+                        android:orientation="horizontal">
 
                         <EditText
                             android:id="@+id/etQty"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/_5sdp"
                             android:layout_weight="3"
                             android:background="@drawable/edittext_background"
                             android:fontFamily="@font/lato_regular"
                             android:hint="Qty"
-                            android:inputType="numberDecimal" />
+                            android:inputType="numberDecimal"
+                            android:padding="8dp" />
 
                         <EditText
                             android:id="@+id/etPrice"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/_5sdp"
                             android:layout_weight="3"
                             android:background="@drawable/edittext_background"
                             android:fontFamily="@font/lato_regular"
                             android:hint="Price"
-                            android:inputType="numberDecimal" />
+                            android:inputType="numberDecimal"
+                            android:padding="8dp" />
 
                         <EditText
                             android:id="@+id/etAmount"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="@dimen/_5sdp"
                             android:layout_weight="4"
                             android:background="@drawable/edittext_background"
                             android:fontFamily="@font/lato_regular"
                             android:hint="Amt"
-                            android:inputType="numberDecimal" />
+                            android:inputType="numberDecimal"
+                            android:padding="8dp" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tvSchemeValue"
-                        android:visibility="gone"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/lato_regular"
-                        android:textStyle="bold" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingTop="4dp">
 
+                        <TextView
+                            android:id="@+id/tvQtyMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/lato_regular"
+                            android:textStyle="bold"
+                            android:text="Mode"
+                            android:visibility="visible" />
 
+                        <TextView
+                            android:id="@+id/tvSchemeValue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/lato_regular"
+                            android:textStyle="bold"
+                            android:text="Scheme"
+                            android:visibility="gone"
+                            android:layout_marginStart="8dp" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
-        >
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 </layout>

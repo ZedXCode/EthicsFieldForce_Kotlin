@@ -435,7 +435,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                                 lastSyncDateTime = userLastSyncData?.lastSyncDateTime!!
                                 binding.tvLocation.text = lastSyncLocation
                             } else {
-                                lastSyncDateTime = userLastSyncData?.lastSyncDateTime!!
+                                lastSyncDateTime = userLastSyncData?.lastSyncDateTime ?: ""
                             }
 
                             binding.tvDateTime.text = lastSyncDateTime

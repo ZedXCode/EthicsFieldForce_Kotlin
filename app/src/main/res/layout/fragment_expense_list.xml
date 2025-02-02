@@ -1,81 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <RelativeLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:background="@color/colorscreenbackground"
         android:layout_height="match_parent">
 
         <include
             android:id="@+id/toolbar"
-            android:layout_alignParentTop="true"
             layout="@layout/toolbar_header"
-            android:layout_height="@dimen/_50sdp"
-            android:layout_width="match_parent" />
+            />
 
-        <TextView
-            android:id="@+id/tvNoData"
-            style="@style/NoDataFound"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:visibility="gone"
-            android:textStyle="bold"
-            android:text="@string/no_data_found"
-            android:layout_marginTop="@dimen/_30sdp"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvExpense"
-            android:layout_below="@id/toolbar"
-            android:layout_above="@id/llBottom"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:layout_marginBottom="@dimen/_10sdp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="@dimen/_30sdp"
+            android:background="@color/colorPrimary"/>
 
-        <LinearLayout
-            android:id="@+id/llBottom"
-            android:visibility="gone"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_50sdp"
-            android:layout_alignParentBottom="true"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:layout_marginTop="-34dp"
+            android:background="@drawable/bg_top_curve">
 
             <TextView
-                android:id="@+id/tvAddExpense"
-                android:backgroundTint="@color/colorPrimary"
-                android:text="@string/add_expense"
-                style="@style/CommonButtonStyle"/>
+                android:id="@+id/tvNoData"
+                style="@style/NoDataFound"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:visibility="gone"
+                android:textStyle="bold"
+                android:text="@string/no_data_found"
+                android:layout_marginTop="@dimen/_30sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <!--        <androidx.recyclerview.widget.RecyclerView-->
+            <!--            android:id="@+id/rvExpense"-->
+            <!--            android:layout_above="@id/llBottom"-->
+            <!--            android:layout_marginTop="@dimen/_5sdp"-->
+            <!--            android:layout_marginBottom="@dimen/_10sdp"-->
+            <!--            android:layout_width="match_parent"-->
+            <!--            android:layout_height="match_parent"/>-->
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvExpense"
+                android:layout_marginTop="@dimen/_4sdp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@id/llBottom"
+                android:layout_marginStart="@dimen/_5sdp"
+                android:layout_marginEnd="@dimen/_5sdp"/>
 
             <LinearLayout
-                android:id="@+id/llAcceptReject"
+                android:id="@+id/llBottom"
                 android:visibility="gone"
-                android:layout_height="match_parent"
-                style="@style/LinearLayoutHorizontal">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvAccept"
-                    style="@style/CommonButtonStyle"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_margin="@dimen/_5sdp"
-                    android:backgroundTint="@color/colorGreen"
-                    android:text="@string/accept" />
+                <!--            <TextView-->
+                <!--                android:id="@+id/tvAddExpense"-->
+                <!--                android:backgroundTint="@color/colorPrimary"-->
+                <!--                android:text="@string/add_expense"-->
+                <!--                style="@style/CommonButtonStyle"/>-->
 
-                <TextView
-                    android:id="@+id/tvReject"
-                    android:layout_margin="@dimen/_5sdp"
-                    style="@style/CommonButtonStyle"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:id="@+id/llAcceptReject"
+                    android:visibility="gone"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:backgroundTint="@color/colorRed"
-                    android:text="@string/reject" />
+                    style="@style/LinearLayoutHorizontal">
+
+                    <TextView
+                        android:id="@+id/tvAccept"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:layout_margin="@dimen/_5sdp"
+                        android:backgroundTint="@color/colorGreen"
+                        android:text="@string/accept" />
+
+                    <TextView
+                        android:id="@+id/tvReject"
+                        android:layout_margin="@dimen/_5sdp"
+                        style="@style/CommonButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/colorRed"
+                        android:text="@string/reject" />
+                </LinearLayout>
             </LinearLayout>
 
+            <!--<ImageView
+                android:id="@+id/tvAddExpense"
+                android:layout_width="@dimen/_50sdp"
+                android:layout_height="@dimen/_50sdp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="@dimen/_20sdp"
+                android:layout_marginTop="@dimen/_20sdp"
+                android:layout_marginEnd="@dimen/_20sdp"
+                android:layout_marginBottom="@dimen/_20sdp"
+                android:background="@drawable/bg_button_primary"
+                android:padding="15dp"
+                android:visibility="gone"
+                android:src="@drawable/ic_add"
+                app:tint="@color/white" />-->
 
-        </LinearLayout>
-    </RelativeLayout>
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tvAddExpense"
+                android:layout_width="@dimen/_56sdp"
+                android:layout_height="@dimen/_56sdp"
+                android:layout_margin="@dimen/_16sdp"
+                app:cardCornerRadius="@dimen/_12sdp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentEnd="true"
+                app:cardElevation="6dp"
+                android:visibility="gone"
+                app:strokeWidth="0dp"
+                app:cardBackgroundColor="@color/colorPrimary">
 
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_add"
+                    app:tint="@color/white" />
+            </com.google.android.material.card.MaterialCardView>
+
+
+
+        </RelativeLayout>
+    </LinearLayout>
 </layout>
