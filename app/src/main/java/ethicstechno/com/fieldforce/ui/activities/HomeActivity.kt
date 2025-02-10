@@ -4,7 +4,6 @@ import AnimationType
 import addFragment
 import android.app.Activity
 import android.app.ActivityManager
-import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,8 +13,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,19 +27,29 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsResponse
+import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import de.hdodenhof.circleimageview.CircleImageView
+import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.MainActivity
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.databinding.ActivityHomeBinding
 import ethicstechno.com.fieldforce.db.AppDatabase
 import ethicstechno.com.fieldforce.db.dao.AppDao
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.NavMenuModel
 import ethicstechno.com.fieldforce.permission.KotlinPermissions
 import ethicstechno.com.fieldforce.service.EthicsBackgroundService
 import ethicstechno.com.fieldforce.ui.fragments.bottomnavigation.AttendanceFragment
@@ -50,8 +62,26 @@ import ethicstechno.com.fieldforce.ui.fragments.navigationdrawer.ChangePwdFragme
 import ethicstechno.com.fieldforce.ui.fragments.navigationdrawer.DynamicPageContentFragment
 import ethicstechno.com.fieldforce.ui.fragments.navigationdrawer.ProfileFragment
 import ethicstechno.com.fieldforce.ui.fragments.navigationdrawer.SupportFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.hideKeyboard
+import ethicstechno.com.fieldforce.utils.EXTRA_LATITUDE
+import ethicstechno.com.fieldforce.utils.EXTRA_LONGITUDE
+import ethicstechno.com.fieldforce.utils.IS_FOR_ATTENDANCE_REPORT
+import ethicstechno.com.fieldforce.utils.IS_LOGIN
+import ethicstechno.com.fieldforce.utils.IS_MOCK_LOCATION
+import ethicstechno.com.fieldforce.utils.ImageUtils
+import ethicstechno.com.fieldforce.utils.NAV_ABOUT_US
+import ethicstechno.com.fieldforce.utils.NAV_ACCOUNT_DETAILS
+import ethicstechno.com.fieldforce.utils.NAV_CHANGE_PASSWORD
+import ethicstechno.com.fieldforce.utils.NAV_LOGOUT
+import ethicstechno.com.fieldforce.utils.NAV_PRIVACY_POLICY
+import ethicstechno.com.fieldforce.utils.NAV_SUPPORT
+import ethicstechno.com.fieldforce.utils.NAV_TERMS_AND_CONDITIONS
+import ethicstechno.com.fieldforce.utils.PAGE_ABOUT_US
+import ethicstechno.com.fieldforce.utils.PAGE_PRIVACY_POLICY
+import ethicstechno.com.fieldforce.utils.PAGE_TERMS_CONDITION
+import ethicstechno.com.fieldforce.utils.PermissionUtil
 
 class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -64,7 +94,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
-    lateinit var imgProfile: CircleImageView
+
 
     init {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
@@ -96,17 +126,16 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         binding.navView.setNavigationItemSelectedListener(this)
         //gotoDashBoard()
-        setProfile()
+        setUpNavigationDrawer()
         setBottomNavigationItem()
         ImageUtils().loadImageUrlWithoutPlaceHolder(
             this,
             appDao.getAppRegistration().apiHostingServer + appDao.getAppRegistration().logoFilePath,
-            binding.imgBottom
+            binding.headerLayout.imgBottom
         )
         binding.bottomNavigationView.selectedItemId = R.id.nav_home
         notificationPermissionFor33()
         doBackgroundServiceOperations()
-
     }
 
     fun doBackgroundServiceOperations() {
@@ -276,24 +305,91 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun setProfile() {
-        val headerView = binding.navView.getHeaderView(0)
-        val tvUserName: TextView = headerView.findViewById(R.id.tvUserName)
-        val tvLastLoginData: TextView = headerView.findViewById(R.id.tvLastLogin)
-        imgProfile = headerView.findViewById(R.id.imgProfile)
-        tvUserName.text = appDao.getLoginData().userName
-        tvLastLoginData.text = appDao.getLoginData().lastLoginDateTime
+    private fun setUpNavigationDrawer() {
+        val menuItems = listOf(
+            NavMenuModel(NAV_ACCOUNT_DETAILS, "Account Details", R.drawable.ic_nav_account_details),
+            NavMenuModel(NAV_ABOUT_US, "About Us", R.drawable.ic_nav_about_us),
+            NavMenuModel(NAV_TERMS_AND_CONDITIONS, "Terms & Conditions", R.drawable.ic_nav_terms_condition),
+            NavMenuModel(NAV_PRIVACY_POLICY, "Privacy Policy", R.drawable.ic_nav_privacy_policy),
+            NavMenuModel(NAV_CHANGE_PASSWORD, "Change Password", R.drawable.ic_nav_change_password),
+            NavMenuModel(NAV_SUPPORT, "Support", R.drawable.ic_nav_support),
+            NavMenuModel(NAV_LOGOUT, "Logout", R.drawable.ic_nav_logout)
+        )
+
+        val adapter = NavMenuAdapter(menuItems) { menuItem ->
+            closeDrawer()
+            when(menuItem.navId){
+                NAV_ACCOUNT_DETAILS -> {
+                    addFragment(
+                        ProfileFragment(),
+                        true,
+                        false,
+                        animationType = AnimationType.rightInLeftOut
+                    )
+                }
+                NAV_ABOUT_US ->{
+                    addFragment(
+                        DynamicPageContentFragment.newInstance(PAGE_ABOUT_US),
+                        true,
+                        true,
+                        AnimationType.rightInLeftOut
+                    )
+                }
+                NAV_TERMS_AND_CONDITIONS -> {
+                    addFragment(
+                        DynamicPageContentFragment.newInstance(PAGE_TERMS_CONDITION),
+                        true,
+                        true,
+                        AnimationType.rightInLeftOut
+                    )
+                }
+                NAV_PRIVACY_POLICY -> {
+                    addFragment(
+                        DynamicPageContentFragment.newInstance(PAGE_PRIVACY_POLICY),
+                        true,
+                        true,
+                        AnimationType.rightInLeftOut
+                    )
+                }
+                NAV_CHANGE_PASSWORD -> {
+                    addFragment(
+                        ChangePwdFragment(),
+                        true,
+                        false,
+                        animationType = AnimationType.rightInLeftOut
+                    )
+                }
+                NAV_SUPPORT -> {
+                    addFragment(SupportFragment(), true, true, AnimationType.rightInLeftOut)
+                }
+                NAV_LOGOUT -> {
+                    callLogoutApi()
+                }
+            }
+        }
+
+        binding.headerLayout.rvNavigationMenu.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.headerLayout.rvNavigationMenu.adapter = adapter
+
+        //val headerView = binding.navView.getHeaderView(0)
+        //val tvLastLoginData: TextView = headerView.findViewById(R.id.tvLastLogin)
+        //imgProfile = binding.headerLayout.findViewById(R.id.imgProfile)
+        //imgProfile = binding.headerLayout.imgProfile
+        //val tvUserName: TextView = headerView.findViewById(R.id.tvUserName)
+        binding.headerLayout.tvUserName.text = appDao.getLoginData().userName+"\n"+appDao.getLoginData().lastLoginDateTime
+        binding.headerLayout.tvVersion.text = BuildConfig.VERSION_NAME
+        //tvLastLoginData.text = appDao.getLoginData().lastLoginDateTime
         ImageUtils().loadCircleIMageUrl(
             this,
             appDao.getAppRegistration().apiHostingServer + appDao.getLoginData().userPhoto,
-            imgProfile
+            binding.headerLayout.imgProfile
         )
 
     }
 
     fun refreshProfileImage() {
         Log.e("TAG", "refreshProfileImage: ")
-        setProfile()
+        setUpNavigationDrawer()
     }
 
     fun bottomHide() {
@@ -400,6 +496,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun setBottomNavigationItem() {
+        binding.bottomNavigationView.itemIconTintList = null
         binding.bottomNavigationView.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_attendance -> {
@@ -521,5 +618,35 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return manager.getRunningServices(Integer.MAX_VALUE)
             .any { it.service.className == serviceClass.name }
     }
+    class NavMenuAdapter(
+        private val menuList: List<NavMenuModel>,
+        private val onItemClick: (NavMenuModel) -> Unit
+    ) : RecyclerView.Adapter<NavMenuAdapter.MenuViewHolder>() {
+
+        class MenuViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            val imgIcon: ImageView = itemView.findViewById(R.id.imgIcon)
+            val tvMenuName: TextView = itemView.findViewById(R.id.tvMenuName)
+            //val imgIndicator: ImageView = itemView.findViewById(R.id.imgIndicator)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
+            val view = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_navigation_drawer, parent, false)
+            return MenuViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
+            val menuItem = menuList[position]
+
+            holder.imgIcon.setImageResource(menuItem.iconResId)
+            holder.tvMenuName.text = menuItem.name
+
+            // Show indicator if the item is expandable
+            holder.itemView.setOnClickListener { onItemClick(menuItem) }
+        }
+
+        override fun getItemCount(): Int = menuList.size
+    }
+
 
 }

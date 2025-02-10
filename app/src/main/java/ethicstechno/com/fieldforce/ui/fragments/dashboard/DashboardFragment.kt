@@ -16,12 +16,44 @@ import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentDashboardBinding
 import ethicstechno.com.fieldforce.databinding.ItemDashboardBinding
+import ethicstechno.com.fieldforce.models.MoreOptionMenuListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_MODULE
+import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_PRINT
+import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_MODULE
+import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_PRINT
+import ethicstechno.com.fieldforce.utils.INQUIRY_MODULE
+import ethicstechno.com.fieldforce.utils.INQUIRY_PRINT
+import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_MODULE
+import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_PRINT
+import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_MODULE
+import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_PRINT
+import ethicstechno.com.fieldforce.utils.MENU_EXPENSE_APPROVAL
+import ethicstechno.com.fieldforce.utils.MENU_EXPENSE_ENTRY
+import ethicstechno.com.fieldforce.utils.MENU_INQUIRY
+import ethicstechno.com.fieldforce.utils.MENU_LEAVE_APPLICATION
+import ethicstechno.com.fieldforce.utils.MENU_LEAVE_APPROVAL
+import ethicstechno.com.fieldforce.utils.MENU_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.MENU_PARTY_DEALER
+import ethicstechno.com.fieldforce.utils.MENU_QUOTATION
+import ethicstechno.com.fieldforce.utils.MENU_TOUR_PLAN
+import ethicstechno.com.fieldforce.utils.MENU_VISIT
+import ethicstechno.com.fieldforce.utils.ORDER_ENTRY_MODULE
+import ethicstechno.com.fieldforce.utils.ORDER_ENTRY_PRINT
+import ethicstechno.com.fieldforce.utils.PARTY_DEALER_MODULE
+import ethicstechno.com.fieldforce.utils.PARTY_DEALER_PRINT
+import ethicstechno.com.fieldforce.utils.QUOTATION_MODULE
+import ethicstechno.com.fieldforce.utils.QUOTATION_PRINT
+import ethicstechno.com.fieldforce.utils.TOUR_PLAN_MODULE
+import ethicstechno.com.fieldforce.utils.TOUR_PLAN_PRINT
+import ethicstechno.com.fieldforce.utils.VISIT_MODULE
+import ethicstechno.com.fieldforce.utils.VISIT_PRINT
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -62,6 +94,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         dashboardBinding.toolbar.imgMenu.setOnClickListener(this)
 
         callDashboardListApi()
+        callMoreOptionList()
     }
 
     override fun onClick(p0: View?) {
@@ -126,6 +159,95 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         })
 
     }
+
+    private fun callMoreOptionList() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val dashboardListReq = JsonObject()
+        dashboardListReq.addProperty("UserId", loginData.userId)
+
+        val dashboardListCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getMoreOptionMenuList(dashboardListReq)
+
+        dashboardListCall?.enqueue(object : Callback<List<MoreOptionMenuListResponse>> {
+            override fun onResponse(
+                call: Call<List<MoreOptionMenuListResponse>>,
+                response: Response<List<MoreOptionMenuListResponse>>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let { moreOptionMenuList ->
+
+                        moreOptionMenuList.forEach { option ->
+                            when (option.formName) {
+                                MENU_PARTY_DEALER -> {
+                                    AppPreference.saveBooleanPreference(mActivity, PARTY_DEALER_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, PARTY_DEALER_PRINT, option.allowPrint)
+                                }
+                                MENU_VISIT -> {
+                                    AppPreference.saveBooleanPreference(mActivity, VISIT_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, VISIT_PRINT, option.allowPrint)
+                                }
+                                MENU_TOUR_PLAN -> {
+                                    AppPreference.saveBooleanPreference(mActivity, TOUR_PLAN_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, TOUR_PLAN_PRINT, option.allowPrint)
+                                }
+                                MENU_EXPENSE_ENTRY -> {
+                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_ENTRY_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_ENTRY_PRINT, option.allowPrint)
+                                }
+                                MENU_EXPENSE_APPROVAL -> {
+                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_APPROVAL_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_APPROVAL_PRINT, option.allowPrint)
+                                }
+                                MENU_LEAVE_APPLICATION -> {
+                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPLICATION_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPLICATION_PRINT, option.allowPrint)
+                                }
+                                MENU_LEAVE_APPROVAL -> {
+                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPROVAL_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPROVAL_PRINT, option.allowPrint)
+                                }
+                                MENU_INQUIRY -> {
+                                    AppPreference.saveBooleanPreference(mActivity, INQUIRY_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, INQUIRY_PRINT, option.allowPrint)
+                                }
+                                MENU_QUOTATION -> {
+                                    AppPreference.saveBooleanPreference(mActivity, QUOTATION_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, QUOTATION_PRINT, option.allowPrint)
+                                }
+                                MENU_ORDER_ENTRY -> {
+                                    AppPreference.saveBooleanPreference(mActivity, ORDER_ENTRY_MODULE, option.allowRights)
+                                    AppPreference.saveBooleanPreference(mActivity, ORDER_ENTRY_PRINT, option.allowPrint)
+                                }
+                            }
+                        }
+                    }
+
+                }
+                CommonMethods.hideLoading()
+            }
+
+            override fun onFailure(call: Call<List<MoreOptionMenuListResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
 
     override fun onResume() {
         super.onResume()

@@ -41,12 +41,13 @@ data class LeaveApplicationListResponse(
     @SerializedName("DivisionName") val divisionName: String,
     @SerializedName("Success") val success: Boolean,
     @SerializedName("ReturnMessage") val returnMessage: String?,
+    @SerializedName("StatusColor") var statusColor: String? = null,
     var isChecked: Boolean = false
 ) : Parcelable {
     // Empty constructor
     constructor() : this(
         0, 0, "", "", 0, 0, "", "", "", "", 0.0, false, "",
         0, "", "", 0, "", null, null, null, null, 0, null,
-        0, 0, 0, false, false, null, "", "", "", false, null, false
+        0, 0, 0, false, false, null, "", "", "", false, null, "",false
     )
 }

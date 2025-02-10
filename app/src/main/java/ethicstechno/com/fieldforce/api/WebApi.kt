@@ -7,6 +7,8 @@ import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.CommonProductFilterResponse
 import ethicstechno.com.fieldforce.models.LoginResponse
+import ethicstechno.com.fieldforce.models.MoreOptionMenuListResponse
+import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceResponse
 import ethicstechno.com.fieldforce.models.attendance.PunchInResponse
 import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
@@ -338,7 +340,10 @@ interface WebApi {
     @POST("api/Inquiry/GetInquiryDetails")
     fun getInquiryDetails(@Body jsonObject: JsonObject): Call<List<InquiryDetailsResponse>>
 
-    @POST("api/Inquiry/GetQuotationDetails")
+//    @POST("api/Inquiry/GetQuotationDetails")
+//    fun getQuotationDetails(@Body jsonObject: JsonObject): Call<List<QuotationDetailsResponse>>
+
+    @POST("api/Quotation/GetQuotationDetails")
     fun getQuotationDetails(@Body jsonObject: JsonObject): Call<List<QuotationDetailsResponse>>
 
     @POST("api/Order/OrderDetailsDelete")
@@ -387,4 +392,9 @@ interface WebApi {
     @POST("api/AccountMaster/ShippingAddressGet")
     fun getShippingAddress(@Body jsonObject: JsonObject): Call<List<ShippingAddressResponse>>
 
+    @POST("api/DynamicPage/GetMoreOptionMenuList")
+    fun getMoreOptionMenuList(@Body jsonObject: JsonObject): Call<List<MoreOptionMenuListResponse>>
+
+    @POST("api/Report/GetReport")
+    fun getReport(@Body jsonObject: JsonObject): Call<ReportResponse>
 }

@@ -33,6 +33,14 @@
                     android:layout_weight="1"
                     android:gravity="end|center"
                     android:textColor="@color/black" />
+
+                <ImageView
+                    android:id="@+id/ivShare"
+                    android:visibility="gone"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:src="@drawable/ic_report_download"
+                    android:layout_width="@dimen/_22sdp"
+                    android:layout_height="@dimen/_22sdp" />
             </LinearLayout>
 
             <LinearLayout

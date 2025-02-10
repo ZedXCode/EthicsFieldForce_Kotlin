@@ -19,6 +19,7 @@
     <color name="screenBackground">#F4F6FDFF</color>
     <color name="splashTextColor">#505050</color>
     <color name="colorGray">#808080</color>
+    <color name="colorGrayLight">#B0B0B0</color>
     <color name="colorLightYellow">#FFF5B0</color>
     <color name="colorBadgePending">#64B5F6</color>
     <color name="colorBlueLight">#abc5dc</color>

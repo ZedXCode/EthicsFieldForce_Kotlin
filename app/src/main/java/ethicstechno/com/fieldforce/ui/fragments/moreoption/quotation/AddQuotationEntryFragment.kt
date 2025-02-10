@@ -1666,10 +1666,19 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("QuotationId", orderId)
             objDetails.addProperty("QuotationDetailsId", i.quotationDetailsId)
             objDetails.addProperty("ProductId", i.productId)
+            objDetails.addProperty("ProductName", i.productName)  // Added
+            objDetails.addProperty("Unit", i.unit)  // Added
             objDetails.addProperty("Quantity", i.qty)
             objDetails.addProperty("Rate", i.price)
             objDetails.addProperty("Amount", i.amount)
+            objDetails.addProperty("MRP", i.mrp)  // Added
+            objDetails.addProperty("Discount", i.standardDiscount)  // Added
+            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)  // Added
+            objDetails.addProperty("AltUnit", i.altUnit)  // Added
+            objDetails.addProperty("ConversionFactor", i.conversionFactor)  // Added
             objDetails.addProperty("UserId", loginData.userId)
+            objDetails.addProperty("ParameterString", i.parameterString)  // Added
+
             objDetailsArray.add(objDetails)
         }
         objReq.add("QuotationDetails", objDetailsArray)
@@ -1812,6 +1821,17 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     callAccountMasterList(false)
                 }
                 tvSearchGO.visibility = View.GONE
+            }
+
+            imgCloseSearch.setOnClickListener {
+                edtSearchPartyDealer.setText("")
+                if (isFromPartyDealer) {
+                    partyDealerPageNo = 1
+                    callAccountMasterList(true)
+                } else {
+                    distributorPageNo = 1
+                    callAccountMasterList(false)
+                }
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
@@ -2046,7 +2066,10 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }
-
+                if(etQty.text.toString().toDouble() <= 0){
+                    showToastMessage(mActivity, getString(R.string.please_enter_valid_quantity))
+                    return@setOnClickListener
+                }
                 /*if ((productModel?.isPriceEditable == true) && etAmount.text.toString().trim().isEmpty()) {
                     showToastMessage(
                         mActivity,

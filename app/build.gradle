@@ -131,7 +131,4 @@ dependencies {
     //google face detection added
     implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.2.0'
 
-    //Switch
-    //implementation 'com.github.GwonHyeok:StickySwitch:0.0.16'
-
 }

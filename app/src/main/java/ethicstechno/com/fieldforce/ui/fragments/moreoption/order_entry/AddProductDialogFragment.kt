@@ -113,6 +113,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
     private var divisionId = 0
     private var categoryId = 0
     private var isSearchTriggered = false
+    private var qtyMode = ""
 
     interface DialogDismissListener {
         fun onDialogDismissed(isCartClicked: Boolean)
@@ -1031,24 +1032,13 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 try {
 
                     if ((item.scheme ?: "").isNotEmpty()) {
-                        tvSchemeValue.visibility = View.VISIBLE
-                        tvSchemeValue.text = "-" + item.scheme.toString()
+                        //tvSchemeValue.visibility = View.VISIBLE
+                        tvQtyMode.text = item.scheme.toString()
                     }
 
                     etQty.clearTextWatcher()
                     etPrice.clearTextWatcher()
                     etAmount.clearTextWatcher()
-                    /*if(etQty.text.toString().isNotEmpty() && etQty.text.toString().toBigDecimal() > BigDecimal.ZERO){
-                        if (binding.switchQty.isChecked) {
-                            tvQtyMode.text = item.unit + (etQty.text.toString()
-                                .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
-                                ?: BigDecimal.ZERO)).toString()
-                        } else {
-                            tvQtyMode.text = item.altUnit + (etQty.text.toString()
-                                .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
-                                ?: BigDecimal.ZERO)).toString()
-                        }
-                    }*/
 
                     etQty.setText(item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
                     etAmount.setText(item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
@@ -1062,16 +1052,23 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         val newQty = (etQty.text.toString()
                             .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
                             ?: BigDecimal.ZERO))
-                        tvQtyMode.text = if (newQty != null && newQty > BigDecimal.ZERO) item.unit + newQty else item.unit
-                        if (item.salesPrice != null && (item.salesPrice ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
-                            val newSalePrice = (item.salesPrice ?: BigDecimal.ZERO) / (item.conversionFactor ?: 0.0).toBigDecimal()
+                        tvQtyMode.text =
+                            (if (newQty != null && newQty > BigDecimal.ZERO) item.unit + newQty else item.unit) + ", " + item.scheme
+                        if (item.salesPrice != null && (item.salesPrice
+                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
+                        ) {
+                            val newSalePrice =
+                                (item.salesPrice ?: BigDecimal.ZERO) / (item.conversionFactor
+                                    ?: 0.0).toBigDecimal()
                             etPrice.setText(newSalePrice.toString())
                         } else {
                             etPrice.setText(
                                 item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
                             )
                         }
-                        if (item.amount != null && (item.amount ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                        if (item.amount != null && (item.amount
+                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
+                        ) {
                             val newSaleAmount =
                                 (item.amount ?: BigDecimal.ZERO) / (item.conversionFactor
                                     ?: 0.0).toBigDecimal()
@@ -1087,9 +1084,11 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                             .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
                             ?: BigDecimal.ZERO))
                         tvQtyMode.text =
-                            if (newQty != null && newQty > BigDecimal.ZERO) item.altUnit + newQty else item.altUnit
+                            (if (newQty != null && newQty > BigDecimal.ZERO) item.altUnit+":" + newQty else item.altUnit) + ", " + item.scheme
                         // Only set the values if they're non-null and non-zero
-                        if (item.salesPrice != null && (item.salesPrice ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                        if (item.salesPrice != null && (item.salesPrice
+                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
+                        ) {
                             etPrice.setText(
                                 item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
                             )
@@ -1098,7 +1097,9 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                                 item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
                             )
                         }
-                        if (item.amount != null && (item.amount ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                        if (item.amount != null && (item.amount
+                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
+                        ) {
                             etAmount.setText(
                                 item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
                             )
@@ -1132,18 +1133,23 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                                 item.finalQty = (etQty.text.toString()
                                     .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
                                     ?: BigDecimal.ZERO))
-                                tvQtyMode.text = item.unit + item.finalQty
+                                tvQtyMode.text = item.unit + item.finalQty + ", " + item.scheme
+                                qtyMode = item.unit + item.finalQty
                             } else {
                                 item.finalQty = (etQty.text.toString()
                                     .toBigDecimal() * (item.conversionFactor?.toBigDecimal()
                                     ?: BigDecimal.ZERO))
-                                tvQtyMode.text = item.altUnit + item.finalQty
+                                tvQtyMode.text = item.altUnit+":" + item.finalQty + ", " + item.scheme
+                                qtyMode = item.altUnit + item.finalQty
                             }
                         } else {
                             if (binding.switchQty.isChecked) {
-                                tvQtyMode.text = item.unit
+                                tvQtyMode.text = item.unit + ", " + item.scheme + ", " + item.scheme
+                                qtyMode = item.unit ?: ""
                             } else {
-                                tvQtyMode.text = item.altUnit
+                                tvQtyMode.text =
+                                    item.altUnit + ", " + item.scheme + ", " + item.scheme
+                                qtyMode = item.altUnit ?: ""
                             }
                         }
                     }
@@ -1205,7 +1211,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 }
 
                 qty > 0 -> {
-                    val amount = qty * price
+                    val amount = (qty * price) - ((qty * price) * ((item.standardDiscount ?: 0.0) + (item.additionalDiscount ?: 0.0)) / 100)
                     etAmount.setText(CommonMethods.formatLargeDouble(amount))
                     etAmount.isEnabled = false
                     item.amount = amount.toBigDecimal()

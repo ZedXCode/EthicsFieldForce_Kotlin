@@ -26,8 +26,8 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="0dp"
+                android:visibility="visible"
                 android:background="@color/white"
-                app:itemIconTint="@color/bottom_nav_item"
                 app:itemTextAppearanceActive="@style/BottomNavigationTextStyle"
                 app:itemTextAppearanceInactive="@style/BottomNavigationTextStyle"
                 app:itemTextColor="@color/bottom_nav_text"
@@ -35,7 +35,7 @@
                 app:menu="@menu/menu_bottom_tab" />
         </RelativeLayout>
 
-        <com.google.android.material.navigation.NavigationView
+        <!--<com.google.android.material.navigation.NavigationView
             android:id="@+id/navView"
             style="@style/NavigationDrawerStyle"
             android:layout_width="wrap_content"
@@ -46,24 +46,23 @@
             android:maxWidth="@dimen/_250sdp"
             app:headerLayout="@layout/nav_header_home"
             app:itemHorizontalPadding="@dimen/_25sdp"
-            app:itemIconTint="@color/drawer_item"
             app:itemTextAppearance="@style/NavigationDrawerTextStyle"
             app:itemTextColor="@color/drawer_item"
             app:menu="@menu/menu_home">
 
-            <!-- Custom layout for the content of the NavigationView -->
+            &lt;!&ndash; Custom layout for the content of the NavigationView &ndash;&gt;
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <!-- Placeholder for Navigation Items -->
+                &lt;!&ndash; Placeholder for Navigation Items &ndash;&gt;
                 <FrameLayout
                     android:id="@+id/navigationMenuContainer"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_above="@id/imgBottom" />
 
-                <!-- Bottom Icon -->
+                &lt;!&ndash; Bottom Icon &ndash;&gt;
                 <ImageView
                     android:id="@+id/imgBottom"
                     android:layout_width="@dimen/_110sdp"
@@ -73,6 +72,24 @@
                     android:layout_centerHorizontal="true" />
 
             </RelativeLayout>
+        </com.google.android.material.navigation.NavigationView>-->
+
+
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navView"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="@color/drawerBackground"
+            android:fitsSystemWindows="true"
+            android:maxWidth="@dimen/_240sdp"
+            app:itemHorizontalPadding="@dimen/_20sdp">
+
+            <include
+                android:id="@+id/headerLayout"
+                layout="@layout/nav_header_home"/>
+
         </com.google.android.material.navigation.NavigationView>
 
 

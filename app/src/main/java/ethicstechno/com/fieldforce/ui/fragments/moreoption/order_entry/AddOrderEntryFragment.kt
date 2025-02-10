@@ -2068,7 +2068,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             "expectedDispatchDate",
             CommonMethods.convertToAppDateFormat(binding.tvDispatchDate.text.toString(), "MM/dd/yyyy")
         )
-        objReq.addProperty("creditDays", binding.edtPaymentTerms.text.toString())
+        val creditDays = if (binding.edtPaymentTerms.text.toString().isEmpty()) {
+            0
+        } else {
+            binding.edtPaymentTerms.text.toString().toInt()
+        }
+        objReq.addProperty("creditDays", creditDays)
+        //objReq.addProperty("creditDays", binding.edtPaymentTerms.text.toString())
         objReq.addProperty("termsAndCondition", binding.edtTermsAndCondition.text.toString())
         objReq.addProperty("EntrySystem", 1)
 
@@ -2127,10 +2133,19 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("OrderId", orderId)
             objDetails.addProperty("OrderDetailsId", i.orderDetailsId)
             objDetails.addProperty("ProductId", i.productId)
+            objDetails.addProperty("ProductName", i.productName)  // Added
+            objDetails.addProperty("Unit", i.unit)  // Added
             objDetails.addProperty("Quantity", i.qty)
             objDetails.addProperty("Rate", i.price)
             objDetails.addProperty("Amount", i.amount)
+            objDetails.addProperty("MRP", i.mrp)  // Added
+            objDetails.addProperty("Discount", i.standardDiscount)  // Added
+            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)  // Added
+            objDetails.addProperty("AltUnit", i.altUnit)  // Added
+            objDetails.addProperty("ConversionFactor", i.conversionFactor)  // Added
             objDetails.addProperty("UserId", loginData.userId)
+            objDetails.addProperty("ParameterString", i.parameterString)  // Added
+
             objDetailsArray.add(objDetails)
         }
         objReq.add("OrderDetails", objDetailsArray)
@@ -2606,6 +2621,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                         mActivity,
                         getString(R.string.please_enter_quantity)
                     )
+                    return@setOnClickListener
+                }
+                if(etQty.text.toString().toDouble() <= 0){
+                    showToastMessage(mActivity, getString(R.string.please_enter_valid_quantity))
                     return@setOnClickListener
                 }
 

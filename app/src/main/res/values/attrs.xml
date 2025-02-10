@@ -72,4 +72,5 @@
             <enum name="mirror" value="2" />
         </attr>
     </declare-styleable>
+
 </resources>

@@ -17,13 +17,14 @@ data class DashboardDrillResponse(
     @SerializedName("ParameterString") val parameterString: String,
     @SerializedName("BackParameterString") val backParameterString: String,
     @SerializedName("DrillDownFlag") val drillDownFlag: Boolean,
-    @SerializedName("ReportViewFlag") val reportViewFlag: Boolean,
+    @SerializedName("ReportViewFlag") val reportViewFlag: Boolean = false,
     @SerializedName("UserId") val userId: Int,
     @SerializedName("FromDate") val fromDate: String, // Change to the actual type if needed
     @SerializedName("ToDate") val toDate: String, // Change to the actual type if needed
     @SerializedName("Filter") val filter: String,
     @SerializedName("StoreProcedureName") val storeProcedureName: String?, // Change to the actual type if needed
-    @SerializedName("PopUpScreenFlag") val popUpScreenFlag: Int
+    @SerializedName("PopUpScreenFlag") val popUpScreenFlag: Int,
+    @SerializedName("ReportFileName") val reportFileName: String = ""
 ): Parcelable{
     constructor() : this(
         "",
@@ -43,6 +44,7 @@ data class DashboardDrillResponse(
         "",
         "",
         null,
-        0
+        0,
+        ""
     )
 }

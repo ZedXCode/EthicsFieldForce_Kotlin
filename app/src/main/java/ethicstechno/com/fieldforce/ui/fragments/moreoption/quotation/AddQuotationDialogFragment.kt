@@ -1195,7 +1195,7 @@ class AddQuotationDialogFragment : HomeBaseDialogFragment(), View.OnClickListene
                 }
 
                 qty > 0 -> {
-                    val amount = qty * price
+                    val amount = (qty * price) - ((qty * price) * ((item.standardDiscount ?: 0.0) + (item.additionalDiscount ?: 0.0)) / 100)
                     etAmount.setText(CommonMethods.formatLargeDouble(amount))
                     etAmount.isEnabled = false
                     item.amount = amount.toBigDecimal()

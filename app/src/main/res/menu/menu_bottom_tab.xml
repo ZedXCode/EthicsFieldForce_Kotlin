@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/nav_attendance"
-        android:icon="@drawable/ic_attendance"
+        android:icon="@drawable/ic_attendance_selector"
         android:title="@string/attendance" />
 
     <item
@@ -14,7 +14,7 @@
         android:title="@string/trip" />
     <item
         android:id="@+id/nav_home"
-        android:icon="@drawable/ic_home"
+        android:icon="@drawable/ic_home_selector"
         android:title="@string/home" />
     <item
         android:id="@+id/nav_reports"

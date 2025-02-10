@@ -462,4 +462,6 @@
     <string name="payment_terms_days" translatable="false">Payment Terms Days</string>
     <string name="terms_and_condition" translatable="false"><![CDATA[Terms & Condition]]></string>
     <string name="no_product_found" translatable="false">No Product Found</string>
+    <string name="please_enter_valid_quantity" translatable="false">Please enter valid quantity</string>
+    <string name="product_filter" translatable="false">Product Filter</string>
 </resources>

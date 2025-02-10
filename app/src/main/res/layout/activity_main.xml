@@ -23,7 +23,6 @@
         app:itemHorizontalPadding="@dimen/_25sdp"
         android:fitsSystemWindows="true"
         app:itemTextColor="@color/drawer_item"
-        app:itemIconTint="@color/drawer_item"
         android:background="@color/colorscreenbackground"
         app:headerLayout="@layout/nav_header_home"
         app:menu="@menu/menu_home">

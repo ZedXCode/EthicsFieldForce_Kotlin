@@ -4,8 +4,11 @@ import AnimationType
 import addFragment
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -35,6 +38,7 @@ import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.databinding.ItemUserBinding
+import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
@@ -50,6 +54,7 @@ import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
@@ -57,6 +62,8 @@ import ethicstechno.com.fieldforce.utils.ID_ZERO
 import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.LAST_30_DAYS
 import ethicstechno.com.fieldforce.utils.LAST_7_DAYS
+import ethicstechno.com.fieldforce.utils.ORDER_ENTRY_PRINT
+import ethicstechno.com.fieldforce.utils.REPORT_M
 import ethicstechno.com.fieldforce.utils.THIS_MONTH
 import ethicstechno.com.fieldforce.utils.TODAY
 import ethicstechno.com.fieldforce.utils.YESTERDAY
@@ -109,6 +116,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     private var selectedPartyDealerId: Int = 0
     lateinit var rvItems: RecyclerView
     lateinit var tvPartyNotFound: TextView
+
+    var statusColor = ""
 
     companion object {
 
@@ -364,6 +373,54 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvAmountName.text =  orderData.orderAmount.toString()
 
                 binding.tvStatus.text = orderData.orderStatusName
+                statusColor = orderData.statusColor.toString()
+
+                when (orderData.orderStatusName) {
+                    "Pending" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                        }else{
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+                    }
+
+                    "Approve" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                        }else{
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+
+
+                    }
+
+                    "Rejected" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
+                        }else{
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+                    }
+                }
+
+
+//                Log.d("STATUSCOLOR===>", "" + statusColor)
+//
+//                val color = if (statusColor.isEmpty()) {
+//                    ContextCompat.getColor(mActivity, R.color.colorGreen)
+//                } else {
+//                    Color.parseColor(statusColor)
+//                }
+//
+//                // Update the shape drawable's color
+//                val background = binding.tvStatus.background as GradientDrawable
+//                background.setColor(color)
+
+
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
@@ -374,9 +431,86 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                 }
 
-                //binding.executePendingBindings()
+                if (AppPreference.getBooleanPreference(mActivity, ORDER_ENTRY_PRINT)){
+                    binding.ivShare.visibility = View.VISIBLE
+                }else{
+                    binding.ivShare.visibility = View.GONE
+                }
+
+                binding.ivShare.setOnClickListener{
+                    callGetReport(orderData.orderId)
+                }
             }
         }
+    }
+
+    private fun callGetReport(orderId: Int?) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val dashboardListReq = JsonObject()
+        dashboardListReq.addProperty("reportSetupId", 0)
+        dashboardListReq.addProperty("reportName", "")
+        dashboardListReq.addProperty("UserId", loginData.userId)
+        dashboardListReq.addProperty("reportType", REPORT_M)// r
+        dashboardListReq.addProperty("formId", FORM_ID_ORDER_ENTRY_NUMBER)//JE FORM MA HATI
+        dashboardListReq.addProperty("fromDate", "")
+        dashboardListReq.addProperty("toDate", "")
+        dashboardListReq.addProperty("reportGroupBy", "")
+        dashboardListReq.addProperty("parameterString", "")
+        dashboardListReq.addProperty("filter", "")
+        dashboardListReq.addProperty("documentId", orderId)//set dynamic
+
+        val dashboardListCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getReport(dashboardListReq)
+
+        dashboardListCall?.enqueue(object : Callback<ReportResponse> {
+            override fun onResponse(
+                call: Call<ReportResponse>,
+                response: Response<ReportResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (response.isSuccessful) {
+                    response.body()?.let { reportResponse ->
+                        //val fileName = reportResponse.fileName
+                        val fileName = appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer +reportResponse.fileName
+                        Log.d("FileName", fileName)
+
+                        //openUrlInChrome(fileName)
+                        CommonMethods.showToastMessage(mActivity, "Downloading Report...")
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fileName))
+                        mActivity.startActivity(browserIntent)
+                        //downloadAndOpenPDF(mActivity, fileName)
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ReportResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
     }
 
     private fun setupSearchFilter() {
@@ -455,6 +589,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         llSelectDivision = filterDialog.findViewById(R.id.llSelectDivision)
         spCategory = filterDialog.findViewById(R.id.spCategory)
         flPartyDealer = filterDialog.findViewById(R.id.flPartyDealer)
+        spCategory = filterDialog.findViewById(R.id.spCategory)
         val btnSubmit = filterDialog.findViewById<TextView>(R.id.btnSubmit)
 
         callCompanyListApi()

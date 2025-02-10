@@ -64,6 +64,7 @@ data class ExpenseListResponse(
     @SerializedName("CompanyName") val companyName: String,
     @SerializedName("BranchName") val branchName: String,
     @SerializedName("DivisionName") val divisionName: String,
+    @SerializedName("StatusColor") var statusColor: String? = null,
     var isChecked: Boolean = false
 ) : Parcelable {
     constructor() : this(
@@ -75,6 +76,6 @@ data class ExpenseListResponse(
         0, "", "", 0, "", "", "", "",
         0, "", false, "", "", "", "", "",
         "", "", "", "", "", "",0,"","",
-        "",false
+        "","",false
     )
 }

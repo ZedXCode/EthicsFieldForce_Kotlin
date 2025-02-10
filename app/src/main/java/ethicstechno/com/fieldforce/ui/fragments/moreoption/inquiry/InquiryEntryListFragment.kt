@@ -3,10 +3,17 @@ package ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry
 import AnimationType
 import addFragment
 import android.app.Dialog
+import android.content.ActivityNotFoundException
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -23,6 +30,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
@@ -35,6 +43,7 @@ import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.databinding.ItemUserBinding
+import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.moreoption.inquiry.InquiryListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
@@ -50,20 +59,29 @@ import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
+import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
 import ethicstechno.com.fieldforce.utils.ID_ZERO
+import ethicstechno.com.fieldforce.utils.INQUIRY_PRINT
 import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.LAST_30_DAYS
 import ethicstechno.com.fieldforce.utils.LAST_7_DAYS
+import ethicstechno.com.fieldforce.utils.REPORT_M
 import ethicstechno.com.fieldforce.utils.THIS_MONTH
 import ethicstechno.com.fieldforce.utils.TODAY
 import ethicstechno.com.fieldforce.utils.YESTERDAY
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
 
 
 class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
@@ -109,6 +127,11 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     private var selectedPartyDealerId: Int = 0
     lateinit var rvItems: RecyclerView
     lateinit var tvPartyNotFound: TextView
+    private var downloadId: Long = -1
+    private lateinit var downloadReceiver: BroadcastReceiver
+
+
+    var statusColor = ""
 
     companion object {
 
@@ -343,8 +366,9 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvDateTitle.text = "Date"
                 binding.tvDateName.text = orderData.inquiryDate
 
-                binding.tvOrderNoTitle.text = "Order No"
-                binding.tvOrderNoTitleName.text = orderData.categoryName+"/"+ orderData.documentNo
+                binding.tvOrderNoTitle.text = "Inquiry No"
+                binding.tvOrderNoTitleName.text =
+                    orderData.categoryName + "/" + orderData.documentNo
 
                 binding.tvPartyNameTitle.text = "Party"
                 binding.tvPartyName.text = orderData.accountName
@@ -356,16 +380,65 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvItemcountName.text = orderData.productCount.toString()
 
                 binding.tvBranchTitle.text = "Branch"
-                binding.tvBranchName.text =  orderData.branchName
+                binding.tvBranchName.text = orderData.branchName
 
                 binding.tvAmountTitle.text = "Amount"
-                binding.tvAmountName.text =  orderData.inquiryAmount.toString()
+                binding.tvAmountName.text = orderData.inquiryAmount.toString()
 
                 binding.tvStatus.text = orderData.inquiryStatusName
 
+                statusColor = orderData.statusColor.toString()
+
+                when (orderData.inquiryStatusName) {
+                    "Raised" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                        } else {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+                    }
+
+                    "Approved" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#4CAF50"))
+                        } else {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+
+                    }
+
+                    "Rejected" -> {
+                        if (statusColor.isEmpty()) {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
+                        } else {
+                            binding.tvStatus.backgroundTintList =
+                                ColorStateList.valueOf(Color.parseColor(statusColor))
+                        }
+                    }
+                }
+
+                if (AppPreference.getBooleanPreference(mActivity, INQUIRY_PRINT)) {
+                    binding.ivShare.visibility = View.VISIBLE
+                } else {
+                    binding.ivShare.visibility = View.GONE
+                }
+
+                binding.ivShare.setOnClickListener {
+                    callGetReport(orderData.inquiryId)
+                }
+
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        AddInquiryEntryFragment.newInstance(orderData.inquiryId ?: 0, orderData.allowEdit, orderData.allowDelete),
+                        AddInquiryEntryFragment.newInstance(
+                            orderData.inquiryId ?: 0,
+                            orderData.allowEdit,
+                            orderData.allowDelete
+                        ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.rightInLeftOut
@@ -374,6 +447,141 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
                 //binding.executePendingBindings()
             }
+        }
+    }
+
+    // Function to download and open the PDF
+    fun downloadAndOpenPDF(context: Context, url: String) {
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).build()
+
+        // Run the download on a background thread
+        Thread {
+            try {
+                val response = client.newCall(request).execute()
+                val inputStream: InputStream? = response.body?.byteStream()
+                if (inputStream != null) {
+                    // Save the file
+                    val file = saveFileToStorage(context, inputStream)
+                    // Open the file
+                    openPDF(file, context)
+                }
+            } catch (e: IOException) {
+                Log.e("DownloadError", "Error downloading file", e)
+
+                // Show the Toast on the main thread
+                Handler(context.mainLooper).post {
+                    Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+    // Function to save the file locally
+    private fun saveFileToStorage(context: Context, inputStream: InputStream): File {
+        val fileName = "downloaded_report.pdf"
+        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
+
+        try {
+            val outputStream = FileOutputStream(file)
+            val buffer = ByteArray(1024)
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+            outputStream.flush()
+            outputStream.close()
+        } catch (e: IOException) {
+            Log.e("SaveFileError", "Error saving file", e)
+        }
+
+        return file
+    }
+
+    private fun openPDF(file: File?, context: Context) {
+        val pdfUrl = "http://ffms.ethicstechno.com:41429/CrystalExportReportPath/212_StockReport_05_02_2025_22_07_04.pdf"
+            // Attempt to open the URL in the browser
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(pdfUrl))
+            context.startActivity(browserIntent)
+    }
+
+    private fun callGetReport(inquiryId: Int?) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val dashboardListReq = JsonObject()
+        dashboardListReq.addProperty("reportSetupId", 0)
+        dashboardListReq.addProperty("reportName", "")//Demo
+        dashboardListReq.addProperty("UserId", loginData.userId)
+        dashboardListReq.addProperty("reportType", REPORT_M)// r
+        dashboardListReq.addProperty("formId", FORM_ID_INQUIRY_ENTRY_NUMBER)
+        dashboardListReq.addProperty("fromDate", "")
+        dashboardListReq.addProperty("toDate", "")
+        dashboardListReq.addProperty("reportGroupBy", "")
+        dashboardListReq.addProperty("parameterString", "")
+        dashboardListReq.addProperty("filter", "")
+        dashboardListReq.addProperty("documentId", inquiryId)
+
+        val dashboardListCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getReport(dashboardListReq)
+
+        dashboardListCall?.enqueue(object : Callback<ReportResponse> {
+            override fun onResponse(
+                call: Call<ReportResponse>,
+                response: Response<ReportResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (response.isSuccessful) {
+                    response.body()?.let { reportResponse ->
+                        //val fileName = reportResponse.fileName
+                        val fileName = appDatabase.appDao()
+                            .getAppRegistration().apiHostingServer + reportResponse.fileName
+                        Log.d("FileName", fileName)
+
+                        //openUrlInChrome(fileName)*/
+                        CommonMethods.showToastMessage(mActivity, "Downloading Report...")
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(fileName))
+                        mActivity.startActivity(browserIntent)
+                        //downloadAndOpenPDF(mActivity, fileName)
+                    }
+                } else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ReportResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
+    private fun openUrlInChrome(url: String) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse(url)
+            intent.setPackage("com.android.chrome")
+            mActivity.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            mActivity.startActivity(intent)
         }
     }
 
@@ -552,7 +760,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }*/
         }
 
-        btnSubmit.setOnClickListener{
+        btnSubmit.setOnClickListener {
             startDate = tvStartDate.text.toString()
             endDate = tvEndDate.text.toString()
             selectedDateOptionPosition = spDateOption.selectedItemPosition
@@ -737,7 +945,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
                             }
-                            if(isFromOnClick){
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_BRANCH,
@@ -824,7 +1032,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
                             }
-                            if(isFromOnClick){
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_DIVISION,
@@ -1074,7 +1282,7 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
-            imgSearchClose.setOnClickListener{
+            imgSearchClose.setOnClickListener {
                 edtSearchPartyDealer.setText("")
                 partyDealerPageNo = 1
                 callAccountMasterList()

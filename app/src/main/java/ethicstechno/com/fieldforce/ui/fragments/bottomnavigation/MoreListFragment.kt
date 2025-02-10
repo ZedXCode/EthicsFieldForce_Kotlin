@@ -30,8 +30,14 @@ import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.PartyDeal
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.tourplan.TourPlanFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.VisitListFragment
+import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_MODULE
+import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_MODULE
+import ethicstechno.com.fieldforce.utils.INQUIRY_MODULE
+import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_MODULE
+import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_APPROVAL
 import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_INQUIRY_ENTRY
@@ -42,9 +48,15 @@ import ethicstechno.com.fieldforce.utils.MORE_PARTY_DEALER
 import ethicstechno.com.fieldforce.utils.MORE_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_TOUR_PLAN
 import ethicstechno.com.fieldforce.utils.MORE_VISIT
+import ethicstechno.com.fieldforce.utils.ORDER_ENTRY_MODULE
+import ethicstechno.com.fieldforce.utils.PARTY_DEALER_MODULE
+import ethicstechno.com.fieldforce.utils.QUOTATION_MODULE
+import ethicstechno.com.fieldforce.utils.TOUR_PLAN_MODULE
+import ethicstechno.com.fieldforce.utils.VISIT_MODULE
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
 
 class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
 
@@ -86,7 +98,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
 
     override fun onStart() {
         super.onStart()
-        Log.e("TAG", "onStart: ", )
+        Log.e("TAG", "onStart: ")
     }
 
     private fun initView() {
@@ -100,17 +112,29 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
 
     private fun createModelList() {
         moreList.clear()
-        moreList.add(MoreModel(MORE_PARTY_DEALER, getString(R.string.more_party_dealer), R.drawable.ic_party_dealer))
-        moreList.add(MoreModel(MORE_VISIT, getString(R.string.more_visit), R.drawable.ic_visit))
-        moreList.add(MoreModel(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_tour_plan))
-        moreList.add(MoreModel(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_order_entry))
-        moreList.add(MoreModel(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_order_entry))
-        moreList.add(MoreModel(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_order_entry))
-        moreList.add(MoreModel(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_expense_entry))
-        moreList.add(MoreModel(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_expense_approval))
-        moreList.add(MoreModel(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_leave_application))
-        moreList.add(MoreModel(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_leave_approval))
+
+        val menuItems = listOf(
+            Triple(MORE_PARTY_DEALER, getString(R.string.more_party_dealer), R.drawable.ic_menu_party_dealer) to PARTY_DEALER_MODULE,
+            Triple(MORE_VISIT, getString(R.string.more_visit), R.drawable.ic_menu_visit) to VISIT_MODULE,
+            Triple(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_menu_tour_plan) to TOUR_PLAN_MODULE,
+            Triple(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_menu_inquiry) to INQUIRY_MODULE,
+            Triple(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_menu_quotation) to QUOTATION_MODULE,
+            Triple(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_menu_order) to ORDER_ENTRY_MODULE,
+            Triple(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_menu_expense) to EXPENSE_ENTRY_MODULE,
+            Triple(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_menu_approval) to EXPENSE_APPROVAL_MODULE,
+            Triple(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_menu_leave) to LEAVE_APPLICATION_MODULE,
+            Triple(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_menu_approval) to LEAVE_APPROVAL_MODULE
+        )
+
+        menuItems.forEach { (moreModel, key) ->
+            if (AppPreference.getBooleanPreference(mActivity, key)) {
+                moreList.add(MoreModel(moreModel.first, moreModel.second, moreModel.third))
+            } else {
+                moreList.remove(MoreModel(moreModel.first, moreModel.second, moreModel.third))
+            }
+        }
     }
+
 
     private fun setupMoreAdapter() {
         val attendanceAdapter = MoreAdapter(moreList)
@@ -189,6 +213,8 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
         private val menuList: ArrayList<MoreModel>
     ) : RecyclerView.Adapter<MoreAdapter.ViewHolder>() {
 
+        private var maxHeight = 0
+
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val binding = ItemMoreBinding.inflate(inflater, parent, false)
@@ -212,7 +238,16 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                 binding.tvMenuName.text = moreData.modelName
                 binding.imgMenu.setImageResource(moreData.modelImage)
 
-                binding.llMain.setOnClickListener {
+                binding.tvMenuName.post {
+                    val height: Int = binding.tvMenuName.height
+                    if (height > maxHeight) {
+                        maxHeight = height // Store the tallest item height
+                    }
+                    // Apply the same height to all items
+                    binding.tvMenuName.setMinHeight(maxHeight)
+                }
+
+                binding.cardAttendance.setOnClickListener {
                     when (moreData.modelName){
                         getString(R.string.more_expense_entry) ->{
                             mActivity.addFragment(ExpenseListFragment.newInstance(false),

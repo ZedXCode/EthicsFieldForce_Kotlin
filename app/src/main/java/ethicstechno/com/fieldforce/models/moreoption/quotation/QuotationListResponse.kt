@@ -44,6 +44,8 @@ class QuotationListResponse(
     @SerializedName("ReturnMessage") var returnMessage: String? = null,
     @SerializedName("AllowEdit") var allowEdit: Boolean? = false,
     @SerializedName("AllowDelete") var allowDelete: Boolean? = false,
-    @SerializedName("ProductCount") var productCount: Double? = 0.00,
-    @SerializedName("TotalQuantity") var totalQuantity: Double? = 0.00
+    @SerializedName("ProductCount") var productCount: Int? = 0,
+    @SerializedName("TotalQuantity") var totalQuantity: Double? = 0.0,
+    @SerializedName("StatusColor") var statusColor: String? = null
+
 )
