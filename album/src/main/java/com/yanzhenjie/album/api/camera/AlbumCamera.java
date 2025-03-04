@@ -26,14 +26,16 @@ import com.yanzhenjie.album.api.VideoCameraWrapper;
 public class AlbumCamera implements Camera<ImageCameraWrapper, VideoCameraWrapper> {
 
     private Context mContext;
+    private boolean mIsFrontCamera;
 
-    public AlbumCamera(Context context) {
+    public AlbumCamera(Context context, boolean isFrontCamera) {
         mContext = context;
+        mIsFrontCamera = isFrontCamera;
     }
 
     @Override
     public ImageCameraWrapper image() {
-        return new ImageCameraWrapper(mContext);
+        return new ImageCameraWrapper(mContext, mIsFrontCamera);
     }
 
     @Override

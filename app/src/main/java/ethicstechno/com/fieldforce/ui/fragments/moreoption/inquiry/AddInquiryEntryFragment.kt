@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
@@ -37,7 +38,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.groundworksapp.utility.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddOrderEntryBinding
@@ -62,15 +62,18 @@ import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
+import ethicstechno.com.fieldforce.utils.ARG_PARAM5
+import ethicstechno.com.fieldforce.utils.ARG_PARAM6
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateFormat
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.DIALOG_ACCOUNT_MASTER
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
+import ethicstechno.com.fieldforce.utils.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
@@ -108,7 +111,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     //private var selectedCategoryId: Int = -1
     //private var selectedOrderModeId: Int = -1
-    private var selectedDistributorId: Int = -1
+    private var selectedDistributorId: Int = 0
     private var selectedGroupId: Int = 0
     private lateinit var selectedProduct: ProductInquiryGroupResponse
     private var selectedGroup: ProductInquiryGroupResponse? = null
@@ -160,29 +163,10 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var isSearchTriggered = false
     lateinit var rvItems: RecyclerView
     lateinit var tvNoDataFound: TextView
-    //var accountMasterId : Int = 0
-
-
-    private val partyDealerItemClickListener =
-        object : ItemClickListener<AccountMasterList> {
-            override fun onItemSelected(item: AccountMasterList) {
-                // Handle user item selection
-                searchDialog.closeDialog()
-                binding.tvPartyDealer.text = item.accountName
-                selectedPartyDealerId = item.accountMasterId
-                binding.etContactPersonName.setText(item.contactPersonName)
-            }
-        }
-
-    private val distributorItemClickListener =
-        object : ItemClickListener<AccountMasterList> {
-            override fun onItemSelected(item: AccountMasterList) {
-                // Handle user item selection
-                searchDialog.closeDialog()
-                binding.tvSelectDistributor.text = item.accountName
-                selectedDistributorId = item.accountMasterId
-            }
-        }
+    private var accountNameFromVisit: String = ""
+    private var accountMasterIdFromVisit: Int = 0
+    private var contactPersonNameFromVisit = ""
+    private var isPartyChangeFromVisit = false
 
     private val groupItemClickListener =
         object : ItemClickListener<ProductInquiryGroupResponse> {
@@ -212,11 +196,17 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId: Int,
             allowEdit: Boolean?,
             allowDelete: Boolean?,
+            accountName: String?,
+            accountMasterId : Int?,
+            contactPersonName : String?
         ): AddInquiryEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
             args.putBoolean(ARG_PARAM2, allowEdit ?: false)
             args.putBoolean(ARG_PARAM3, allowDelete ?: false)
+            args.putString(ARG_PARAM4, accountName ?: "")
+            args.putInt(ARG_PARAM5, accountMasterId ?: 0)
+            args.putString(ARG_PARAM6, contactPersonName ?: "")
             val fragment = AddInquiryEntryFragment()
             fragment.arguments = args
             return fragment
@@ -251,6 +241,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId = it.getInt(ARG_PARAM1, -1)
             allowEdit = it.getBoolean(ARG_PARAM2, false)
             allowDelete = it.getBoolean(ARG_PARAM3, false)
+            accountNameFromVisit = it.getString(ARG_PARAM4, "")
+            accountMasterIdFromVisit = it.getInt(ARG_PARAM5, 0)
+            contactPersonNameFromVisit = it.getString(ARG_PARAM6, "")
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -263,6 +256,12 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         selectedBranch = BranchMasterResponse(branchMasterId = 0, branchName = "")
         selectedDivision = DivisionMasterResponse(divisionMasterId = 0, divisionName = "")
         selectedCategory = CategoryMasterResponse(categoryMasterId = 0, categoryName = "")
+
+        if((accountNameFromVisit ?: "").isNotEmpty()) {
+            binding.tvPartyDealer.text = accountNameFromVisit
+            binding.etContactPersonName.setText(contactPersonNameFromVisit)
+            selectedPartyDealerId = accountMasterIdFromVisit
+        }
 
 
         binding.tvDate.text = CommonMethods.getCurrentDate()
@@ -294,16 +293,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private suspend fun executeAPIsAndSetupData() {
         withContext(Dispatchers.IO) {
             try {
-                //val categoryListDeferred = async { callCategoryListApi() }
                 val companyListDeferred = async { callCompanyListApi() }
-                //val branchListDeferred = async { callBranchListApi() }
-                //val divisionListDeferred = async { callDivisionListApi() }
-
-                //categoryListDeferred.await()
                 companyListDeferred.await()
-                //branchListDeferred.await()
-                //divisionListDeferred.await()
-
             } catch (e: Exception) {
                 FirebaseCrashlytics.getInstance().recordException(e)
                 Log.e("TAG", "executeAPIsAndSetupData: " + e.message.toString())
@@ -503,7 +494,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun setOrderDetailsAdapter() {
-        orderDetailsAdapter = InquiryDetailsAdapter(mActivity, orderDetailsList, this)
+        orderDetailsAdapter = InquiryDetailsAdapter(mActivity, orderDetailsList, this@AddInquiryEntryFragment)
         val layoutManager = LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
         binding.rvProduct.layoutManager = layoutManager
         binding.rvProduct.adapter = orderDetailsAdapter
@@ -579,7 +570,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             mActivity,
             R.layout.simple_spinner_item,
             categoryList,
-            this
+            this@AddInquiryEntryFragment
         )
         binding.spCategory.adapter = adapter
 
@@ -600,9 +591,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 val selectedType = categoryList[position]
                 if ((selectedType.categoryMasterId ?: 0) > 0) {
                     selectedCategory = selectedType
-                    binding.tvPartyDealer.text = ""
-                    selectedPartyDealerId = 0
-                    Log.e("TAG", "DropDown :: onTypeSelect: ${selectedType.categoryName}")
+                    clearPartyTransactionAddressData()
                 }
             }
 
@@ -1097,6 +1086,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.flPartyDealer -> {
+                if (orderDetailsList.size > 0) {
+                    return
+                }
                 avoidDoubleClicks(binding.flPartyDealer)
                 /*if (selectedCategory == null || selectedCategory?.categoryMasterId!! <= 0) {
                     showToastMessage(mActivity, "Please select order category")
@@ -1143,11 +1135,15 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.tvDate -> {
+                if (orderDetailsList.size > 0) {
+                    return
+                }
                 val selectedCalendar = if (binding.tvDate.text.toString()
                         .isEmpty()
                 ) null else CommonMethods.dateStringToCalendar(binding.tvDate.text.toString())
                 openDatePicker(
-                    selectedCalendar
+                    selectedCalendar,
+                    isMaxDate = true,
                 ) { selectedDate ->
                     if (binding.tvDate.text.toString().isNotEmpty()) {
                         binding.tvDate.text = selectedDate
@@ -1197,6 +1193,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.llSelectBranch -> {
+                if (orderDetailsList.size > 0) {
+                    return
+                }
                 if (selectedCompany == null || selectedCompany?.companyMasterId == 0) {
                     showToastMessage(
                         mActivity,
@@ -1222,6 +1221,9 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.llSelectDivision -> {
+                if (orderDetailsList.size > 0) {
+                    return
+                }
                 if (selectedBranch == null || selectedBranch?.branchMasterId == 0) {
                     showToastMessage(
                         mActivity,
@@ -1269,7 +1271,15 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 if (!isCartClicked) {
                     orderDetailsList.clear()
                     orderDetailsList.addAll(holdDetailsDataList)
-                    setOrderDetailsAdapter()
+                    orderDetailsList.removeIf { it.qty <= BigDecimal.ZERO }
+                    handleOrderDetailsRVVisibility(orderDetailsList)
+                    if (orderDetailsList.size > 0) {
+                        binding.spCategory.setEnabled(false);
+                        binding.spCategory.setClickable(false);
+                        //binding.spCategory.setAdapter(typeAdapter);
+                        setOrderDetailsAdapter()
+                    }
+                    calculateTotalOrderAmount()
                 }
             }
         })
@@ -1538,8 +1548,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                                 )
                                 binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
-                            }else{
-                                callCategoryListApi()
+                            } else {
+                                //callCategoryListApi()
                             }
                         } else {
                             showToastMessage(
@@ -1651,22 +1661,31 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         val objDetailsArray = JsonArray()
         for (i in orderDetailsList) {
+            val altQty = (i.qty * (i.conversionFactor?.toBigDecimal() ?: BigDecimal.ZERO))
             val objDetails = JsonObject()
             objDetails.addProperty("InquiryId", orderId)
             objDetails.addProperty("InquiryDetailsId", i.inquiryDetailsId)
             objDetails.addProperty("ProductId", i.productId)
-            objDetails.addProperty("ProductName", i.productName)  // Added
+            objDetails.addProperty("ProductName", i.productName)
             objDetails.addProperty("Unit", i.unit)
             objDetails.addProperty("Quantity", i.qty)
             objDetails.addProperty("Rate", i.price)
             objDetails.addProperty("Amount", i.amount)
-            objDetails.addProperty("MRP", i.mrp)  // Added
-            objDetails.addProperty("Discount", i.standardDiscount)  // Added
-            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)  // Added
-            objDetails.addProperty("AltUnit", i.altUnit)  // Added
-            objDetails.addProperty("ConversionFactor", i.conversionFactor)  // Added
+            objDetails.addProperty("MRP", i.mrp)
+            objDetails.addProperty("Discount", i.standardDiscount)
+            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)
+            objDetails.addProperty("DiscountAmount", i.discountAmount)
+            objDetails.addProperty("AltUnit", i.altUnit)
+            objDetails.addProperty("ConversionFactor", i.conversionFactor)
             objDetails.addProperty("UserId", loginData.userId)
             objDetails.addProperty("ParameterString", i.parameterString)
+            objDetails.addProperty("PriceListDetailsId", i.priceDetailsId)
+            objDetails.addProperty("SchemeDetailsId", i.schemeDetailsId)
+            objDetails.addProperty("AltUnitQuantity", altQty)
+            objDetails.addProperty("PerUnitWeight", i.perUnitWeight)
+            objDetails.addProperty("QuantityRoundOffType", i.quantityRoundOffType)
+            objDetails.addProperty("PerUnitWeight", i.perUnitWeight)
+            objDetails.addProperty("NewField", i.newField)
             objDetailsArray.add(objDetails)
         }
         objReq.add("InquiryDetails", objDetailsArray)
@@ -1901,30 +1920,6 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         })
     }
 
-    private fun showPartyDealerDialog(isForPartyDealer: Boolean) {
-        try {
-            if (accountMasterList.size > 0) {
-                searchDialog = SearchDialogUtil(
-                    activity = mActivity,
-                    items = if (isForPartyDealer) accountMasterList else distributorList,
-                    layoutId = R.layout.item_user, // The layout resource for each item
-                    bind = { view, item ->
-                        val textView: TextView = view.findViewById(R.id.tvUserName)
-                        textView.text = item.accountName // Bind data to the view
-                    },
-                    itemClickListener = if (isForPartyDealer) partyDealerItemClickListener else distributorItemClickListener,
-                    title = if (isForPartyDealer) mActivity.getString(R.string.party_dealer_list) else getString(
-                        R.string.distributor_list
-                    ),
-                    dialogType = DIALOG_ACCOUNT_MASTER
-                )
-                searchDialog.showSearchDialog()
-            }
-        } catch (e: Exception) {
-            Log.e("TAG", "onClick: " + e.message)
-        }
-    }
-
     private fun showAddProduct(
         productModel: ProductInquiryGroupResponse?,
         orderDetailsPosition: Int
@@ -1956,19 +1951,34 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             etPrice.isEnabled = productModel?.isPriceEditable == true
             etAmount.isEnabled = productModel?.isPriceEditable == true
 
-            etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etPrice))
+            etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 4, etPrice))
             etAmount.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etAmount))
-            etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etQty))
 
             if (productModel != null) {
                 btnSubmit.text = "Update"
                 tvSelectGroup.text = productModel.productGroupName
                 tvUnit.text = productModel.unit
                 tvSelectProduct.text = productModel.productName
-                etQty.setText(CommonMethods.formatBigDecimal(productModel.qty))
                 etAmount.setText(CommonMethods.formatBigDecimal(productModel.amount))
                 etPrice.setText(CommonMethods.formatBigDecimal(productModel.price))
-                tvSchemeValue.text = productModel.scheme
+                if (productModel.quantityRoundOffType == 0) {
+                    etQty.setText(CommonMethods.formatThreeDecimal(productModel.qty))//changed
+                    etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 3, etQty))
+                } else {
+                    etQty.setText(CommonMethods.removeDecimal(productModel.qty))//changed
+                    etQty.filters = arrayOf(InputFilter { source, _, _, _, _, _ ->
+                        if (source.toString().contains(".")) "" else null
+                    })
+                }
+
+                tvSchemeValue.text = buildString {
+                    append(productModel.altUnit)
+                    if (productModel.finalQty?.takeIf { it > BigDecimal.ZERO } != null) {
+                        append(":${productModel.finalQty}")
+                    }
+                    append(", ${productModel.scheme}")
+                }
+
             }
 
             if (orderId == 0 && orderDetailsList.size > 0) {
@@ -1993,7 +2003,18 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             // Add TextWatcher to Qty and Price EditText
             etQty.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculateAmount()
+                    if (etQty.text.toString().isNotEmpty()) {//changed
+                        val tempFinalQty = (etQty.text.toString()
+                            .toBigDecimal() * (productModel?.conversionFactor?.toBigDecimal()
+                            ?: BigDecimal.ZERO))
+                        tvSchemeValue.text =
+                            productModel?.altUnit + ":" + tempFinalQty + ", " + productModel?.scheme
+                    } else {
+                        tvSchemeValue.text =
+                            productModel?.altUnit + ":" + "0" + ", " + productModel?.scheme
+                    }
+                    //qtyMode = productModel?.altUnit + productModel?.finalQty
+                    calculateAmount(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2009,7 +2030,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             etPrice.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculateAmount()
+                    calculateAmount(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2025,7 +2046,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             etAmount.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculatePrice()
+                    calculatePrice(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2055,11 +2076,10 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }
-                if(etQty.text.toString().toDouble() <= 0){
+                if (etQty.text.toString().toDouble() <= 0) {
                     showToastMessage(mActivity, getString(R.string.please_enter_valid_quantity))
                     return@setOnClickListener
                 }
-
 
                 /*if ((productModel?.isPriceEditable == true) && etAmount.text.toString().trim().isEmpty()) {
                     showToastMessage(
@@ -2071,6 +2091,19 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 val qtyText = etQty.text.toString().trim()
                 val priceText = etPrice.text.toString().trim()
                 val amountText = etAmount.text.toString().trim()
+
+                //changes
+                val tempFinalQty = (etQty.text.toString()
+                    .toBigDecimal() * (productModel?.conversionFactor?.toBigDecimal()
+                    ?: BigDecimal.ZERO))
+
+                val qty = etQty.text.toString().toDoubleOrNull() ?: 0.0
+                val price = etPrice.text.toString().toDoubleOrNull() ?: 0.0
+
+                val discountAmount = ((qty * price) * ((productModel?.standardDiscount
+                    ?: 0.0) + (productModel?.additionalDiscount ?: 0.0)) / 100)
+                val amount = (qty * price) - discountAmount
+
                 val orderDetailsModel = ProductInquiryGroupResponse(
                     inquiryDetailsId = productModel?.inquiryDetailsId ?: 0,
                     inquiryId = productModel?.inquiryId ?: 0,
@@ -2083,11 +2116,33 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     salesPrice = productModel?.salesPrice ?: BigDecimal.ZERO,
                     qty = if (qtyText.isNotEmpty()) qtyText.toBigDecimal() else BigDecimal.ZERO,
                     price = if (priceText.isNotEmpty()) priceText.toBigDecimal() else BigDecimal.ZERO,
-                    amount = if (amountText.isNotEmpty()) amountText.toBigDecimal() else BigDecimal.ZERO
+                    amount = amount.toBigDecimal(),//if (amountText.isNotEmpty()) amountText.toBigDecimal() else BigDecimal.ZERO,
+                    finalQty = tempFinalQty,
+                    scheme = productModel?.scheme,
+                    mrp = productModel?.mrp,
+                    discountAmount = discountAmount.toBigDecimal() ?: BigDecimal.ZERO,
+                    standardDiscount = (productModel?.standardDiscount?.toDouble() ?: 0.0),
+                    additionalDiscount = productModel?.additionalDiscount?.toDouble() ?: 0.00,
+                    conversionFactor = productModel?.conversionFactor,
+                    userId = productModel?.userId,
+                    parameterString = productModel?.parameterString,
+                    quantityRoundOffType = (productModel?.quantityRoundOffType ?: 0).toInt(),
+                    perUnitWeight = productModel?.perUnitWeight ?: BigDecimal.ZERO,
+                    schemeDetailsId = productModel?.schemeDetailsId ?: 0,
+                    priceDetailsId = productModel?.priceDetailsId ?: 0
                 )
+                productModel?.amount = amount.toBigDecimal()
+                productModel?.qty = qty.toBigDecimal()
+                productModel?.price = price.toBigDecimal()
+                productModel?.discountAmount = discountAmount.toBigDecimal()
+                Log.e("TAG", "showAddProduct:PRICESCHEME ::  "+productModel?.schemeDetailsId+", "+productModel?.priceDetailsId )
 
                 if (productModel == null) {
                     orderDetailsList.add(orderDetailsModel)
+                    if (orderDetailsList.size > 0) {
+                        binding.spCategory.setEnabled(false);
+                        binding.spCategory.setClickable(false);
+                    }
                 } else {
                     orderDetailsList[orderDetailsPosition] = orderDetailsModel
                 }
@@ -2180,19 +2235,26 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvTotalOrderAmount.text = "${CommonMethods.formatBigDecimal(totalAmount)}"
                 binding.tvTotalOrderQty.text = "${CommonMethods.formatBigDecimal(totalQty)}"
             }
+        } else {
+            binding.tvTotalOrderAmount.text = ""
+            binding.tvTotalOrderQty.text = ""
+            binding.lylTotalOrderAmount.visibility = View.GONE
         }
     }
 
 
-    fun calculateAmount() {
+    fun calculateAmount(productModel: ProductInquiryGroupResponse?) {
         if (isUpdating) return
         isUpdating = true
 
         val qty = etQty.text.toString().toDoubleOrNull() ?: 0.0
         val price = etPrice.text.toString().toDoubleOrNull() ?: 0.0
 
-        if (price > 0) {
-            val amount = qty * price
+        if (qty > 0) {
+            //val amount = qty * price
+            val discountAmount = ((qty * price) * ((productModel?.standardDiscount
+                ?: 0.0) + (productModel?.additionalDiscount ?: 0.0)) / 100)
+            val amount = (qty * price) - discountAmount
             etAmount.setText(CommonMethods.formatLargeDouble(amount))
             etAmount.isEnabled = false // Make amount non-editable
         } else {
@@ -2202,16 +2264,21 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         isUpdating = false
     }
 
-    fun calculatePrice() {
+    fun calculatePrice(productModel: ProductInquiryGroupResponse?) {
         if (isUpdating) return
         isUpdating = true
 
         val qty = etQty.text.toString().toDoubleOrNull() ?: 0.00
         val amount = etAmount.text.toString().toDoubleOrNull() ?: 0.00
 
-        if (amount > 0 && qty > 0) {
+        if (qty > 0) {
+            /*val price = amount / qty
+            etPrice.setText(CommonMethods.formatLargeDouble(price))*/
             val price = amount / qty
             etPrice.setText(CommonMethods.formatLargeDouble(price))
+            productModel?.amount = amount.toBigDecimal()
+            productModel?.qty = qty.toBigDecimal()
+            productModel?.price = price.toBigDecimal()
         } else {
             etPrice.setText("")
         }
@@ -2221,7 +2288,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     private fun openDatePicker(
         previousSelectedDate: Calendar? = null,
-        onDateSelected: (String) -> Unit,
+        isMaxDate: Boolean = false,
+        onDateSelected: (String) -> Unit
     ) {
         val calendar = Calendar.getInstance()
 
@@ -2240,8 +2308,10 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-        datePickerDialog.datePicker.maxDate =
-            CommonMethods.dateStringToCalendar(CommonMethods.getCurrentDate()).timeInMillis
+        if (isMaxDate) {
+            datePickerDialog.datePicker.maxDate =
+                CommonMethods.dateStringToCalendar(CommonMethods.getCurrentDate()).timeInMillis
+        }
         datePickerDialog.show()
     }
 
@@ -2252,6 +2322,10 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderDetailsList.addAll(productList) // Add new items to the orderDetailsList
             orderDetailsAdapter.refreshAdapter(orderDetailsList) // Refresh adapter with updated list
             handleOrderDetailsRVVisibility(orderDetailsList)
+            if (orderDetailsList.size > 0) {
+                binding.spCategory.setEnabled(false);
+                binding.spCategory.setClickable(false);
+            }
         } else {
             showToastMessage(mActivity, "Cart is empty!")
         }
@@ -2260,6 +2334,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun companySelect(dropDownData: CompanyMasterResponse) {
         selectedCompany = dropDownData
+        clearPartyTransactionAddressData()
         isCompanyChange = true
         binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
         resetSelection(
@@ -2274,8 +2349,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun branchSelect(dropDownData: BranchMasterResponse) {
         selectedBranch = dropDownData
-        binding.tvPartyDealer.text = ""
-        selectedPartyDealerId = 0
+        clearPartyTransactionAddressData()
         binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
         resetSelection(
             resetBranch = false,
@@ -2289,8 +2363,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
     override fun divisionSelect(dropDownData: DivisionMasterResponse) {
         selectedDivision = dropDownData
-        binding.tvPartyDealer.text = ""
-        selectedPartyDealerId = 0
+        clearPartyTransactionAddressData()
         binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
         resetSelection(
             resetBranch = false,
@@ -2363,7 +2436,6 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         fun updateItems(arrayList: ArrayList<AccountMasterList>) {
             this.filteredItems = arrayList
             notifyDataSetChanged()
-
         }
 
         inner class ViewHolder(private val itemBinding: ItemUserBinding) :
@@ -2373,6 +2445,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 itemBinding.tvUserName.text = partyDealerData.accountName
                 itemBinding.tvUserName.setOnClickListener {
                     if(isFromPartyDealer) {
+                        isPartyChangeFromVisit = true
                         binding.tvPartyDealer.text = partyDealerData.accountName
                         binding.etContactPersonName.setText(partyDealerData.contactPersonName ?: "")
                         selectedPartyDealerId = partyDealerData.accountMasterId
@@ -2383,6 +2456,17 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     partyDealerDialog.dismiss()
                 }
             }
+        }
+    }
+
+    fun clearPartyTransactionAddressData(){
+        binding.tvPartyDealer.text = ""
+        selectedPartyDealerId = 0
+        binding.etContactPersonName.setText("")
+        if(!isPartyChangeFromVisit && (accountNameFromVisit ?: "").isNotEmpty()) {
+            binding.tvPartyDealer.text = accountNameFromVisit
+            selectedPartyDealerId = accountMasterIdFromVisit
+            binding.etContactPersonName.setText(contactPersonNameFromVisit)
         }
     }
 

@@ -148,7 +148,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                             setupReportRecyclerView()
                         }
                     }
-                }else{
+                } else {
                     /*CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -162,7 +162,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
             override fun onFailure(call: Call<List<ReportListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 setupReportRecyclerView()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -235,6 +235,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                                     animationType = AnimationType.fadeInfadeOut
                                 )
                             }
+
                             getString(R.string.trip_report) -> {
                                 mActivity.addFragment(
                                     TripReportFragment(),
@@ -243,6 +244,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                                     animationType = AnimationType.fadeInfadeOut
                                 )
                             }
+
                             getString(R.string.trip_summery_report) -> {
                                 mActivity.addFragment(
                                     TripSummeryReportFragment(),
@@ -251,6 +253,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                                     animationType = AnimationType.fadeInfadeOut
                                 )
                             }
+
                             getString(R.string.visit_report) -> {
                                 mActivity.addFragment(
                                     VisitReportFragment(),

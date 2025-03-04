@@ -83,6 +83,19 @@
         android:layout_marginBottom="@dimen/_10sdp"
         android:orientation="vertical">
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvDisplayCompany"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:fontFamily="@font/nunito_sans_regular"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/_12ssp"
+            android:textStyle="bold" />
+
+
         <View
             android:layout_width="match_parent"
             android:layout_height="@dimen/_1sdp"

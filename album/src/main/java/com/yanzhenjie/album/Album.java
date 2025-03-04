@@ -78,6 +78,7 @@ public final class Album {
     public static final String KEY_INPUT_CAMERA_QUALITY = "KEY_INPUT_CAMERA_QUALITY";
     public static final String KEY_INPUT_CAMERA_DURATION = "KEY_INPUT_CAMERA_DURATION";
     public static final String KEY_INPUT_CAMERA_BYTES = "KEY_INPUT_CAMERA_BYTES";
+    public static final String KEY_INPUT_IS_FRONT_CAMERA = "KEY_INPUT_IS_FRONT_CAMERA";
 
     // Filter.
     public static final String KEY_INPUT_FILTER_VISIBILITY = "KEY_INPUT_FILTER_VISIBILITY";
@@ -122,8 +123,8 @@ public final class Album {
     /**
      * Open the camera from the activity.
      */
-    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Context context) {
-        return new AlbumCamera(context);
+    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Context context, boolean isFrontCamera) {
+        return new AlbumCamera(context, isFrontCamera);
     }
 
     /**
@@ -164,8 +165,8 @@ public final class Album {
     /**
      * Open the camera from the activity.
      */
-    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Activity activity) {
-        return new AlbumCamera(activity);
+    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Activity activity, boolean isFrontCamera) {
+        return new AlbumCamera(activity, isFrontCamera);
     }
 
     /**
@@ -206,8 +207,8 @@ public final class Album {
     /**
      * Open the camera from the activity.
      */
-    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Fragment fragment) {
-        return new AlbumCamera(fragment.getActivity());
+    public static Camera<ImageCameraWrapper, VideoCameraWrapper> camera(Fragment fragment, boolean isFrontCamera) {
+        return new AlbumCamera(fragment.getActivity(), isFrontCamera);
     }
 
     /**

@@ -51,6 +51,8 @@ class EthicsBackgroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         mContext = this
+        val appDatabase = AppDatabase.getDatabase(mContext)
+        appDao = appDatabase.appDao()
         try {
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
                 startMyOwnBackground()
@@ -102,10 +104,6 @@ class EthicsBackgroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-        val appDatabase = AppDatabase.getDatabase(mContext)
-        appDao = appDatabase.appDao()
-        //Log.e("ETHICSSERVICE", "onCreate:SERVICE USER NAME :: " + appDao.getLoginData().userName)
 
         this.mLocationRequest = LocationRequest()
         this.mLocationRequest.interval = 10000.toLong()
@@ -513,7 +511,7 @@ class EthicsBackgroundService : Service() {
     }
 
 
-    override fun onDestroy() {
+    /*override fun onDestroy() {
         super.onDestroy()
         stopTimer()
         stopLocationUpdates()
@@ -532,7 +530,28 @@ class EthicsBackgroundService : Service() {
             stopTimer()
             stopLocationUpdates()
         }
+    }*/
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopTimer()
+        stopLocationUpdates()
+
+        if (::appDao.isInitialized) { // Check if appDao is initialized before using it
+            val loginData = appDao.getLoginData()
+            if (AppPreference.getBooleanPreference(this, IS_LOGIN) && loginData.attendanceId != 0) {
+                val broadcastIntent = Intent().apply {
+                    action = "restartservice"
+                    setClass(this@EthicsBackgroundService, GPSRestart::class.java)
+                }
+                sendBroadcast(broadcastIntent)
+            }
+        }
+
+        stopTimer()
+        stopLocationUpdates()
     }
+
 
     private fun stopLocationUpdates() {
         if (this.mFusedLocationProviderClient != null) {

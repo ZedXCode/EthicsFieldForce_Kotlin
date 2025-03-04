@@ -1,5 +1,7 @@
 package ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer
 
+import AnimationType
+import addFragment
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -51,6 +53,7 @@ import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.UserAdapterForSpinner
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.AddVisitFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.AlbumUtility
@@ -196,8 +199,11 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.cardImage3.setOnClickListener(this)
         binding.cardImage4.setOnClickListener(this)
         binding.cardImageCapture.setOnClickListener(this)
-        binding.etPhone.filters = arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
-        binding.etContactPersonPhone.filters = arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
+        binding.etPhone.filters =
+            arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
+        binding.etContactPersonPhone.filters =
+            arrayOf(MobileAndLandLineInputFilter(), InputFilter.LengthFilter(15))
+        binding.cbAddVisitDetails.visibility = if (isUpdate) View.GONE else View.VISIBLE
 
         setupImageUploadRecyclerView()
 
@@ -918,9 +924,10 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             return
         }
 
-        if(binding.etPhone.text.toString().trim().isNotEmpty()){
-            val validationMessage = CommonMethods.validateMobileLandlineNumber(binding.etPhone.text.toString().trim())
-            if(validationMessage != IS_VALID){
+        if (binding.etPhone.text.toString().trim().isNotEmpty()) {
+            val validationMessage =
+                CommonMethods.validateMobileLandlineNumber(binding.etPhone.text.toString().trim())
+            if (validationMessage != IS_VALID) {
                 CommonMethods.showToastMessage(mActivity, validationMessage)
                 return
             }
@@ -934,9 +941,11 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             return
         }
 
-        if(binding.etContactPersonPhone.text.toString().trim().isNotEmpty()){
-            val validationMessage = CommonMethods.validateMobileLandlineNumber(binding.etContactPersonPhone.text.toString().trim())
-            if(validationMessage != IS_VALID){
+        if (binding.etContactPersonPhone.text.toString().trim().isNotEmpty()) {
+            val validationMessage = CommonMethods.validateMobileLandlineNumber(
+                binding.etContactPersonPhone.text.toString().trim()
+            )
+            if (validationMessage != IS_VALID) {
                 CommonMethods.showToastMessage(mActivity, validationMessage)
                 return
             }
@@ -1463,19 +1472,17 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
             addPartyDealerReq.addProperty("FilePath4", "")
         }
 
-
-
         print("MY REQ ::::::: " + addPartyDealerReq)
         Log.e("TAG", "callAddExpenseApi: ADD EXPENSE REQ :: " + addPartyDealerReq)
 
-        val partyDealerCall: Call<CommonSuccessResponse>? = WebApiClient.getInstance(mActivity)
+        val partyDealerCall: Call<AccountMasterList>? = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.addUpdatePartyDealer(addPartyDealerReq)
 
-        partyDealerCall?.enqueue(object : Callback<CommonSuccessResponse> {
+        partyDealerCall?.enqueue(object : Callback<AccountMasterList> {
             override fun onResponse(
-                call: Call<CommonSuccessResponse>,
-                response: Response<CommonSuccessResponse>
+                call: Call<AccountMasterList>,
+                response: Response<AccountMasterList>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -1498,6 +1505,18 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                                         } else {
                                             mActivity.onBackPressed()
                                         }
+                                        if (binding.cbAddVisitDetails.isChecked) {
+                                            mActivity.addFragment(
+                                                AddVisitFragment.newInstance(
+                                                    it,
+                                                    0,
+                                                    false
+                                                ),
+                                                addToBackStack = true,
+                                                ignoreIfCurrent = true,
+                                                animationType = AnimationType.fadeInfadeOut
+                                            )
+                                        }
                                     }
                                 }
                             }, isCancelVisibility = false
@@ -1514,7 +1533,7 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
 
-            override fun onFailure(call: Call<CommonSuccessResponse>, t: Throwable) {
+            override fun onFailure(call: Call<AccountMasterList>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(

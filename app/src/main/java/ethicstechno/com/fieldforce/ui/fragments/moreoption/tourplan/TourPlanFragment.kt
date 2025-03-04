@@ -29,6 +29,7 @@ import ethicstechno.com.fieldforce.databinding.FragmentTourPlanBinding
 import ethicstechno.com.fieldforce.databinding.ItemTourPlanBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseCityListResponse
@@ -581,7 +582,7 @@ class TourPlanFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogL
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: CategoryMasterResponse,
+        visitType: CommonDropDownResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

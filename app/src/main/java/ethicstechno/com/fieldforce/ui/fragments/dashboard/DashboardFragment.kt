@@ -2,6 +2,7 @@ package ethicstechno.com.fieldforce.ui.fragments.dashboard
 
 import AnimationType
 import addFragment
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -62,6 +63,8 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
     lateinit var dashboardBinding: FragmentDashboardBinding
     var dashboardList: ArrayList<DashboardListResponse> = arrayListOf()
+
+    var statusColor = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -292,12 +295,725 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(dashboardData: DashboardListResponse) {
-                binding.tvHeader.text = dashboardData.reportName
-                binding.tvLine1.text = dashboardData.titleLine1
-                binding.tvLine2.text = dashboardData.titleLine2
-                binding.tvLine3.text = dashboardData.titleLine3
-                binding.tvLine4.text = dashboardData.titleLine4
-                binding.llMain.setOnClickListener {
+                Log.d("VIEWTYPE===>",""+dashboardData.viewType)
+               // Log.d("VIEWCOLOR===>",""+dashboardData.color4)
+
+                dashboardList.forEach { (dashboardData)
+                    Log.d("LISTDATA===>",""+dashboardList.size)
+                    if (dashboardData.viewType == 1)
+                    {//For New Design
+                        Log.d("VIEW===>","view1")
+                        binding.liView1.visibility = View.VISIBLE
+                        binding.liView2.visibility = View.GONE
+                        binding.liView3.visibility = View.GONE
+                        binding.liView4.visibility = View.GONE
+                        //binding.llMain.visibility = View.GONE
+
+                        binding.tvValue2.text = dashboardData.value2
+                        binding.tvTitleLine1.text = dashboardData.titleLine1
+                        binding.tvValue1.text = dashboardData.value1
+
+                       // statusColor = dashboardData.color4
+
+                        val colors = dashboardData.color4.split("|")
+                        if (colors[1].isEmpty()){
+                            binding.liView1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+                        }else{
+                            binding.liView1.setBackgroundColor(Color.parseColor(colors[1]))
+                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+                        }
+
+                        val colors1 = dashboardData.color1.split("|")
+                        if (colors1[0].isEmpty()){
+                            binding.tvValue2.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvValue2.setTextColor(Color.parseColor(colors1[0]))
+                        }
+
+                        val colors2 = dashboardData.color2.split("|")
+                        if (colors2[0].isEmpty()){
+                            binding.tvValue1.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvValue1.setTextColor(Color.parseColor(colors2[0]))
+                        }
+
+                    }
+                    else if (dashboardData.viewType == 2){//OLD View
+                        Log.d("VIEW===>","view2")
+                        binding.liView1.visibility = View.GONE
+                        binding.liView2.visibility = View.VISIBLE
+                        binding.liView3.visibility = View.GONE
+                        binding.liView4.visibility = View.GONE
+                        //binding.llMain.visibility = View.GONE
+
+                        binding.tvTitleLine2.text = dashboardData.reportName
+                        binding.tvView2Value1.text = dashboardData.value1
+                        binding.tvView2TitleLine1.text = dashboardData.titleLine1
+                        binding.tvView2Value2.text = dashboardData.value2
+                        binding.tvView2TitleLine2.text = dashboardData.titleLine2
+                        binding.tvView2Value3.text = dashboardData.value3
+                        binding.tvView2Value4.text = dashboardData.value4
+                        binding.tvView2TitleLine3.text = dashboardData.titleLine3
+                        binding.tvView2TitleLine4.text = dashboardData.titleLine4
+
+                        val colors4 = dashboardData.color4.split("|")
+                        if (colors4[1].isEmpty()){
+                            binding.liView2.setBackgroundColor(Color.parseColor("#FFBCC8"))
+                        }else{
+                            binding.liView2.setBackgroundColor(Color.parseColor(colors4[1]))
+                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+                        }
+                        if (colors4[0].isEmpty()){
+                            binding.tvView2Value4.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView2Value4.setTextColor(Color.parseColor(colors4[0]))
+                        }
+
+                        val colors1 = dashboardData.color1.split("|")
+                        if (colors1[0].isEmpty()){
+                            binding.tvView2Value1.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView2Value1.setTextColor(Color.parseColor(colors1[0]))
+                        }
+
+                        val colors2 = dashboardData.color2.split("|")
+                        if (colors2[0].isEmpty()){
+                            binding.tvView2Value2.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView2Value2.setTextColor(Color.parseColor(colors2[0]))
+                        }
+
+                        val colors3 = dashboardData.color3.split("|")
+                        if (colors3[0].isEmpty()){
+                            binding.tvView2Value3.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView2Value3.setTextColor(Color.parseColor(colors3[0]))
+                        }
+                    }
+                    else if (dashboardData.viewType == 3){
+                        Log.d("VIEW===>","view3")
+                        binding.liView1.visibility = View.GONE
+                        binding.liView2.visibility = View.GONE
+                        binding.liView3.visibility = View.VISIBLE
+                        binding.liView4.visibility = View.GONE
+                        //binding.llMain.visibility = View.GONE
+
+                        binding.tvTitleLine3.text = dashboardData.reportName
+                        binding.tvView3TitleLine1.text = dashboardData.titleLine1
+                        binding.tvView3Value1.text = dashboardData.value1
+                        binding.tvView3TitleLine2.text = dashboardData.titleLine2
+                        binding.tvView3Value2.text = dashboardData.value2
+                        binding.tvView3TitleLine3.text = dashboardData.titleLine3
+                        binding.tvView3Value3.text = dashboardData.value3
+                        binding.tvView3TitleLine4.text = dashboardData.titleLine4
+                        binding.tvView3Value4.text = dashboardData.value4
+
+
+                        val color1 = dashboardData.color1.split("|")
+                        if (color1[0].isEmpty()){
+                            binding.tvView3TitleLine1.setTextColor(Color.parseColor("#FF000000"))
+                            binding.tvView3Value1.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView3Value1.setTextColor(Color.parseColor(color1[0]))
+                            binding.tvView3TitleLine1.setTextColor(Color.parseColor(color1[0]))
+                        }
+
+                        if (color1[1].isEmpty()){
+                            binding.lvView3layout1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+                        }else{
+                            binding.lvView3layout1.setBackgroundColor(Color.parseColor(color1[1]))
+                        }
+
+                        val color2 = dashboardData.color2.split("|")
+                        if (color2[0].isEmpty()){
+                            binding.tvView3TitleLine2.setTextColor(Color.parseColor("#FF000000"))
+                            binding.tvView3Value2.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView3Value2.setTextColor(Color.parseColor(color2[0]))
+                            binding.tvView3TitleLine2.setTextColor(Color.parseColor(color2[0]))
+                        }
+
+                        if (color2[1].isEmpty()){
+                            binding.lvView3layout2.setBackgroundColor(Color.parseColor("#FFFFD8"))
+                        }else{
+                            binding.lvView3layout2.setBackgroundColor(Color.parseColor(color2[1]))
+                        }
+
+                        val color3 = dashboardData.color3.split("|")
+                        if (color3[0].isEmpty()){
+                            binding.tvView3TitleLine3.setTextColor(Color.parseColor("#FF000000"))
+                            binding.tvView3Value3.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView3Value3.setTextColor(Color.parseColor(color3[0]))
+                            binding.tvView3TitleLine3.setTextColor(Color.parseColor(color3[0]))
+                        }
+
+                        if (color3[1].isEmpty()){
+                            binding.lvView3layout3.setBackgroundColor(Color.parseColor("#EAEBFF"))
+                        }else{
+                            binding.lvView3layout3.setBackgroundColor(Color.parseColor(color3[1]))
+                        }
+
+                        val colors4 = dashboardData.color4.split("|")
+                        if (colors4[0].isEmpty()){
+                            binding.tvView3TitleLine4.setTextColor(Color.parseColor("#FF000000"))
+                            binding.tvView3Value4.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView3Value4.setTextColor(Color.parseColor(colors4[0]))
+                            binding.tvView3TitleLine4.setTextColor(Color.parseColor(colors4[0]))
+                        }
+
+                        if (colors4[1].isEmpty()){
+                            binding.lvView3layout4.setBackgroundColor(Color.parseColor("#E0FEFE"))
+                        }else{
+                            binding.lvView3layout4.setBackgroundColor(Color.parseColor(colors4[1]))
+                        }
+//                        if (colors4[1].isEmpty()){
+//                            binding.liView3.setBackgroundColor(Color.parseColor("#FFBCC8"))
+//                        }else{
+//                            binding.liView3.setBackgroundColor(Color.parseColor(colors4[1]))
+//                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+//                        }
+
+                        if (dashboardData.titleLine1.isEmpty()){
+                            binding.tvView4TitleLine1.visibility = View.GONE
+                        }
+                        else if (dashboardData.value1.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine2.isEmpty()){
+                            binding.tvView4TitleLine2.visibility = View.GONE
+                        }
+                        else if (dashboardData.value2.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine3.isEmpty()){
+                            binding.tvView4TitleLine3.visibility = View.GONE
+                        }
+                        else if (dashboardData.value3.isEmpty()){
+                            binding.tvView4Value3.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine4.isEmpty()){
+                            binding.tvView4TitleLine4.visibility = View.GONE
+                        }
+                        else if (dashboardData.value4.isEmpty()){
+                            binding.tvView4Value4.visibility = View.GONE
+                        }
+
+                        if(dashboardData.titleLine1.isEmpty() && dashboardData.value1.isEmpty()){
+                            binding.lvView3layout1.visibility = View.GONE
+                        }
+                        else if(dashboardData.titleLine2.isEmpty() && dashboardData.value2.isEmpty()){
+                            binding.lvView3layout2.visibility = View.GONE
+                        }
+                        else if(dashboardData.titleLine4.isEmpty() && dashboardData.value4.isEmpty()){
+                            binding.lvView3layout4.visibility = View.GONE
+                        }
+
+
+                        if(dashboardData.titleLine3.isEmpty() && dashboardData.value3.isEmpty()){
+                            binding.lvView3layout3.visibility = View.GONE
+                        }
+                    }
+                    else if (dashboardData.viewType == 4){
+                        Log.d("VIEW===>","view4")
+                        binding.liView1.visibility = View.GONE
+                        binding.liView2.visibility = View.GONE
+                        binding.liView3.visibility = View.GONE
+                        binding.liView4.visibility = View.VISIBLE
+                        //binding.llMain.visibility = View.GONE
+
+                        binding.tvTitleLine4.text = dashboardData.reportName
+                        binding.tvView4TitleLine1.text = dashboardData.titleLine1
+                        binding.tvView4Value1.text = dashboardData.value1
+                        binding.tvView4TitleLine2.text = dashboardData.titleLine2
+                        binding.tvView4Value2.text = dashboardData.value2
+                        binding.tvView4TitleLine3.text = dashboardData.titleLine3
+                        binding.tvView4Value3.text = dashboardData.value3
+                        binding.tvView4TitleLine4.text = dashboardData.titleLine4
+                        binding.tvView4Value4.text = dashboardData.value4
+
+                        val colors1 = dashboardData.color1.split("|")
+                        if (colors1[0].isEmpty()){
+                            binding.tvView4Value1.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value1.setTextColor(Color.parseColor(colors1[0]))
+                        }
+
+                        if (colors1[1].isEmpty()){
+                            binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+                            binding.tvView4Value1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+
+                        }else{
+                            binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor(colors1[1]))
+                            binding.tvView4Value1.setBackgroundColor(Color.parseColor(colors1[1]))
+                        }
+
+
+                        val colors2 = dashboardData.color2.split("|")
+                        if (colors2[0].isEmpty()){
+                            binding.tvView4Value2.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value2.setTextColor(Color.parseColor(colors2[0]))
+                        }
+
+                        if (colors2[1].isEmpty()){
+                            binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor("#FFFFD8"))
+                            binding.tvView4Value2.setBackgroundColor(Color.parseColor("#FFFFD8"))
+
+                        }else{
+                            binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor(colors2[1]))
+                            binding.tvView4Value2.setBackgroundColor(Color.parseColor(colors2[1]))
+                        }
+
+                        val colors3 = dashboardData.color3.split("|")
+                        if (colors3[0].isEmpty()){
+                            binding.tvView4Value3.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value3.setTextColor(Color.parseColor(colors3[0]))
+                        }
+
+                        if (colors3[1].isEmpty()){
+                            binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor("#EAEBFF"))
+                            binding.tvView4Value3.setBackgroundColor(Color.parseColor("#EAEBFF"))
+
+                        }else{
+                            binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor(colors3[1]))
+                            binding.tvView4Value3.setBackgroundColor(Color.parseColor(colors3[1]))
+                        }
+
+                        val colors4 = dashboardData.color4.split("|")
+                        if (colors4[0].isEmpty()){
+                            binding.tvView4Value4.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value4.setTextColor(Color.parseColor(colors4[0]))
+                        }
+
+                        if (colors4[1].isEmpty()){
+                            binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor("#E0FEFE"))
+                            binding.tvView4Value4.setBackgroundColor(Color.parseColor("#E0FEFE"))
+
+                        }else{
+                            binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor(colors4[1]))
+                            binding.tvView4Value4.setBackgroundColor(Color.parseColor(colors4[1]))
+                        }
+
+//                        if (colors4[1].isEmpty()){
+//                            binding.liView4.setBackgroundColor(Color.parseColor("#FFBCC8"))
+//                        }else{
+//                            binding.liView4.setBackgroundColor(Color.parseColor(colors4[1]))
+//                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+//                        }
+
+                        if (dashboardData.titleLine1.isEmpty()){
+                            binding.tvView4TitleLine1.visibility = View.GONE
+                        }
+                        else if (dashboardData.value1.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine2.isEmpty()){
+                            binding.tvView4TitleLine2.visibility = View.GONE
+                        }
+                        else if (dashboardData.value2.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine3.isEmpty()){
+                            binding.tvView4TitleLine3.visibility = View.GONE
+                        }
+                        else if (dashboardData.value3.isEmpty()){
+                            binding.tvView4Value3.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine4.isEmpty()){
+                            binding.tvView4TitleLine4.visibility = View.GONE
+                        }
+                        else if (dashboardData.value4.isEmpty()){
+                            binding.tvView4Value4.visibility = View.GONE
+                        }
+                    }
+                    else {
+                        Log.d("VIEW===>","view4")
+                        binding.liView1.visibility = View.GONE
+                        binding.liView2.visibility = View.GONE
+                        binding.liView3.visibility = View.GONE
+                        binding.liView4.visibility = View.VISIBLE
+
+                        binding.tvView4Value1.visibility = View.GONE
+                        binding.tvView4Value2.visibility = View.GONE
+                        binding.tvView4Value3.visibility = View.GONE
+                        binding.tvView4Value4.visibility = View.GONE
+                        //binding.llMain.visibility = View.GONE
+
+                        binding.tvTitleLine4.text = dashboardData.reportName
+                        binding.tvView4TitleLine1.text = dashboardData.titleLine1
+                        binding.tvView4Value1.text = dashboardData.value1
+                        binding.tvView4TitleLine2.text = dashboardData.titleLine2
+                        binding.tvView4Value2.text = dashboardData.value2
+                        binding.tvView4TitleLine3.text = dashboardData.titleLine3
+                        binding.tvView4Value3.text = dashboardData.value3
+                        binding.tvView4TitleLine4.text = dashboardData.titleLine4
+                        binding.tvView4Value4.text = dashboardData.value4
+
+                        val colors1 = dashboardData.color1.split("|")
+                        if (colors1[0].isEmpty()){
+                            binding.tvView4Value1.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value1.setTextColor(Color.parseColor(colors1[0]))
+                        }
+
+                        if (colors1[1].isEmpty()){
+                            binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+                            binding.tvView4Value1.setBackgroundColor(Color.parseColor("#FFBCC8"))
+
+                        }else{
+                            binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor(colors1[1]))
+                            binding.tvView4Value1.setBackgroundColor(Color.parseColor(colors1[1]))
+                        }
+
+
+                        val colors2 = dashboardData.color2.split("|")
+                        if (colors2[0].isEmpty()){
+                            binding.tvView4Value2.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value2.setTextColor(Color.parseColor(colors2[0]))
+                        }
+
+                        if (colors2[1].isEmpty()){
+                            binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor("#FFFFD8"))
+                            binding.tvView4Value2.setBackgroundColor(Color.parseColor("#FFFFD8"))
+
+                        }else{
+                            binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor(colors2[1]))
+                            binding.tvView4Value2.setBackgroundColor(Color.parseColor(colors2[1]))
+                        }
+
+                        val colors3 = dashboardData.color3.split("|")
+                        if (colors3[0].isEmpty()){
+                            binding.tvView4Value3.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value3.setTextColor(Color.parseColor(colors3[0]))
+                        }
+
+                        if (colors3[1].isEmpty()){
+                            binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor("#EAEBFF"))
+                            binding.tvView4Value3.setBackgroundColor(Color.parseColor("#EAEBFF"))
+
+                        }else{
+                            binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor(colors3[1]))
+                            binding.tvView4Value3.setBackgroundColor(Color.parseColor(colors3[1]))
+                        }
+
+                        val colors4 = dashboardData.color4.split("|")
+                        if (colors4[0].isEmpty()){
+                            binding.tvView4Value4.setTextColor(Color.parseColor("#FF000000"))
+                        }
+                        else{
+                            binding.tvView4Value4.setTextColor(Color.parseColor(colors4[0]))
+                        }
+
+                        if (colors4[1].isEmpty()){
+                            binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor("#E0FEFE"))
+                            binding.tvView4Value4.setBackgroundColor(Color.parseColor("#E0FEFE"))
+
+                        }else{
+                            binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor(colors4[1]))
+                            binding.tvView4Value4.setBackgroundColor(Color.parseColor(colors4[1]))
+                        }
+
+//                        if (colors4[1].isEmpty()){
+//                            binding.liView4.setBackgroundColor(Color.parseColor("#FFBCC8"))
+//                        }else{
+//                            binding.liView4.setBackgroundColor(Color.parseColor(colors4[1]))
+//                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+//                        }
+
+                        if (dashboardData.titleLine1.isEmpty()){
+                            binding.tvView4TitleLine1.visibility = View.GONE
+                        }
+                        else if (dashboardData.value1.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine2.isEmpty()){
+                            binding.tvView4TitleLine2.visibility = View.GONE
+                        }
+                        else if (dashboardData.value2.isEmpty()){
+                            binding.tvView4Value1.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine3.isEmpty()){
+                            binding.tvView4TitleLine3.visibility = View.GONE
+                        }
+                        else if (dashboardData.value3.isEmpty()){
+                            binding.tvView4Value3.visibility = View.GONE
+                        }
+                        else if (dashboardData.titleLine4.isEmpty()){
+                            binding.tvView4TitleLine4.visibility = View.GONE
+                        }
+                        else if (dashboardData.value4.isEmpty()){
+                            binding.tvView4Value4.visibility = View.GONE
+                        }
+                    }
+
+                }
+
+//                if (dashboardData.viewType == 1)
+//                {
+//                    Log.d("VIEW===>","view1")
+//                    binding.liView1.visibility = View.VISIBLE
+//                    binding.liView2.visibility = View.GONE
+//                    binding.liView3.visibility = View.GONE
+//                    binding.liView4.visibility = View.GONE
+//                    //binding.llMain.visibility = View.GONE
+//
+//                    binding.tvValue2.text = dashboardData.value2
+//                    binding.tvTitleLine1.text = dashboardData.titleLine1
+//                    binding.tvValue1.text = dashboardData.value1
+//
+//                    if (dashboardData.color4.isNotEmpty()){
+//                        binding.tvValue2.setTextColor(Color.parseColor(dashboardData.color4))
+//                    }else{
+//                        binding.tvValue2.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//
+//                    if (dashboardData.color1.isEmpty()){
+//                        binding.tvValue2.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvValue2.setTextColor(Color.parseColor(dashboardData.color1))
+//                    }
+//
+//                    if (dashboardData.color2.isEmpty()){
+//                        binding.tvValue1.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvValue1.setTextColor(Color.parseColor(dashboardData.color2))
+//                    }
+//
+//                }
+//                else if (dashboardData.viewType == 2){
+//                    Log.d("VIEW===>","view2")
+//                    binding.liView1.visibility = View.GONE
+//                    binding.liView2.visibility = View.VISIBLE
+//                    binding.liView3.visibility = View.GONE
+//                    binding.liView4.visibility = View.GONE
+//                    //binding.llMain.visibility = View.GONE
+//
+//                    binding.tvTitleLine2.text = dashboardData.reportName
+//                    binding.tvView2Value1.text = dashboardData.value1
+//                    binding.tvView2TitleLine1.text = dashboardData.titleLine1
+//                    binding.tvView2Value2.text = dashboardData.value2
+//                    binding.tvView2TitleLine2.text = dashboardData.titleLine2
+//                    binding.tvView2Value3.text = dashboardData.value3
+//                    binding.tvView2Value4.text = dashboardData.value4
+//                    binding.tvView2TitleLine3.text = dashboardData.titleLine3
+//                    binding.tvView2TitleLine4.text = dashboardData.titleLine4
+//
+//                    if (dashboardData.color1.isEmpty()){
+//                        binding.tvView2Value1.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView2Value1.setTextColor(Color.parseColor(dashboardData.color1))
+//                    }
+//
+//                    if (dashboardData.color2.isEmpty()){
+//                        binding.tvView2Value2.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView2Value2.setTextColor(Color.parseColor(dashboardData.color2))
+//                    }
+//
+//                    if (dashboardData.color3.isEmpty()){
+//                        binding.tvView2Value3.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView2Value3.setTextColor(Color.parseColor(dashboardData.color3))
+//                    }
+//
+//                    if (dashboardData.color4.isEmpty()){
+//                        binding.tvView2TitleLine4.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView2TitleLine4.setTextColor(Color.parseColor(dashboardData.color4))
+//                    }
+//                }
+//                else if (dashboardData.viewType == 3){
+//                    Log.d("VIEW===>","view3")
+//                    binding.liView1.visibility = View.GONE
+//                    binding.liView2.visibility = View.GONE
+//                    binding.liView3.visibility = View.VISIBLE
+//                    binding.liView4.visibility = View.GONE
+//                    //binding.llMain.visibility = View.GONE
+//
+//                    binding.tvTitleLine3.text = dashboardData.reportName
+//                    binding.tvView3TitleLine1.text = dashboardData.titleLine1
+//                    binding.tvView3Value1.text = dashboardData.value1
+//                    binding.tvView3TitleLine2.text = dashboardData.titleLine2
+//                    binding.tvView3Value2.text = dashboardData.value2
+//                    binding.tvView3TitleLine3.text = dashboardData.titleLine3
+//                    binding.tvView3Value3.text = dashboardData.value3
+//                    binding.tvView3TitleLine4.text = dashboardData.titleLine4
+//                    binding.tvView3Value4.text = dashboardData.value4
+//
+//                    if (dashboardData.color1.isEmpty()){
+//                        binding.tvView3Value1.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView3Value1.setTextColor(Color.parseColor(dashboardData.color1))
+//                    }
+//
+//                    if (dashboardData.color2.isEmpty()){
+//                        binding.tvView3Value2.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView3Value2.setTextColor(Color.parseColor(dashboardData.color2))
+//                    }
+//
+//                    if (dashboardData.color3.isEmpty()){
+//                        binding.tvView3Value3.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView3Value3.setTextColor(Color.parseColor(dashboardData.color3))
+//                    }
+//
+//                    if (dashboardData.color4.isEmpty()){
+//                        binding.tvView3Value4.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView3Value4.setTextColor(Color.parseColor(dashboardData.color4))
+//                    }
+//                }
+//                else {
+//                    Log.d("VIEW===>","view4")
+//                    binding.liView1.visibility = View.GONE
+//                    binding.liView2.visibility = View.GONE
+//                    binding.liView3.visibility = View.GONE
+//                    binding.liView4.visibility = View.VISIBLE
+//                    //binding.llMain.visibility = View.GONE
+//
+//                    binding.tvTitleLine4.text = dashboardData.reportName
+//                    binding.tvView4TitleLine1.text = dashboardData.titleLine1
+//                    binding.tvView4Value1.text = dashboardData.value1
+//                    binding.tvView4TitleLine2.text = dashboardData.titleLine2
+//                    binding.tvView4Value2.text = dashboardData.value2
+//                    binding.tvView4TitleLine3.text = dashboardData.titleLine3
+//                    binding.tvView4Value3.text = dashboardData.value3
+//                    binding.tvView4TitleLine4.text = dashboardData.titleLine4
+//                    binding.tvView4Value4.text = dashboardData.value4
+//
+//                    if (dashboardData.color1.isEmpty()){
+//                        binding.tvView4Value1.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView4Value1.setTextColor(Color.parseColor(dashboardData.color1))
+//                    }
+//
+//                    if (dashboardData.color2.isEmpty()){
+//                        binding.tvView4Value2.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView4Value2.setTextColor(Color.parseColor(dashboardData.color2))
+//                    }
+//
+//                    if (dashboardData.color3.isEmpty()){
+//                        binding.tvView4Value3.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView4Value3.setTextColor(Color.parseColor(dashboardData.color3))
+//                    }
+//
+//                    if (dashboardData.color4.isEmpty()){
+//                        binding.tvView4Value4.setTextColor(Color.parseColor("#FF000000"))
+//                    }
+//                    else{
+//                        binding.tvView4Value4.setTextColor(Color.parseColor(dashboardData.color4))
+//                    }
+//
+//                    if (dashboardData.titleLine1.isEmpty()){
+//                        binding.tvView4TitleLine1.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.value1.isEmpty()){
+//                        binding.tvView4Value1.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.titleLine2.isEmpty()){
+//                        binding.tvView4TitleLine2.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.value2.isEmpty()){
+//                        binding.tvView4Value1.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.titleLine3.isEmpty()){
+//                        binding.tvView4TitleLine3.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.value3.isEmpty()){
+//                        binding.tvView4Value3.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.titleLine4.isEmpty()){
+//                        binding.tvView4TitleLine4.visibility = View.GONE
+//                    }
+//                    else if (dashboardData.value4.isEmpty()){
+//                        binding.tvView4Value4.visibility = View.GONE
+//                    }
+//                }
+
+//                else{
+//                    binding.liView1.visibility = View.GONE
+//                    binding.liView2.visibility = View.GONE
+//                    binding.liView3.visibility = View.GONE
+//                    binding.liView4.visibility = View.GONE
+//                    binding.llMain.visibility = View.VISIBLE
+//
+//                    binding.tvHeader.text = dashboardData.reportName
+//                    binding.tvLine1.text = dashboardData.titleLine1
+//                    binding.tvLine2.text = dashboardData.titleLine2
+//                    binding.tvLine3.text = dashboardData.titleLine3
+//                    binding.tvLine4.text = dashboardData.titleLine4
+//                }
+//                binding.tvHeader.text = dashboardData.reportName
+//                binding.tvLine1.text = dashboardData.titleLine1
+//                binding.tvLine2.text = dashboardData.titleLine2
+//                binding.tvLine3.text = dashboardData.titleLine3
+//                binding.tvLine4.text = dashboardData.titleLine4
+
+//                binding.llMain.setOnClickListener {
+//                    Log.e("TAG", "bind: DASHBOAR")
+//                    if (mActivity.isDashboardVisible()) {
+//                        mActivity.addFragment(
+//                            DashboardDrillFragment.newInstance(
+//                                false,
+//                                dashboardData,
+//                                DashboardDrillResponse(),
+//                                dashboardData.storeProcedureName,
+//                                dashboardData.reportSetupId, arrayListOf(),
+//                                dashboardData.reportName,
+//                                dashboardData.filter,
+//                                dashboardData.reportGroupBy,
+//                                startDate = "",
+//                                endDate = ""
+//                            ),
+//                            addToBackStack = true,
+//                            ignoreIfCurrent = true,
+//                            animationType = AnimationType.fadeInfadeOut
+//                        )
+//                        dashboardBinding.rvDashboard.isEnabled = false
+//                    }
+//                }
+                //binding.executePendingBindings()
+
+                binding.liView1.setOnClickListener {
                     Log.e("TAG", "bind: DASHBOAR")
                     if (mActivity.isDashboardVisible()) {
                         mActivity.addFragment(
@@ -320,7 +1036,84 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         dashboardBinding.rvDashboard.isEnabled = false
                     }
                 }
+               // binding.executePendingBindings()
+
+                binding.liView2.setOnClickListener {
+                    Log.e("TAG", "bind: DASHBOAR")
+                    if (mActivity.isDashboardVisible()) {
+                        mActivity.addFragment(
+                            DashboardDrillFragment.newInstance(
+                                false,
+                                dashboardData,
+                                DashboardDrillResponse(),
+                                dashboardData.storeProcedureName,
+                                dashboardData.reportSetupId, arrayListOf(),
+                                dashboardData.reportName,
+                                dashboardData.filter,
+                                dashboardData.reportGroupBy,
+                                startDate = "",
+                                endDate = ""
+                            ),
+                            addToBackStack = true,
+                            ignoreIfCurrent = true,
+                            animationType = AnimationType.fadeInfadeOut
+                        )
+                        dashboardBinding.rvDashboard.isEnabled = false
+                    }
+                }
+                //.executePendingBindings()
+
+                binding.liView3.setOnClickListener {
+                    Log.e("TAG", "bind: DASHBOAR")
+                    if (mActivity.isDashboardVisible()) {
+                        mActivity.addFragment(
+                            DashboardDrillFragment.newInstance(
+                                false,
+                                dashboardData,
+                                DashboardDrillResponse(),
+                                dashboardData.storeProcedureName,
+                                dashboardData.reportSetupId, arrayListOf(),
+                                dashboardData.reportName,
+                                dashboardData.filter,
+                                dashboardData.reportGroupBy,
+                                startDate = "",
+                                endDate = ""
+                            ),
+                            addToBackStack = true,
+                            ignoreIfCurrent = true,
+                            animationType = AnimationType.fadeInfadeOut
+                        )
+                        dashboardBinding.rvDashboard.isEnabled = false
+                    }
+                }
+                //binding.executePendingBindings()
+
+                binding.liView4.setOnClickListener {
+                    Log.e("TAG", "bind: DASHBOAR")
+                    if (mActivity.isDashboardVisible()) {
+                        mActivity.addFragment(
+                            DashboardDrillFragment.newInstance(
+                                false,
+                                dashboardData,
+                                DashboardDrillResponse(),
+                                dashboardData.storeProcedureName,
+                                dashboardData.reportSetupId, arrayListOf(),
+                                dashboardData.reportName,
+                                dashboardData.filter,
+                                dashboardData.reportGroupBy,
+                                startDate = "",
+                                endDate = ""
+                            ),
+                            addToBackStack = true,
+                            ignoreIfCurrent = true,
+                            animationType = AnimationType.fadeInfadeOut
+                        )
+                        dashboardBinding.rvDashboard.isEnabled = false
+                    }
+                }
+
                 binding.executePendingBindings()
+
             }
         }
     }

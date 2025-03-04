@@ -48,9 +48,9 @@ import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.ui.activities.HomeActivity
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.FilterAdapter
@@ -59,7 +59,6 @@ import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.math.BigDecimal
@@ -78,7 +77,7 @@ class CommonMethods {
         private var toast: Toast? = null
         var mAlertDialog: AlertDialog? = null
         val dateFormat = SimpleDateFormat(DATE_FORMAT)
-        lateinit var searchDialog : SearchDialogUtil<AccountMasterList>
+        lateinit var searchDialog: SearchDialogUtil<AccountMasterList>
         lateinit var tvSelectPartyDealer: TextView
         var selectedPartyDealer: AccountMasterList = AccountMasterList()
 
@@ -271,7 +270,7 @@ class CommonMethods {
             tvOk.text = positiveButtonText
             tvCancel.text = negativeButtonText
 
-            if(okListener == null){
+            if (okListener == null) {
                 tvCancel.visibility = View.GONE
             }
 
@@ -370,15 +369,15 @@ class CommonMethods {
             isFilterVisible: Boolean = false,
             isReportGroupByVisible: Boolean = false,
             isVisitTypeVisible: Boolean = false,
-            isPartyDealerVisible:Boolean = false,
+            isPartyDealerVisible: Boolean = false,
             filterList: ArrayList<FilterListResponse> = arrayListOf(),
             reportGroupByList: ArrayList<FilterListResponse> = arrayListOf(),
-            visitTypeList: ArrayList<CategoryMasterResponse> = arrayListOf(),
-            partyDealerList:ArrayList<AccountMasterList> = arrayListOf(),
+            visitTypeList: ArrayList<CommonDropDownResponse> = arrayListOf(),
+            partyDealerList: ArrayList<AccountMasterList> = arrayListOf(),
             selectedVisitPosition: Int = 0,
             selectedStatusPosition: Int = 0,
-            selectedFilterPosition : Int = 0,
-            selectedReportGroupByPosition : Int = 0,
+            selectedFilterPosition: Int = 0,
+            selectedReportGroupByPosition: Int = 0,
             selectedPartyDealerObj: AccountMasterList = AccountMasterList()
         ) {
             val filterDialog = Dialog(mActivity)
@@ -399,8 +398,8 @@ class CommonMethods {
             val llReportGroupBy: LinearLayout = filterDialog.findViewById(R.id.llReportGroupBy)
             val llVisitType: LinearLayout = filterDialog.findViewById(R.id.llVisitType)
             val spVisitType: Spinner = filterDialog.findViewById(R.id.spVisitType)
-            val llPartyDealer : LinearLayout = filterDialog.findViewById(R.id.llPartyDealer)
-            tvSelectPartyDealer  = filterDialog.findViewById(R.id.tvPartyDealer)
+            val llPartyDealer: LinearLayout = filterDialog.findViewById(R.id.llPartyDealer)
+            tvSelectPartyDealer = filterDialog.findViewById(R.id.tvPartyDealer)
 
             if (isFilterVisible) {
                 llFilter.visibility = View.VISIBLE
@@ -414,9 +413,9 @@ class CommonMethods {
             if (isVisitTypeVisible) {
                 llVisitType.visibility = View.VISIBLE
             }
-            if(isPartyDealerVisible){
+            if (isPartyDealerVisible) {
                 llPartyDealer.visibility = View.VISIBLE
-                if(selectedPartyDealerObj.accountMasterId > 0) {
+                if (selectedPartyDealerObj.accountMasterId > 0) {
                     tvSelectPartyDealer.text = selectedPartyDealerObj.accountName
                     selectedPartyDealer = selectedPartyDealerObj
                 }
@@ -431,7 +430,7 @@ class CommonMethods {
                     openStartDatePickerDialog(false, mActivity, tvStartDate, tvEndDate)
                 }
             }
-            tvSelectPartyDealer.setOnClickListener{
+            tvSelectPartyDealer.setOnClickListener {
                 if (partyDealerList.size > 0) {
                     try {
                         if (partyDealerList.size > 0) {
@@ -471,8 +470,8 @@ class CommonMethods {
                     if (isStatusVisible) spStatus.selectedItemPosition else 0,
                     if (isFilterVisible) filterList[spFilter.selectedItemPosition] else FilterListResponse(),
                     if (isReportGroupByVisible) reportGroupByList[spReportGroupBy.selectedItemPosition] else FilterListResponse(),
-                    if (isVisitTypeVisible) visitTypeList[spVisitType.selectedItemPosition] else CategoryMasterResponse(),
-                    if(isPartyDealerVisible) selectedPartyDealer else AccountMasterList(),
+                    if (isVisitTypeVisible) visitTypeList[spVisitType.selectedItemPosition] else CommonDropDownResponse(),
+                    if (isPartyDealerVisible) selectedPartyDealer else AccountMasterList(),
                     if (isVisitTypeVisible) spVisitType.selectedItemPosition else 0
                 )
 
@@ -535,6 +534,7 @@ class CommonMethods {
                                 tvStartDate, tvEndDate
                             )
                         }
+
                         YESTERDAY -> {
                             setStartEndDate(
                                 getYesterdayDate(),
@@ -542,6 +542,7 @@ class CommonMethods {
                                 tvStartDate, tvEndDate
                             )
                         }
+
                         LAST_7_DAYS -> {
                             setStartEndDate(
                                 getStartDateForLast7Days(),
@@ -549,6 +550,7 @@ class CommonMethods {
                                 tvStartDate, tvEndDate
                             )
                         }
+
                         LAST_30_DAYS -> {
                             setStartEndDate(
                                 getStartDateForLast30Days(),
@@ -556,6 +558,7 @@ class CommonMethods {
                                 tvStartDate, tvEndDate
                             )
                         }
+
                         THIS_MONTH -> {
                             setStartEndDate(
                                 getStartDateOfCurrentMonth(),
@@ -563,6 +566,7 @@ class CommonMethods {
                                 tvStartDate, tvEndDate
                             )
                         }
+
                         CUSTOM_RANGE -> {
                         }
 
@@ -647,7 +651,7 @@ class CommonMethods {
             return dateString
         }
 
-        fun convertImageFileToBase64(file: File): String? {
+        /*fun convertImageFileToBase64(file: File): String? {
             try {
 
                 val inputStream = FileInputStream(file)
@@ -664,6 +668,17 @@ class CommonMethods {
                 FirebaseCrashlytics.getInstance().recordException(e)
             }
             return null
+        }
+*/
+        fun convertImageFileToBase64(file: File): String? {
+            return try {
+                val bytes = file.readBytes() // Reads the entire file safely
+                android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                FirebaseCrashlytics.getInstance().recordException(e)
+                null
+            }
         }
 
         @Throws(IOException::class)
@@ -725,29 +740,37 @@ class CommonMethods {
         @Throws(IOException::class)
         fun modifyOrientation(bitmap: Bitmap?, image_absolute_path: String?): Bitmap? {
             val ei = ExifInterface(image_absolute_path!!)
-            return when (ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+            return when (ei.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )) {
                 ExifInterface.ORIENTATION_ROTATE_90 -> rotate(
                     bitmap!!,
                     90f
                 )
+
                 ExifInterface.ORIENTATION_ROTATE_180 -> rotate(
                     bitmap!!,
                     180f
                 )
+
                 ExifInterface.ORIENTATION_ROTATE_270 -> rotate(
                     bitmap!!,
                     270f
                 )
+
                 ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> flip(
                     bitmap!!,
                     true,
                     false
                 )
+
                 ExifInterface.ORIENTATION_FLIP_VERTICAL -> flip(
                     bitmap!!,
                     false,
                     true
                 )
+
                 else -> bitmap
             }
         }
@@ -799,13 +822,13 @@ class CommonMethods {
                     if (landlineRegex.matches(input)) "Valid"
                     else "Invalid landline number format."
                 }
+
                 else -> {
                     if (mobileRegex.matches(input)) "Valid"
                     else "Invalid mobile number format. Use exactly 10 digits."
                 }
             }
         }
-
 
 
         fun formatDateTime(inputDateTime: String): String {
@@ -1027,7 +1050,7 @@ class CommonMethods {
         }
 
         fun isMockSettingsON(context: Context): Boolean {
-            Log.e("TAG", "isMockSettingsON: ", )
+            Log.e("TAG", "isMockSettingsON: ")
             // returns true if mock location enabled, false if not enabled.
             return !Secure.getString(
                 context.contentResolver,
@@ -1036,12 +1059,12 @@ class CommonMethods {
         }
 
         fun areThereMockPermissionApps(context: Context): Boolean {
-            Log.e("TAG", "areThereMockPermissionApps: CALL THE FUNCTIONS" )
+            Log.e("TAG", "areThereMockPermissionApps: CALL THE FUNCTIONS")
             var count = 0
             val pm = context.packageManager
             val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
             for (applicationInfo in packages) {
-                Log.e("TAG", "areThereMockPermissionApps: "+applicationInfo.packageName )
+                Log.e("TAG", "areThereMockPermissionApps: " + applicationInfo.packageName)
                 try {
                     val packageInfo = pm.getPackageInfo(
                         applicationInfo.packageName,
@@ -1090,7 +1113,25 @@ class CommonMethods {
             return decimalFormat.format(roundedNumber)
         }
 
+        fun formatTwoDecimal(price: BigDecimal): String {
+            return price.setScale(2, RoundingMode.DOWN).toPlainString()
+        }
 
+        fun formatThreeDecimal(price: BigDecimal): String {
+            return String.format("%.3f", price)
+        }
+
+        fun removeDecimal(value: BigDecimal): String {
+            return value.toBigInteger().toString() // Convert to whole number string
+        }
+
+        fun roundUpHigherSide(value: BigDecimal): String {
+            return value.setScale(0, RoundingMode.CEILING).toString()
+        }
+
+        fun roundUpToNearest(value: BigDecimal): String {
+            return value.setScale(0, RoundingMode.HALF_UP).toString()
+        }
 
         fun dateStringToCalendar(dateString: String): Calendar {
             val date = dateFormat.parse(dateString)
@@ -1136,16 +1177,16 @@ class CommonMethods {
 
     }
 
-    }
+}
 
-    /*fun setSpinnerByString(spinner: Spinner, myString: String): Int {
-        for (i in 0 until spinner.count) {
-            Log.e("TAG", "setSpinnerByString: "+spinner.getItemAtPosition(i) )
-            if (spinner.getItemAtPosition(i).toString().equals(myString, ignoreCase = true)) {
-                return i
-            }
+/*fun setSpinnerByString(spinner: Spinner, myString: String): Int {
+    for (i in 0 until spinner.count) {
+        Log.e("TAG", "setSpinnerByString: "+spinner.getItemAtPosition(i) )
+        if (spinner.getItemAtPosition(i).toString().equals(myString, ignoreCase = true)) {
+            return i
         }
-        return 0
-    }*/
+    }
+    return 0
+}*/
 
 

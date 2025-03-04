@@ -15,22 +15,25 @@
 
 
         <LinearLayout
+            android:id="@+id/lylMain"
             android:padding="@dimen/_5sdp"
             style="@style/LinearLayoutVertical">
 
-            <LinearLayout style="@style/LinearLayoutHorizontal">
+            <LinearLayout
+                android:id="@+id/lylRow1"
+                style="@style/LinearLayoutHorizontal">
 
                 <TextView
                     android:id="@+id/tvColumn1"
                     style="@style/DrillHeaderLine1"
-                    android:layout_weight="1"
+                    android:layout_weight="0.3"
                     android:gravity="start|center"
                     android:textColor="@color/black" />
 
                 <TextView
                     android:id="@+id/tvValue1"
                     style="@style/DrillHeaderLine1"
-                    android:layout_weight="1"
+                    android:layout_weight="0.7"
                     android:gravity="end|center"
                     android:textColor="@color/black" />
 
@@ -44,6 +47,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/lylRow2"
                 style="@style/LinearLayoutHorizontal"
                 android:layout_gravity="center"
                 android:layout_marginTop="@dimen/_10sdp"

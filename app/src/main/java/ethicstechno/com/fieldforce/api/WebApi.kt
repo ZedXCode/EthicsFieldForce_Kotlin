@@ -36,6 +36,7 @@ import ethicstechno.com.fieldforce.models.moreoption.quotation.ProductQuotationG
 import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationDetailsResponse
 import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.tourplan.TourPlanListResponse
+import ethicstechno.com.fieldforce.models.moreoption.visit.AddVisitSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
@@ -207,7 +208,7 @@ interface WebApi {
     fun updatePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>*/
 
     @POST("api/AccountMaster/PartyDealerInsertUpdate")
-    fun addUpdatePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+    fun addUpdatePartyDealer(@Body jsonObject: JsonObject): Call<AccountMasterList>
 
     @POST("api/AccountMaster/PartyDealerDelete")
     fun deletePartyDealer(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
@@ -219,7 +220,7 @@ interface WebApi {
     fun getVisitTypeList(@Body jsonObject: JsonObject): Call<List<LeaveTypeListResponse>>
 
     @POST("api/Visit/VisitInsertUpdate") //api/Visit/visitAdd
-    fun addVisit(@Body jsonObject: JsonObject): Call<CommonSuccessResponse>
+    fun addVisit(@Body jsonObject: JsonObject): Call<AddVisitSuccessResponse>
 
     @POST("api/Trip/TourPlanGet")
     fun getTourPlanList(@Body jsonObject: JsonObject): Call<List<TourPlanListResponse>>

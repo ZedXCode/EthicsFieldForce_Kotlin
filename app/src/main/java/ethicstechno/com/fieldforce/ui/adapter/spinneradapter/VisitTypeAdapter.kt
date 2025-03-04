@@ -7,16 +7,16 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import ethicstechno.com.fieldforce.R
-import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 
 class VisitTypeAdapter(
     context: Context,
     spinnerLayout: Int,
-    visitType: List<CategoryMasterResponse>?
+    visitType: List<CommonDropDownResponse>?
     ) :
-        ArrayAdapter<CategoryMasterResponse>(context, spinnerLayout, visitType!!) {
+        ArrayAdapter<CommonDropDownResponse>(context, spinnerLayout, visitType!!) {
         private val mContext: Context = context
-        private var visitTypeList: List<CategoryMasterResponse> = ArrayList()
+        private var visitTypeList: List<CommonDropDownResponse> = ArrayList()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             var listItem = convertView
@@ -24,7 +24,7 @@ class VisitTypeAdapter(
                 LayoutInflater.from(mContext).inflate(R.layout.simple_spinner_item, parent, false)
             val name: TextView = listItem!!.findViewById(android.R.id.text1)
             val visitType = visitTypeList[position]
-            name.text = visitType.categoryName
+            name.text = visitType.dropdownValue
 
 
 
@@ -37,7 +37,7 @@ class VisitTypeAdapter(
                 LayoutInflater.from(mContext).inflate(R.layout.simple_spinner_item, parent, false)
             val name: TextView = listItem!!.findViewById(android.R.id.text1)
             val visitType = visitTypeList[position]
-            name.text = visitType.categoryName
+            name.text = visitType.dropdownValue
             return listItem
         }
 

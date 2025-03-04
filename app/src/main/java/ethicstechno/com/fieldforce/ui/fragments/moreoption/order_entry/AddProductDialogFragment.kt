@@ -9,6 +9,8 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
+import android.text.Spanned
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
@@ -33,7 +35,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonObject
-import com.groundworksapp.utility.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.AddProductDialogLayoutBinding
@@ -53,7 +54,11 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM7
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
+import ethicstechno.com.fieldforce.utils.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
+import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_0
+import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_1
+import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_2
 import ethicstechno.com.fieldforce.utils.dialog.SearchDialogUtil
 import hideKeyboard
 import kotlinx.coroutines.Dispatchers
@@ -65,6 +70,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.Serializable
 import java.math.BigDecimal
+import java.util.regex.Pattern
 
 
 class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener {
@@ -261,6 +267,25 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             if (binding.switchQty.isChecked) {
                 var newProductAdapterList: ArrayList<ProductGroupResponse> = arrayListOf()
                 for (i in selectedProductAdapterList) {
+                    /*if(binding.switchQty.isChecked) {
+                        when (i.quantityRoundOffType) {
+                            QUANTITY_ROUND_OF_0 -> {
+                                i.qty = CommonMethods.formatThreeDecimal(i.finalQty).toBigDecimal()
+                            }
+
+                            QUANTITY_ROUND_OF_1 -> {
+                                i.qty = CommonMethods.roundUpToNearest(i.finalQty).toBigDecimal()
+                            }
+
+                            QUANTITY_ROUND_OF_2 -> {
+                                i.qty = CommonMethods.roundUpHigherSide(i.finalQty).toBigDecimal()
+                            }
+                        }
+                    }*/
+
+
+                    //i.altUnitQuantity = i.qty * i.conversionFactor
+
                     i.salesPrice = (i.salesPrice ?: BigDecimal.ZERO) / (i.conversionFactor
                         ?: 0.0).toBigDecimal()
                     newProductAdapterList.add(i)
@@ -1030,7 +1055,9 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
             fun bind(item: ProductGroupResponse, position: Int) {
                 try {
-
+                    etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 4, etPrice))
+                    etAmount.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etAmount))
+                    //etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 3, etQty))
                     if ((item.scheme ?: "").isNotEmpty()) {
                         //tvSchemeValue.visibility = View.VISIBLE
                         tvQtyMode.text = item.scheme.toString()
@@ -1040,7 +1067,15 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etPrice.clearTextWatcher()
                     etAmount.clearTextWatcher()
 
-                    etQty.setText(item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
+                    item.finalQty = item.qty
+
+                    val qty = item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
+                    if (item.quantityRoundOffType == 0) {
+                        etQty.setText(CommonMethods.formatThreeDecimal(qty.toBigDecimal()))
+                    } else {
+                        etQty.setText(item.qty.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
+                        etQty.setText(CommonMethods.removeDecimal(qty.toBigDecimal()))
+                    }
                     etAmount.setText(item.amount.takeIf { it != BigDecimal.ZERO }?.toString() ?: "")
 
                     etPrice.isEnabled = item.isPriceEditable == true
@@ -1052,8 +1087,37 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         val newQty = (etQty.text.toString()
                             .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
                             ?: BigDecimal.ZERO))
+                        item.finalQty = newQty
+                        var itemFinalQty = ""
+                        when (item.quantityRoundOffType) {
+                            QUANTITY_ROUND_OF_0 -> {
+                                itemFinalQty = if (item.finalQty > BigDecimal.ZERO) {
+                                    CommonMethods.formatThreeDecimal(item.finalQty)
+                                } else {
+                                    CommonMethods.formatThreeDecimal(BigDecimal.ZERO)
+                                }
+                            }
+
+                            QUANTITY_ROUND_OF_1 -> {
+                                itemFinalQty = if (item.finalQty > BigDecimal.ZERO) {
+                                    CommonMethods.roundUpToNearest(item.finalQty)
+                                } else {
+                                    CommonMethods.roundUpToNearest(BigDecimal.ZERO)
+                                }
+                            }
+
+                            QUANTITY_ROUND_OF_2 -> {
+                                itemFinalQty = if (item.finalQty > BigDecimal.ZERO) {
+                                    CommonMethods.roundUpHigherSide(item.finalQty)
+                                } else {
+                                    CommonMethods.roundUpHigherSide(BigDecimal.ZERO)
+                                }
+                            }
+                        }
+
+                        item.finalQty = itemFinalQty.toBigDecimal()
                         tvQtyMode.text =
-                            (if (newQty != null && newQty > BigDecimal.ZERO) item.unit + newQty else item.unit) + ", " + item.scheme
+                            (if (newQty != null && newQty > BigDecimal.ZERO) item.unit + ":"+item.finalQty else item.unit) + ", " + item.scheme
                         if (item.salesPrice != null && (item.salesPrice
                                 ?: BigDecimal.ZERO) > BigDecimal.ZERO
                         ) {
@@ -1113,15 +1177,22 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     // Set initial values
                     tvProductName.text = item.productName.toString()
 
-                    etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etPrice))
-                    etAmount.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etAmount))
-                    etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etQty))
-
                     // Add new TextWatchers
                     etQty.addTextWatcher { s ->
+                        item?.let {
+                            if (it.quantityRoundOffType == 0) {
+                                // Allow up to 3 decimal places
+                                etQty.filters = arrayOf(DecimalDigitsInputFilter(3))
+                            } else {
+                                // Restrict to whole numbers
+                                etQty.filters = arrayOf(InputFilter { source, _, _, _, _, _ ->
+                                    if (source.toString().contains(".")) "" else null
+                                })
+                            }
+                        }
                         if (etQty.isFocused) {
                             val qtyValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && qtyValue <= BigDecimal.ZERO) {
+                            if ((item.orderDetailsId ?: 0) > 0 && qtyValue <= BigDecimal.ZERO) {
                                 etQty.setText("1")  // Restrict qty to be greater than 0 if orderDetailsId > 0
                             } else {
                                 calculateAmount(item, etQty, etPrice, etAmount)
@@ -1130,10 +1201,43 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         }
                         if (etQty.text.toString().isNotEmpty()) {
                             if (binding.switchQty.isChecked) {
+
                                 item.finalQty = (etQty.text.toString()
                                     .toBigDecimal() / (item.conversionFactor?.toBigDecimal()
                                     ?: BigDecimal.ZERO))
-                                tvQtyMode.text = item.unit + item.finalQty + ", " + item.scheme
+
+
+                                var itemFinalQty = ""
+                                when (item.quantityRoundOffType) {
+                                    QUANTITY_ROUND_OF_0 -> {
+                                        itemFinalQty = if(item.finalQty > BigDecimal.ZERO) {
+                                            CommonMethods.formatThreeDecimal(item.finalQty)
+                                        }else{
+                                            CommonMethods.formatThreeDecimal(BigDecimal.ZERO)
+                                        }
+                                        //itemFinalQty = CommonMethods.formatThreeDecimal(item.finalQty)
+                                    }
+
+                                    QUANTITY_ROUND_OF_1 -> {
+                                        itemFinalQty = if(item.finalQty > BigDecimal.ZERO) {
+                                            CommonMethods.roundUpToNearest(item.finalQty)
+                                        }else{
+                                            CommonMethods.roundUpToNearest(BigDecimal.ZERO)
+                                        }
+                                    }
+
+                                    QUANTITY_ROUND_OF_2 -> {
+                                        itemFinalQty = if(item.finalQty > BigDecimal.ZERO) {
+                                            CommonMethods.roundUpHigherSide(item.finalQty)
+                                        }else{
+                                            CommonMethods.roundUpHigherSide(BigDecimal.ZERO)
+                                        }
+                                    }
+                                }
+                                item.finalQty = itemFinalQty.toBigDecimal()
+                                item.qty = itemFinalQty.toBigDecimal()
+                                tvQtyMode.text = item.unit + ":"+item.finalQty + ", " + item.scheme
+
                                 qtyMode = item.unit + item.finalQty
                             } else {
                                 item.finalQty = (etQty.text.toString()
@@ -1144,11 +1248,11 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                             }
                         } else {
                             if (binding.switchQty.isChecked) {
-                                tvQtyMode.text = item.unit + ", " + item.scheme + ", " + item.scheme
+                                tvQtyMode.text = item.unit + ", " + item.scheme
                                 qtyMode = item.unit ?: ""
                             } else {
                                 tvQtyMode.text =
-                                    item.altUnit + ", " + item.scheme + ", " + item.scheme
+                                    item.altUnit + ", " + item.scheme
                                 qtyMode = item.altUnit ?: ""
                             }
                         }
@@ -1157,7 +1261,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etPrice.addTextWatcher { s ->
                         if (etPrice.isFocused) {
                             val priceValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && priceValue <= BigDecimal.ZERO) {
+                            if ((item.orderDetailsId ?: 0) > 0 && priceValue <= BigDecimal.ZERO) {
                                 etPrice.setText("1")  // Restrict price to be greater than 0 if orderDetailsId > 0
                             } else {
                                 calculateAmount(item, etQty, etPrice, etAmount)
@@ -1169,7 +1273,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                     etAmount.addTextWatcher { s ->
                         if (etAmount.isFocused) {
                             val amountValue = s?.toBigDecimalOrNull() ?: BigDecimal.ZERO
-                            if (item.orderDetailsId > 0 && amountValue <= BigDecimal.ZERO) {
+                            if ((item.orderDetailsId ?: 0) > 0 && amountValue <= BigDecimal.ZERO) {
                                 etAmount.setText("1")  // Restrict amount to be greater than 0 if orderDetailsId > 0
                             } else {
                                 calculatePrice(item, etQty, etPrice, etAmount)
@@ -1211,12 +1315,14 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                 }
 
                 qty > 0 -> {
-                    val amount = (qty * price) - ((qty * price) * ((item.standardDiscount ?: 0.0) + (item.additionalDiscount ?: 0.0)) / 100)
+                    val discount = ((qty * price) * ((item.standardDiscount ?: 0.0) + (item.additionalDiscount ?: 0.0)) / 100)
+                    val amount = (qty * price) - discount
                     etAmount.setText(CommonMethods.formatLargeDouble(amount))
                     etAmount.isEnabled = false
                     item.amount = amount.toBigDecimal()
                     item.qty = qty.toBigDecimal()
                     item.price = price.toBigDecimal()
+                    item.discountAmount = discount.toBigDecimal()
                     addItemToCart(item)
                 }
 
@@ -1270,12 +1376,15 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
             }
             updateCartCount()
         }
-
         private fun removeItemFromCart(item: ProductGroupResponse) {
             if (selectedProductAdapterList.contains(item)) {
                 selectedProductAdapterList.remove(item)
                 //selectedItemsList.remove(item)
                 updateCartCount()
+                if(binding.cbSelectedItems.isChecked && selectedProductAdapterList.size == 0) {
+                    partyDealerPageNo = 1
+                    callProductGroupListApi(false, selectedGroupId)
+                }
             }
         }
 
@@ -1447,6 +1556,21 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
         spProductGroup.adapter = adapter
         selectedGroup = groupList[0]
         spProductGroup.setSelection(0)
+    }
+
+    // Custom InputFilter to allow up to 3 decimal places
+    class DecimalDigitsInputFilter(private val decimalPlaces: Int) : InputFilter {
+        private val pattern = Pattern.compile("[0-9]*+((\\.[0-9]{0,$decimalPlaces})?)?")
+
+        override fun filter(
+            source: CharSequence?, start: Int, end: Int, dest: Spanned?, dstart: Int, dend: Int
+        ): CharSequence? {
+            val newText = dest?.subSequence(0, dstart).toString() +
+                    source?.subSequence(start, end) +
+                    dest?.subSequence(dend, dest.length).toString()
+
+            return if (pattern.matcher(newText).matches()) null else ""
+        }
     }
 
 }

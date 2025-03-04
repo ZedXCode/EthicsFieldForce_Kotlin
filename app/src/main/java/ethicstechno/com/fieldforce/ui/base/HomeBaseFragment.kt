@@ -1,6 +1,7 @@
 package ethicstechno.com.fieldforce.ui.base
 
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import ethicstechno.com.fieldforce.db.AppDatabase
@@ -21,11 +22,21 @@ open class HomeBaseFragment : Fragment() {
     //var loginData: LoginResult = LoginResult()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mActivity = activity as HomeActivity
+        /*mActivity = activity as HomeActivity
         appDatabase = AppDatabase.getDatabase(mActivity)
         appDao = appDatabase.appDao()
-        loginData = appDao.getLoginData()
+        loginData = appDao.getLoginData()*/
         //loginData = appDatabase.loginDao().getLogin()
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is HomeActivity) {
+            mActivity = context
+            appDatabase = AppDatabase.getDatabase(mActivity)
+            appDao = appDatabase.appDao()
+            loginData = appDao.getLoginData()
+        }
     }
 
 
@@ -35,6 +46,7 @@ open class HomeBaseFragment : Fragment() {
 
                 true
             }
+
             response.code() == 500 -> {
                 CommonMethods.showAlertDialog(
                     mActivity,
@@ -45,10 +57,12 @@ open class HomeBaseFragment : Fragment() {
                     })
                 false
             }
+
             response.code() == 401 -> {
                 //callLogoutApi()
                 false
             }
+
             else -> {
                 false
             }

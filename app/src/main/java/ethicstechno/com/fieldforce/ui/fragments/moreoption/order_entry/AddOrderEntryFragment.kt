@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
@@ -37,7 +38,6 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
-import com.groundworksapp.utility.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddOrderEntryBinding
@@ -64,18 +64,21 @@ import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
+import ethicstechno.com.fieldforce.utils.ARG_PARAM5
+import ethicstechno.com.fieldforce.utils.ARG_PARAM6
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateFormat
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.DIALOG_ACCOUNT_MASTER
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_CURRENCY
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_FREIGHT_TERMS
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_TRANSACTION_TYPE
+import ethicstechno.com.fieldforce.utils.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
@@ -185,31 +188,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     lateinit var rvItems: RecyclerView
     lateinit var tvNoDataFound: TextView
     private var isSearchTriggered = false
-
-
-    //var accountMasterId : Int = 0
-
-
-    private val partyDealerItemClickListener =
-        object : ItemClickListener<AccountMasterList> {
-            override fun onItemSelected(item: AccountMasterList) {
-                // Handle user item selection
-                searchDialog.closeDialog()
-                binding.tvPartyDealer.text = item.accountName
-                selectedPartyDealerId = item.accountMasterId
-                binding.etContactPersonName.setText(item.contactPersonName)
-            }
-        }
-
-    private val distributorItemClickListener =
-        object : ItemClickListener<AccountMasterList> {
-            override fun onItemSelected(item: AccountMasterList) {
-                // Handle user item selection
-                searchDialog.closeDialog()
-                binding.tvSelectDistributor.text = item.accountName
-                selectedDistributorId = item.accountMasterId
-            }
-        }
+    private var accountNameFromVisit: String = ""
+    private var accountMasterIdFromVisit: Int = 0
+    private var contactPersonNameFromVisit = ""
+    private var isPartyChangeFromVisit = false
 
     private val groupItemClickListener =
         object : ItemClickListener<ProductGroupResponse> {
@@ -239,11 +221,17 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId: Int,
             allowEdit: Boolean?,
             allowDelete: Boolean?,
+            accountName: String?,
+            accountMasterId: Int?,
+            contactPersonName: String?
         ): AddOrderEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
             args.putBoolean(ARG_PARAM2, allowEdit ?: false)
             args.putBoolean(ARG_PARAM3, allowDelete ?: false)
+            args.putString(ARG_PARAM4, accountName ?: "")
+            args.putInt(ARG_PARAM5, accountMasterId ?: 0)
+            args.putString(ARG_PARAM6, contactPersonName ?: "")
             val fragment = AddOrderEntryFragment()
             fragment.arguments = args
             return fragment
@@ -278,6 +266,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId = it.getInt(ARG_PARAM1, -1)
             allowEdit = it.getBoolean(ARG_PARAM2, false)
             allowDelete = it.getBoolean(ARG_PARAM3, false)
+            accountNameFromVisit = it.getString(ARG_PARAM4, "")
+            accountMasterIdFromVisit = it.getInt(ARG_PARAM5, 0)
+            contactPersonNameFromVisit = it.getString(ARG_PARAM6, "")
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -285,6 +276,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (orderId > 0) getString(R.string.order_details) else getString(R.string.add_order_entry)
         binding.tvSubmit.text =
             if (orderId > 0) getString(R.string.update) else getString(R.string.submit)
+
+        if ((accountNameFromVisit ?: "").isNotEmpty()) {
+            binding.tvPartyDealer.text = accountNameFromVisit
+            binding.etContactPersonName.setText(contactPersonNameFromVisit)
+            selectedPartyDealerId = accountMasterIdFromVisit
+        }
+
 
         selectedCurrency = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
         selectedTransactionType = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
@@ -328,10 +326,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private suspend fun executeAPIsAndSetupData() {
         withContext(Dispatchers.IO) {
             try {
-                //val currencyListDeferred = async { callCommonDropDownListApi(DROP_DOWN_CURRENCY) }
                 val companyListDeferred = async { callCompanyListApi() }
-                val freightTermsListDeferred = async { callCommonDropDownListApi(DROP_DOWN_FREIGHT_TERMS) }
-                //currencyListDeferred.await()
+                val freightTermsListDeferred =
+                    async { callCommonDropDownListApi(DROP_DOWN_FREIGHT_TERMS) }
                 companyListDeferred.await()
                 freightTermsListDeferred.await()
 
@@ -587,7 +584,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
 
         var parameterString = ""
-        if(dropDownType == DROP_DOWN_TRANSACTION_TYPE){
+        if (dropDownType == DROP_DOWN_TRANSACTION_TYPE) {
             parameterString =
                 "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and CategoryMasterId=${selectedCategory?.categoryMasterId} and AccountMasterId=$selectedPartyDealerId and $FORM_ID_ORDER_ENTRY"
         }
@@ -725,32 +722,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         })
     }
 
-    /*private fun setupCategorySpinner() {
-        val adapter = LeaveTypeAdapter(
-            mActivity,
-            R.layout.simple_spinner_item,
-            categoryList,
-            this@AddOrderEntryFragment,
-        )
-        binding.spCategory.adapter = adapter
-        if (isCompanyChange && categoryList.size == 2) {
-            selectedCategory = CategoryMasterResponse(
-                categoryMasterId = categoryList[1].categoryMasterId,
-                categoryName = categoryList[1].categoryName
-            )
-            binding.spCategory.setSelection(1)
-            categoryList[1]
-        } else {
-            if (isCompanyChange) {
-                binding.spCategory.setSelection(0)
-                categoryList[0]
-            } else {
-                val selectedCategoryIndex =
-                    categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
-                binding.spCategory.setSelection(selectedCategoryIndex)
-            }
-        }
-    }*/
     private fun setupCategorySpinner() {
         val adapter = LeaveTypeAdapter(
             mActivity,
@@ -793,11 +764,17 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         }
     }
 
-    fun clearPartyTransactionAddressData(){
+    fun clearPartyTransactionAddressData() {
         binding.tvPartyDealer.text = ""
         selectedPartyDealerId = 0
         selectedTransactionType = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
         binding.edtShippingAddress.setText("")
+        binding.etContactPersonName.setText("")
+        if (!isPartyChangeFromVisit && (accountNameFromVisit ?: "").isNotEmpty()) {
+            binding.tvPartyDealer.text = accountNameFromVisit
+            selectedPartyDealerId = accountMasterIdFromVisit
+            binding.etContactPersonName.setText(contactPersonNameFromVisit)
+        }
     }
 
 
@@ -1304,6 +1281,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         if (orderDetails.orderDetails != null && orderDetails.orderDetails.size > 0) {
             orderDetailsList.clear()
+            orderDetails.orderDetails.forEach { it.standardDiscount = it.discount.toDouble() }
             orderDetailsList.addAll(orderDetails.orderDetails)
             orderDetailsAdapter.refreshAdapter(orderDetailsList)
             handleOrderDetailsRVVisibility(orderDetailsList)
@@ -1483,7 +1461,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.llSelectTransactionType -> {
-                if(selectedPartyDealerId == 0){
+                if (selectedPartyDealerId == 0) {
                     CommonMethods.showToastMessage(mActivity, "Please select party/dealer")
                     return
                 }
@@ -1523,7 +1501,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             R.id.imgSelectShippingAddress -> {
-                if(selectedPartyDealerId == 0){
+                if (selectedPartyDealerId == 0) {
                     CommonMethods.showToastMessage(mActivity, "Please select party/dealer")
                     return
                 }
@@ -1667,12 +1645,15 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 if (!isCartClicked) {
                     orderDetailsList.clear()
                     orderDetailsList.addAll(holdDetailsDataList)
+                    orderDetailsList.removeIf { it.qty <= BigDecimal.ZERO }
+                    handleOrderDetailsRVVisibility(orderDetailsList)
                     if (orderDetailsList.size > 0) {
                         binding.spCategory.setEnabled(false);
                         binding.spCategory.setClickable(false);
                         //binding.spCategory.setAdapter(typeAdapter);
+                        setOrderDetailsAdapter()
                     }
-                    setOrderDetailsAdapter()
+                    calculateTotalOrderAmount()
                 }
             }
         })
@@ -2066,7 +2047,10 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("ddmFreightTermsId", selectedFreightTerms?.dropdownKeyId)
         objReq.addProperty(
             "expectedDispatchDate",
-            CommonMethods.convertToAppDateFormat(binding.tvDispatchDate.text.toString(), "MM/dd/yyyy")
+            CommonMethods.convertToAppDateFormat(
+                binding.tvDispatchDate.text.toString(),
+                "MM/dd/yyyy"
+            )
         )
         val creditDays = if (binding.edtPaymentTerms.text.toString().isEmpty()) {
             0
@@ -2129,23 +2113,29 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
         val objDetailsArray = JsonArray()
         for (i in orderDetailsList) {
+            val altQty = (i.qty * (i.conversionFactor?.toBigDecimal() ?: BigDecimal.ZERO))
             val objDetails = JsonObject()
             objDetails.addProperty("OrderId", orderId)
             objDetails.addProperty("OrderDetailsId", i.orderDetailsId)
             objDetails.addProperty("ProductId", i.productId)
-            objDetails.addProperty("ProductName", i.productName)  // Added
-            objDetails.addProperty("Unit", i.unit)  // Added
+            objDetails.addProperty("ProductName", i.productName)
+            objDetails.addProperty("Unit", i.unit)
             objDetails.addProperty("Quantity", i.qty)
             objDetails.addProperty("Rate", i.price)
             objDetails.addProperty("Amount", i.amount)
-            objDetails.addProperty("MRP", i.mrp)  // Added
-            objDetails.addProperty("Discount", i.standardDiscount)  // Added
-            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)  // Added
-            objDetails.addProperty("AltUnit", i.altUnit)  // Added
-            objDetails.addProperty("ConversionFactor", i.conversionFactor)  // Added
+            objDetails.addProperty("MRP", i.mrp)
+            objDetails.addProperty("Discount", i.standardDiscount)
+            objDetails.addProperty("AdditionalDiscount", i.additionalDiscount)
+            objDetails.addProperty("DiscountAmount", i.discountAmount)
+            objDetails.addProperty("AltUnit", i.altUnit)
+            objDetails.addProperty("ConversionFactor", i.conversionFactor)
             objDetails.addProperty("UserId", loginData.userId)
-            objDetails.addProperty("ParameterString", i.parameterString)  // Added
-
+            objDetails.addProperty("ParameterString", i.parameterString)
+            objDetails.addProperty("PriceListDetailsId", i.priceDetailsId)
+            objDetails.addProperty("SchemeDetailsId", i.schemeDetailsId)
+            objDetails.addProperty("AltUnitQuantity", altQty)
+            objDetails.addProperty("PerUnitWeight", i.perUnitWeight)
+            objDetails.addProperty("QuantityRoundOffType", i.quantityRoundOffType)
             objDetailsArray.add(objDetails)
         }
         objReq.add("OrderDetails", objDetailsArray)
@@ -2331,6 +2321,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                         distributorPageNo = 1
                         callAccountMasterList(dialogType)
                     }
+
                     3 -> {
                         consigneePageNo = 1
                         callAccountMasterList(dialogType)
@@ -2466,31 +2457,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 }
             }
         })
-
-    }
-
-    private fun showPartyDealerDialog(isForPartyDealer: Boolean) {
-        try {
-            if (accountMasterList.size > 0) {
-                searchDialog = SearchDialogUtil(
-                    activity = mActivity,
-                    items = if (isForPartyDealer) accountMasterList else distributorList,
-                    layoutId = R.layout.item_user, // The layout resource for each item
-                    bind = { view, item ->
-                        val textView: TextView = view.findViewById(R.id.tvUserName)
-                        textView.text = item.accountName // Bind data to the view
-                    },
-                    itemClickListener = if (isForPartyDealer) partyDealerItemClickListener else distributorItemClickListener,
-                    title = if (isForPartyDealer) mActivity.getString(R.string.party_dealer_list) else getString(
-                        R.string.distributor_list
-                    ),
-                    dialogType = DIALOG_ACCOUNT_MASTER
-                )
-                searchDialog.showSearchDialog()
-            }
-        } catch (e: Exception) {
-            Log.e("TAG", "onClick: " + e.message)
-        }
     }
 
     private fun showAddProduct(
@@ -2524,19 +2490,34 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             etPrice.isEnabled = productModel?.isPriceEditable == true
             etAmount.isEnabled = productModel?.isPriceEditable == true
 
-            etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etPrice))
+            etPrice.filters = arrayOf(DecimalDigitsInputFilter(10, 4, etPrice))
             etAmount.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etAmount))
-            etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 2, etQty))
 
             if (productModel != null) {
                 btnSubmit.text = "Update"
                 tvSelectGroup.text = productModel.productGroupName
                 tvUnit.text = productModel.unit
                 tvSelectProduct.text = productModel.productName
-                etQty.setText(CommonMethods.formatBigDecimal(productModel.qty))
                 etAmount.setText(CommonMethods.formatBigDecimal(productModel.amount))
                 etPrice.setText(CommonMethods.formatBigDecimal(productModel.price))
-                tvSchemeValue.text = productModel.scheme
+                if (productModel.quantityRoundOffType == 0) {
+                    etQty.setText(CommonMethods.formatThreeDecimal(productModel.qty))//changed
+                    etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 3, etQty))
+                } else {
+                    etQty.setText(CommonMethods.removeDecimal(productModel.qty))//changed
+                    etQty.filters = arrayOf(InputFilter { source, _, _, _, _, _ ->
+                        if (source.toString().contains(".")) "" else null
+                    })
+                }
+
+                tvSchemeValue.text = buildString {
+                    append(productModel.altUnit)
+                    if (productModel.finalQty?.takeIf { it > BigDecimal.ZERO } != null) {
+                        append(":${productModel.finalQty}")
+                    }
+                    append(", ${productModel.scheme}")
+                }
+
             }
 
             if (orderId == 0 && orderDetailsList.size > 0) {
@@ -2561,7 +2542,18 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             // Add TextWatcher to Qty and Price EditText
             etQty.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculateAmount()
+                    if (etQty.text.toString().isNotEmpty()) {//changed
+                        val tempFinalQty = (etQty.text.toString()
+                            .toBigDecimal() * (productModel?.conversionFactor?.toBigDecimal()
+                            ?: BigDecimal.ZERO))
+                        tvSchemeValue.text =
+                            productModel?.altUnit + ":" + tempFinalQty + ", " + productModel?.scheme
+                    } else {
+                        tvSchemeValue.text =
+                            productModel?.altUnit + ":" + "0" + ", " + productModel?.scheme
+                    }
+                    //qtyMode = productModel?.altUnit + productModel?.finalQty
+                    calculateAmount(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2577,7 +2569,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             etPrice.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculateAmount()
+                    calculateAmount(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2593,7 +2585,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
             etAmount.addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    calculatePrice()
+                    calculatePrice(productModel)
                 }
 
                 override fun beforeTextChanged(
@@ -2623,7 +2615,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                     return@setOnClickListener
                 }
-                if(etQty.text.toString().toDouble() <= 0){
+                if (etQty.text.toString().toDouble() <= 0) {
                     showToastMessage(mActivity, getString(R.string.please_enter_valid_quantity))
                     return@setOnClickListener
                 }
@@ -2638,6 +2630,19 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 val qtyText = etQty.text.toString().trim()
                 val priceText = etPrice.text.toString().trim()
                 val amountText = etAmount.text.toString().trim()
+
+                //changes
+                val tempFinalQty = (etQty.text.toString()
+                    .toBigDecimal() * (productModel?.conversionFactor?.toBigDecimal()
+                    ?: BigDecimal.ZERO))
+
+                val qty = etQty.text.toString().toDoubleOrNull() ?: 0.0
+                val price = etPrice.text.toString().toDoubleOrNull() ?: 0.0
+
+                val discountAmount = ((qty * price) * ((productModel?.standardDiscount
+                    ?: 0.0) + (productModel?.additionalDiscount ?: 0.0)) / 100)
+                val amount = (qty * price) - discountAmount
+
                 val orderDetailsModel = ProductGroupResponse(
                     orderDetailsId = productModel?.orderDetailsId ?: 0,
                     orderId = productModel?.orderId ?: 0,
@@ -2650,8 +2655,26 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     salesPrice = productModel?.salesPrice ?: BigDecimal.ZERO,
                     qty = if (qtyText.isNotEmpty()) qtyText.toBigDecimal() else BigDecimal.ZERO,
                     price = if (priceText.isNotEmpty()) priceText.toBigDecimal() else BigDecimal.ZERO,
-                    amount = if (amountText.isNotEmpty()) amountText.toBigDecimal() else BigDecimal.ZERO
+                    amount = amount.toBigDecimal(),//if (amountText.isNotEmpty()) amountText.toBigDecimal() else BigDecimal.ZERO,
+                    finalQty = tempFinalQty,
+                    scheme = productModel?.scheme,
+                    mrp = productModel?.mrp,
+                    discountAmount = discountAmount.toBigDecimal() ?: BigDecimal.ZERO,
+                    standardDiscount = (productModel?.standardDiscount?.toDouble() ?: 0.0),
+                    additionalDiscount = productModel?.additionalDiscount?.toDouble() ?: 0.00,
+                    conversionFactor = productModel?.conversionFactor,
+                    userId = productModel?.userId,
+                    parameterString = productModel?.parameterString,
+                    quantityRoundOffType = (productModel?.quantityRoundOffType ?: 0).toInt(),
+                    perUnitWeight = productModel?.perUnitWeight ?: BigDecimal.ZERO,
+                    schemeDetailsId = productModel?.schemeDetailsId ?: 0,
+                    priceDetailsId = productModel?.priceDetailsId ?: 0
                 )
+                productModel?.amount = amount.toBigDecimal()
+                productModel?.qty = qty.toBigDecimal()
+                productModel?.price = price.toBigDecimal()
+                productModel?.discountAmount = discountAmount.toBigDecimal()
+                Log.e("TAG", "showAddProduct:PRICESCHEME ::  "+productModel?.schemeDetailsId+", "+productModel?.priceDetailsId )
 
                 if (productModel == null) {
                     orderDetailsList.add(orderDetailsModel)
@@ -2716,7 +2739,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             getString(R.string.are_you_sure_you_want_to_delete_this_product),
             okListener = object : PositiveButtonListener {
                 override fun okClickListener() {
-                    if (item.orderDetailsId > 0) {
+                    if ((item.orderDetailsId ?: 0) > 0) {
                         callDeleteOrderDetailsApi(item)
                     } else {
                         orderDetailsList.remove(item)
@@ -2751,19 +2774,26 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvTotalOrderAmount.text = "${CommonMethods.formatBigDecimal(totalAmount)}"
                 binding.tvTotalOrderQty.text = "${CommonMethods.formatBigDecimal(totalQty)}"
             }
+        } else {
+            binding.tvTotalOrderAmount.text = ""
+            binding.tvTotalOrderQty.text = ""
+            binding.lylTotalOrderAmount.visibility = View.GONE
         }
     }
 
 
-    fun calculateAmount() {
+    fun calculateAmount(productModel: ProductGroupResponse?) {
         if (isUpdating) return
         isUpdating = true
 
         val qty = etQty.text.toString().toDoubleOrNull() ?: 0.0
         val price = etPrice.text.toString().toDoubleOrNull() ?: 0.0
 
-        if (price > 0) {
-            val amount = qty * price
+        if (qty > 0) {
+            //val amount = qty * price
+            val discountAmount = ((qty * price) * ((productModel?.standardDiscount
+                ?: 0.0) + (productModel?.additionalDiscount ?: 0.0)) / 100)
+            val amount = (qty * price) - discountAmount
             etAmount.setText(CommonMethods.formatLargeDouble(amount))
             etAmount.isEnabled = false // Make amount non-editable
         } else {
@@ -2773,16 +2803,21 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         isUpdating = false
     }
 
-    fun calculatePrice() {
+    fun calculatePrice(productModel: ProductGroupResponse?) {
         if (isUpdating) return
         isUpdating = true
 
         val qty = etQty.text.toString().toDoubleOrNull() ?: 0.00
         val amount = etAmount.text.toString().toDoubleOrNull() ?: 0.00
 
-        if (amount > 0 && qty > 0) {
+        if (qty > 0) {
+            /*val price = amount / qty
+            etPrice.setText(CommonMethods.formatLargeDouble(price))*/
             val price = amount / qty
             etPrice.setText(CommonMethods.formatLargeDouble(price))
+            productModel?.amount = amount.toBigDecimal()
+            productModel?.qty = qty.toBigDecimal()
+            productModel?.price = price.toBigDecimal()
         } else {
             etPrice.setText("")
         }
@@ -2963,12 +2998,14 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 itemBinding.tvUserName.setOnClickListener {
                     when (adapterType) {
                         TYPE_PARTY_DEALER -> {
+                            isPartyChangeFromVisit = true
                             binding.tvPartyDealer.text = partyDealerData.accountName
                             binding.etContactPersonName.setText(
                                 partyDealerData.contactPersonName ?: ""
                             )
                             selectedPartyDealerId = partyDealerData.accountMasterId
-                            selectedTransactionType = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
+                            selectedTransactionType =
+                                CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
                             selectedShippingAddressId = 0;
                             binding.edtShippingAddress.setText("")
                             callCommonDropDownListApi(DROP_DOWN_TRANSACTION_TYPE)

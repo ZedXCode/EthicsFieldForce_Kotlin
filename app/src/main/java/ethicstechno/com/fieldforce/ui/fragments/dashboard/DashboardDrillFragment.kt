@@ -56,6 +56,7 @@ import ethicstechno.com.fieldforce.databinding.FragmentDashboardDrillBinding
 import ethicstechno.com.fieldforce.databinding.ItemDashboardDrillBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.ItemClickListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.CommonProductFilterResponse
 import ethicstechno.com.fieldforce.models.DropDownItem
 import ethicstechno.com.fieldforce.models.ReportResponse
@@ -95,7 +96,6 @@ import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
-import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
@@ -122,7 +122,7 @@ import java.util.Locale
 
 class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterDialogListener,
     UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
-    UserSearchDialogUtil.BranchDialogDetect, LeaveTypeAdapter.TypeSelect{
+    UserSearchDialogUtil.BranchDialogDetect, LeaveTypeAdapter.TypeSelect {
 
     lateinit var binding: FragmentDashboardDrillBinding
     var dashboardDrillList: ArrayList<DashboardDrillResponse> = arrayListOf()
@@ -200,7 +200,6 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
     private var isShippingExpanded = false
 
 
-
     private val groupItemClickListener = object : ItemClickListener<DropDownItem> {
         override fun onItemSelected(item: DropDownItem) {
             // Handle user item selection
@@ -254,7 +253,6 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
     override fun onTypeSelect(typeData: CategoryMasterResponse) {
         selectedCategory = typeData
     }
-
 
 
     companion object {
@@ -382,6 +380,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         binding.toolbar.imgShare.visibility = View.VISIBLE
         binding.toolbar.imgShare.setOnClickListener(this)
         binding.reportHeader.tvFilter.text = filterString
+
         binding.reportHeader.tvReportGroupBy.text = reportGroupBy
 
         setupHeaderColumnAdapter()
@@ -405,7 +404,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if(::dashBoardDrillAdapter.isInitialized) {
+                if (::dashBoardDrillAdapter.isInitialized) {
                     dashBoardDrillAdapter.filter(newText.orEmpty())
                 }
                 return true
@@ -491,7 +490,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
 
             override fun onFailure(call: Call<List<FilterListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         mActivity.getString(R.string.error),
@@ -514,9 +513,11 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.imgFilter -> {
                 showFilterDialog()
             }
+
             R.id.imgShare -> {
                 if (dashboardDrillList.isEmpty()) {
                     return
@@ -564,10 +565,13 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
 
         val llHeader = filterDialog.findViewById<LinearLayout>(R.id.llHeader)
         val llOptionalFields = filterDialog.findViewById<CardView>(R.id.llOptionalFields)
-        val llOptionalFieldsProducts = filterDialog.findViewById<CardView>(R.id.llOptionalFieldsProducts)
+        val llOptionalFieldsProducts =
+            filterDialog.findViewById<CardView>(R.id.llOptionalFieldsProducts)
         val llHeaderProduct = filterDialog.findViewById<LinearLayout>(R.id.llHeaderProduct)
         val ivToggle = filterDialog.findViewById<ImageView>(R.id.ivToggle)
         val ivToggleProduct = filterDialog.findViewById<ImageView>(R.id.ivToggleProduct)
+
+        val cvProductFilter = filterDialog.findViewById<CardView>(R.id.cardViewProductFilter)
 
         tvSelectCompany = filterDialog.findViewById(R.id.tvSelectCompany)
         tvSelectBranch = filterDialog.findViewById(R.id.tvSelectBranch)
@@ -576,6 +580,12 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         llSelectBranch = filterDialog.findViewById(R.id.llSelectBranch)
         llSelectDivision = filterDialog.findViewById(R.id.llSelectDivision)
         spCategory = filterDialog.findViewById(R.id.spCategory)
+
+        if (productFilter == false) {
+            cvProductFilter.visibility = View.GONE
+        } else {
+            cvProductFilter.visibility = View.VISIBLE
+        }
 
 
         llHeader.setOnClickListener {
@@ -612,11 +622,11 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
             callDivisionListApi(true)
         }
 
-        if(productFilter) {
+        if (productFilter) {
             lylProductFilter.visibility = View.VISIBLE
-            if(!isFilterApiCalled) {
+            /*if(!isFilterApiCalled) {
                 callCommonProductFilterApi()
-            }
+            }*/
 
             if (selectedGroup != null) {
                 tvSelectGroup.text = selectedGroup?.dropdownValue
@@ -702,6 +712,9 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                 }
             }
         }
+//        else{
+//            lylProductFilter.visibility = View.VISIBLE
+//        }
 
 
         tvStartDate.setOnClickListener {
@@ -739,12 +752,13 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         spDateOption.adapter = adapter1
         spDateOption.setSelection(selectedDateOptionPosition)
 
-        btnSubmit.setOnClickListener{
+        btnSubmit.setOnClickListener {
             fromDate = tvStartDate.text.toString()
             toDate = tvEndDate.text.toString()
             filterString = filterList[spFilter.selectedItemPosition].dropDownFieldValue
             selectedDateOption = spDateOption.selectedItemPosition
-            reportGroupBy = reportGroupByList[spReportGroupBy.selectedItemPosition].dropDownFieldValue
+            reportGroupBy =
+                reportGroupByList[spReportGroupBy.selectedItemPosition].dropDownFieldValue
             selectedFilterPosition =
                 filterList.indexOfFirst { it.dropDownFieldValue == filterList[spFilter.selectedItemPosition].dropDownFieldValue }
             selectedReportGroupByPosition =
@@ -842,7 +856,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         val edtSearch = layout.findViewById<EditText>(R.id.edtSearch)
         val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
 
-        if(selectedItems.size > 0){
+        if (selectedItems.size > 0) {
             cbSelected.visibility = View.VISIBLE
             cbSelected.text = "Selected (${selectedItems.size})"
         }
@@ -984,7 +998,6 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
     }
 
 
-
     private fun callCommonProductFilterApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
@@ -996,7 +1009,11 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
 
         val jsonReq = JsonObject()
         jsonReq.addProperty("userId", loginData.userId)
-        jsonReq.addProperty("parameterString", "")
+        jsonReq.addProperty(
+            "parameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and " +
+                    "CategoryMasterid=${selectedCategory?.categoryMasterId ?: 0} and ${"ReportSetupId=" + reportSetupId}"
+        )
 
         val commonProductFilterCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -1094,10 +1111,22 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         dashboardListReq.addProperty("ToDate", toDate)
         dashboardListReq.addProperty("ReportGroupBy", reportGroupBy)
         dashboardListReq.addProperty("ParameterString", parameterString)
-        if(productFilter) {
-            dashboardListReq.addProperty("Filter", "$filterString and $header2Name IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds)")
-        }else {
-            dashboardListReq.addProperty("Filter", "$filterString")
+        dashboardListReq.addProperty("Filter", "$filterString")
+
+        val filterParameterString =
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and" + " CategoryMasterId=${selectedCategory?.categoryMasterId ?: 0}"
+        if (productFilter) {
+            dashboardListReq.addProperty(
+                "FilterParameterString",
+                "$filterParameterString AND $header2Name and IN ($filter2KeyIds) AND $header3Name IN ($filter3KeyIds) AND $header4Name IN ($filter4KeyIds) AND $header5Name IN ($filter5KeyIds) AND ReportSetupId=${reportSetupId}"
+            )
+        } else {
+            //dashboardListReq.addProperty("Filter", "$filterString")
+            dashboardListReq.addProperty(
+                "FilterParameterString",
+                "$filterParameterString AND ReportSetupId=${reportSetupId}"
+            )
+
         }
 
         Log.e("TAG", "callDashboardDrillApi: DASHBOARD LIST REQUEST  ::  " + dashboardListReq)
@@ -1123,6 +1152,9 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                 binding.tvColumn2.text = dashBoardDrillData.column2
                                 binding.tvValue1.text = dashBoardDrillData.value1
                                 binding.tvValue2.text = dashBoardDrillData.value2
+                                if(dashBoardDrillData.column2.isEmpty() && dashBoardDrillData.value2.isEmpty()){
+                                    binding.lylRow2.visibility = View.GONE
+                                }
                             }
                             dashboardDrillList.addAll(it)
                             setupDashboardDrillAdapter()
@@ -1143,7 +1175,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
 
             override fun onFailure(call: Call<List<DashboardDrillResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         mActivity.getString(R.string.error),
@@ -1167,7 +1199,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         val objReq = JsonObject()
         objReq.addProperty("companyMasterId", ID_ZERO)
         objReq.addProperty("userId", loginData.userId)
-        objReq.addProperty("ParameterString", FORM_ID_ORDER_ENTRY)
+        objReq.addProperty("ParameterString", "ReportSetupId=" + reportSetupId)
 
         val companyCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -1198,8 +1230,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                 tvSelectCompany.text = selectedCompany?.companyName ?: ""
                             }
                             callBranchListApi()
-                        }
-                        callCategoryListApi()//for not independent
+                        } //for not independent
                     }
                 } else {
                     CommonMethods.showAlertDialog(
@@ -1239,7 +1270,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         objReq.addProperty("UserId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and ReportSetupId=${reportSetupId}"
         )
 
         val branchCall = WebApiClient.getInstance(mActivity)
@@ -1271,7 +1302,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                 tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
                             }
-                            if(isFromOnClick){
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_BRANCH,
@@ -1326,7 +1357,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         objReq.addProperty("userId", loginData.userId)
         objReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and ${"ReportSetupId=" + reportSetupId}"
         )
 
         val divisionCall = WebApiClient.getInstance(mActivity)
@@ -1356,9 +1387,9 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                     divisionName = divisionMasterList[1].divisionName
                                 )
                                 tvSelectDivision.text = selectedDivision?.divisionName ?: ""
-                                callCategoryListApi()
                             }
-                            if(isFromOnClick){
+                            callCategoryListApi()
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_DIVISION,
@@ -1419,7 +1450,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         jsonReq.addProperty("UserId", loginData.userId)
         jsonReq.addProperty(
             "ParameterString",
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_ORDER_ENTRY"
+            "CompanyMasterId=${selectedCompany?.companyMasterId ?: 0} and BranchMasterId=${selectedBranch?.branchMasterId ?: 0} and DivisionMasterid=${selectedDivision?.divisionMasterId ?: 0} and ${"ReportSetupId=" + reportSetupId}"
         )
 
         val visitTypeCall = WebApiClient.getInstance(mActivity)
@@ -1484,6 +1515,12 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
             spCategory.setSelection(0)
             categoryList[0]
         }
+
+        if (productFilter) {
+            if (!isFilterApiCalled) {
+                callCommonProductFilterApi()
+            }
+        }
     }
 
     override fun onResume() {
@@ -1536,14 +1573,15 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                 binding.tvValue1.setTextColor(ContextCompat.getColor(mActivity, R.color.black))
                 binding.tvColumn2.setTextColor(ContextCompat.getColor(mActivity, R.color.black))
                 binding.tvValue2.setTextColor(ContextCompat.getColor(mActivity, R.color.black))
+
                 //}
-                if(drillData.reportViewFlag){
+                if (drillData.reportViewFlag) {
                     binding.ivShare.visibility = View.VISIBLE
-                }else{
+                } else {
                     binding.ivShare.visibility = View.GONE
                 }
 
-                binding.ivShare.setOnClickListener{
+                binding.ivShare.setOnClickListener {
                     callGetReport(drillData)
                 }
 
@@ -1566,6 +1604,31 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                 binding.tvValue1.text = drillData.value1
                 binding.tvColumn2.text = drillData.column2
                 binding.tvValue2.text = drillData.value2
+
+                val colors1 = drillData.color1.split("|")
+                val colors2 = drillData.color2.split("|")
+                if (colors1[0].isEmpty()) {
+                    binding.tvValue1.setTextColor(Color.parseColor("#FF000000"))
+                } else {
+                    binding.tvValue1.setTextColor(Color.parseColor(colors1[0]))
+                }
+
+                if (colors2[0].isEmpty()) {
+                    binding.tvValue1.setTextColor(Color.parseColor("#FF000000"))
+                } else {
+                    binding.tvValue2.setTextColor(Color.parseColor(colors2[0]))
+                }
+
+                if (colors1[0].isNotEmpty()) {
+                    binding.lylMain.setBackgroundColor(Color.parseColor(colors1[1]))
+                }
+
+                if (drillData.column2.isEmpty() && drillData.value2.isEmpty()) {
+                    binding.lylRow2.visibility = View.GONE
+                } else {
+                    binding.lylRow2.visibility = View.VISIBLE
+                }
+
                 binding.cardMain.setOnClickListener {
 
                     Log.e(
@@ -1588,7 +1651,8 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                 reportGroupByString = drillData.reportGroupBy,
                                 startDate = fromDate,
                                 endDate = toDate,
-                                dateOptionPos = selectedDateOption
+                                dateOptionPos = selectedDateOption,
+                                productFilter = productFilter
                             ),
                             true,
                             false,
@@ -1610,7 +1674,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         statusPosition: Int,
         filterStringFromSubmit: FilterListResponse,
         reportGroupByStringFromSubmit: FilterListResponse,
-        visitType: CategoryMasterResponse,
+        visitType: CommonDropDownResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {
@@ -1647,7 +1711,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
 
         val dashboardListReq = JsonObject()
         dashboardListReq.addProperty("reportSetupId", reportSetupId)
-        dashboardListReq.addProperty("reportName", drillData.reportFileName)
+        dashboardListReq.addProperty("reportName", drillData.reportName)
         dashboardListReq.addProperty("UserId", loginData.userId)
         dashboardListReq.addProperty("reportType", REPORT_R)
         dashboardListReq.addProperty("formId", reportSetupId)
@@ -1658,9 +1722,6 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
         dashboardListReq.addProperty("filter", filterString)
         dashboardListReq.addProperty("filterParameterString", filterParameterString)
         dashboardListReq.addProperty("documentId", 0)
-
-
-
 
 
         val dashboardListCall = WebApiClient.getInstance(mActivity)
@@ -1676,12 +1737,12 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                 if (response.isSuccessful) {
                     response.body()?.let { reportResponse ->
                         //val fileName = reportResponse.fileName
-                        if(reportResponse.fileName.isEmpty()){
+                        if (reportResponse.fileName.isEmpty()) {
                             CommonMethods.showToastMessage(mActivity, "No Report Found")
                             return
                         }
                         val fileName = appDatabase.appDao()
-                            .getAppRegistration().apiHostingServer +reportResponse.fileName
+                            .getAppRegistration().apiHostingServer + reportResponse.fileName
                         Log.d("FileName", fileName)
 
                         //openUrlInChrome(fileName)

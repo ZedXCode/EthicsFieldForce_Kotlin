@@ -58,12 +58,12 @@ import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAttendanceBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceResponse
 import ethicstechno.com.fieldforce.models.attendance.PunchInResponse
 import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.TripSummeryReportResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.service.EthicsBackgroundService
@@ -927,7 +927,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: CategoryMasterResponse,
+        visitType: CommonDropDownResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

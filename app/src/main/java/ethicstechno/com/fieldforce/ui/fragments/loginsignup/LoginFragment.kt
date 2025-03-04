@@ -33,9 +33,17 @@ import ethicstechno.com.fieldforce.models.LoginResponse
 import ethicstechno.com.fieldforce.permission.KotlinPermissions
 import ethicstechno.com.fieldforce.ui.activities.HomeActivity
 import ethicstechno.com.fieldforce.ui.base.MainBaseFragment
-import ethicstechno.com.fieldforce.utils.*
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.getBatteryPercentage
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.IS_LOGIN
+import ethicstechno.com.fieldforce.utils.IS_TRIP_START
+import ethicstechno.com.fieldforce.utils.ImageUtils
+import ethicstechno.com.fieldforce.utils.SELECT_COMPANY
+import ethicstechno.com.fieldforce.utils.USER_NAME
+import ethicstechno.com.fieldforce.utils.USER_PWD
 import hideKeyboard
 import retrofit2.Call
 import retrofit2.Callback
@@ -404,16 +412,19 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
         btnSubmit.setOnClickListener {
             if (spCompany.selectedItemPosition == 0) {
-                showToastMessage(
-                    mActivity,
-                    getString(R.string.please_select_company)
-                )
+                showToastMessage(mActivity, getString(R.string.please_select_company))
                 return@setOnClickListener
             }
             companyDialog.dismiss()
             appDao.deleteAppRegistration()
             Log.e("TAG", "showCompanyDialog: " + spCompany.selectedItemPosition)
-            appDao.insertAppRegistration(companyList[spCompany.selectedItemPosition])
+
+            val selectedCompany = companyList[spCompany.selectedItemPosition]
+            appDao.insertAppRegistration(selectedCompany)
+
+            Log.d("SELECTCOMPANY===>", selectedCompany.customerName)
+
+            AppPreference.saveStringPreference(mActivity, SELECT_COMPANY, selectedCompany.customerName)
             callLoginApi()
         }
 

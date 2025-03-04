@@ -31,6 +31,17 @@ class ProductInquiryGroupResponse(
     @SerializedName("Quantity") var qty: BigDecimal = BigDecimal.ZERO,
     @SerializedName("Amount") var amount: BigDecimal = BigDecimal.ZERO,
     @SerializedName("Rate") var price: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("AltUnitQuantity") var altUnitQuantity: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("QuantityRoundOffType") var quantityRoundOffType: Int? = 0,
+    @SerializedName("PerUnitWeight") var perUnitWeight: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("NewField") var newField: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("VisitStatus") var visitStatus: Int = 0,
+    @SerializedName("ReferenceTableName") var referenceName: String = "",
+    @SerializedName("ReferenceDetailsId") var ReferenceDetailsId: Int = 0,
+    @SerializedName("Discount") var discount: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("DiscountAmount") var discountAmount: BigDecimal = BigDecimal.ZERO,
+    @SerializedName("PriceListDetailsId") var priceDetailsId: Int = 0,
+    @SerializedName("SchemeDetailsId") var schemeDetailsId: Int = 0,
     var finalQty: BigDecimal = BigDecimal.ZERO
 ) : Parcelable {
     override fun toString(): String {

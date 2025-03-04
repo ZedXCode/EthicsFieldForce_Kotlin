@@ -18,7 +18,16 @@ data class DashboardListResponse(
     @SerializedName("ReportGroupBy") val reportGroupBy: String,
     @SerializedName("Filter") val filter: String,
     @SerializedName("UserId") val userId: Int,
-    @SerializedName("SerialNo") val serialNo: Int) : Parcelable {
+    @SerializedName("SerialNo") val serialNo: Int,
+    @SerializedName("Value1") val value1: String,
+    @SerializedName("Value2") val value2: String,
+    @SerializedName("Value3") val value3: String,
+    @SerializedName("Value4") val value4: String,
+    @SerializedName("Color1") val color1: String,
+    @SerializedName("Color2") val color2: String,
+    @SerializedName("Color3") val color3: String,
+    @SerializedName("Color4") val color4: String,
+    @SerializedName("ViewType") val viewType: Int): Parcelable {
     constructor() : this(
         0,
         "",
@@ -32,6 +41,11 @@ data class DashboardListResponse(
         "",
         "",
         0,
+        0,
+        "",
+        "",
+        "",
+        "","","","","",
         0
     )
 }

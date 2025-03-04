@@ -424,7 +424,13 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        AddOrderEntryFragment.newInstance(orderData.orderId ?: 0, orderData.allowEdit, orderData.allowDelete),
+                        fragment = AddOrderEntryFragment.newInstance(orderData.orderId ?: 0,
+                            allowEdit = orderData.allowEdit,
+                            allowDelete = orderData.allowDelete,
+                            accountName = "",
+                            accountMasterId = 0,
+                            contactPersonName = ""
+                        ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.rightInLeftOut

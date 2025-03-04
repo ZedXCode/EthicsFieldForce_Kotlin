@@ -28,6 +28,7 @@ import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentTripSummeryReportBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.attendance.CurrentMonthAttendanceResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
@@ -327,7 +328,7 @@ class TripSummeryReportFragment : HomeBaseFragment(), View.OnClickListener, Filt
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: CategoryMasterResponse,
+        visitType: CommonDropDownResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {

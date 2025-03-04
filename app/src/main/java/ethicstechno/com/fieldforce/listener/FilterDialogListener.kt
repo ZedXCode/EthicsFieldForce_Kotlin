@@ -1,9 +1,8 @@
 package ethicstechno.com.fieldforce.listener
 
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
-import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveTypeListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 
 interface FilterDialogListener {
     fun onFilterSubmitClick(
@@ -14,7 +13,7 @@ interface FilterDialogListener {
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        selectedVisitType: CategoryMasterResponse,
+        selectedVisitType: CommonDropDownResponse,
         selectedPartyDealer: AccountMasterList,
         visitPosition: Int
     )

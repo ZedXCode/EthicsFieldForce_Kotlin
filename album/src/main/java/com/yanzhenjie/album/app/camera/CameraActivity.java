@@ -44,6 +44,7 @@ public class CameraActivity extends BaseActivity {
     private static final String INSTANCE_CAMERA_QUALITY = "INSTANCE_CAMERA_QUALITY";
     private static final String INSTANCE_CAMERA_DURATION = "INSTANCE_CAMERA_DURATION";
     private static final String INSTANCE_CAMERA_BYTES = "INSTANCE_CAMERA_BYTES";
+    private static final String INSTANCE_IS_FRONT = "INSTANCE_IS_FRONT";
 
     private static final int CODE_PERMISSION_IMAGE = 1;
     private static final int CODE_PERMISSION_VIDEO = 2;
@@ -56,6 +57,7 @@ public class CameraActivity extends BaseActivity {
 
     private int mFunction;
     private String mCameraFilePath;
+    private boolean isFrontCamera;
     private int mQuality;
     private long mLimitDuration;
     private long mLimitBytes;
@@ -73,6 +75,7 @@ public class CameraActivity extends BaseActivity {
             mQuality = savedInstanceState.getInt(INSTANCE_CAMERA_QUALITY);
             mLimitDuration = savedInstanceState.getLong(INSTANCE_CAMERA_DURATION);
             mLimitBytes = savedInstanceState.getLong(INSTANCE_CAMERA_BYTES);
+            isFrontCamera = savedInstanceState.getBoolean(INSTANCE_IS_FRONT);
         } else {
             Bundle bundle = getIntent().getExtras();
             assert bundle != null;
@@ -81,6 +84,7 @@ public class CameraActivity extends BaseActivity {
             mQuality = bundle.getInt(Album.KEY_INPUT_CAMERA_QUALITY);
             mLimitDuration = bundle.getLong(Album.KEY_INPUT_CAMERA_DURATION);
             mLimitBytes = bundle.getLong(Album.KEY_INPUT_CAMERA_BYTES);
+            isFrontCamera = bundle.getBoolean(Album.KEY_INPUT_IS_FRONT_CAMERA);
 
             switch (mFunction) {
                 case Album.FUNCTION_CAMERA_IMAGE: {
@@ -116,7 +120,7 @@ public class CameraActivity extends BaseActivity {
     protected void onPermissionGranted(int code) {
         switch (code) {
             case CODE_PERMISSION_IMAGE: {
-                AlbumUtils.takeImage(this, CODE_ACTIVITY_TAKE_IMAGE, new File(mCameraFilePath));
+                AlbumUtils.takeImage(this, CODE_ACTIVITY_TAKE_IMAGE, new File(mCameraFilePath), isFrontCamera);
                 break;
             }
             case CODE_PERMISSION_VIDEO: {

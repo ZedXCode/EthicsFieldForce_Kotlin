@@ -1,10 +1,16 @@
 package ethicstechno.com.fieldforce.ui.fragments.moreoption.visit
 
+import AnimationType
+import addFragment
 import android.Manifest
 import android.app.Activity
 import android.app.TimePickerDialog
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.location.LocationManager
@@ -47,6 +53,10 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
+import com.google.mlkit.vision.face.FaceDetection
+import com.google.mlkit.vision.face.FaceDetectorOptions
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
@@ -54,8 +64,8 @@ import ethicstechno.com.fieldforce.databinding.FragmentAddVisitBinding
 import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
-import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
+import ethicstechno.com.fieldforce.models.moreoption.visit.AddVisitSuccessResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
@@ -66,12 +76,15 @@ import ethicstechno.com.fieldforce.models.trip.GetVisitFromPlaceListResponse
 import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry.AddInquiryEntryFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.AddOrderEntryFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.modifyOrientation
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_STAGE
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_VISIT_TYPE
@@ -155,7 +168,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     var initialTime = ""
     private var isCompanyChange = false
     var visitId = 0
-
+    private lateinit var options: FaceDetectorOptions
+    var totalFaceCount: Int = 0
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
@@ -226,6 +240,13 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.toolbar.imgBack.visibility = View.VISIBLE
         binding.toolbar.tvHeader.text =
             if (isReadOnly) mActivity.getString(R.string.visit_details) else mActivity.getString(R.string.add_visit_details)
+        options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+            .setMinFaceSize(0.1f)
+            .enableTracking()
+            .build()
         setupRecyclerView()
 
         if (!isReadOnly && !AppPreference.getBooleanPreference(mActivity, IS_TRIP_START)) {
@@ -316,6 +337,17 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                     }
                 }
             }
+            binding.lylCbOrderInquiry.visibility = View.VISIBLE
+            binding.cbAddInqury.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked) {
+                    binding.cbAddOrder.isChecked = false
+                }
+            }
+            binding.cbAddOrder.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked) {
+                    binding.cbAddInqury.isChecked = false
+                }
+            }
         }
         binding.llHeader.setOnClickListener {
             toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
@@ -328,6 +360,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 e.printStackTrace()
             }
         }
+
     }
 
     private fun toggleSectionVisibility(view: View, toggleIcon: ImageView) {
@@ -343,7 +376,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
 
     private suspend fun executeAPIsAndSetupData() {
-        if(!isReadOnly) {
+        if (!isReadOnly) {
             withContext(Dispatchers.IO) {
                 try {
                     val visitListDeferred =
@@ -629,46 +662,109 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     private fun openAlbumForSelfie() {
         AlbumUtility(mActivity, true).openAlbumAndHandleCameraSelection(
-            onImageSelected = {
-                selfieImageFile = it
+            isFrontCamera = true,
+            onImageSelected = { file ->
+                selfieImageFile = file
 
                 val executor = Executors.newSingleThreadExecutor()
                 val handler = Handler(Looper.getMainLooper())
                 executor.execute {
-                    // This code runs on a background thread
-                    val modifiedImageFile: File = CommonMethods.addDateAndTimeToFile(
-                        it,
+                    val modifiedImageFile = CommonMethods.addDateAndTimeToFile(
+                        file,
                         CommonMethods.createImageFile(mActivity)!!
                     )
 
                     if (modifiedImageFile != null) {
+                        Thread.sleep(1000) // Simulate time-consuming task
 
-                        // Simulate a time-consuming task
-                        Thread.sleep(1000)
-
-                        // Update the UI on the main thread using runOnUiThread
                         handler.post {
                             base64SelfieImage =
-                                CommonMethods.convertImageFileToBase64(modifiedImageFile)
-                                    .toString()
-                            binding.tvSelfiUploaded.text =
-                                mActivity.getString(R.string.selfie_uploaded)
-                            binding.tvSelfiUploaded.setTextColor(
-                                ContextCompat.getColor(
-                                    mActivity,
-                                    R.color.colorGreen
-                                )
-                            )
+                                CommonMethods.convertImageFileToBase64(modifiedImageFile).toString()
+                            //binding.tvSelfiUploaded.text = mActivity.getString(R.string.selfie_uploaded)
+                            //binding.tvSelfiUploaded.setTextColor(ContextCompat.getColor(mActivity, R.color.colorGreen))
 
+                            val bitmap = BitmapFactory.decodeFile(modifiedImageFile.absolutePath)
+                            val rotatedBitmap = modifyOrientation(
+                                bitmap,
+                                modifiedImageFile.absolutePath
+                            ) // Ensure correct orientation
+
+                            binding.imgSelfie.visibility = View.VISIBLE
+                            binding.imgSelfie.setImageBitmap(rotatedBitmap)
+
+                            try {
+                                val inputImage = InputImage.fromBitmap(
+                                    rotatedBitmap,
+                                    0
+                                ) // Use fromBitmap instead of fromFilePath
+                                processImage(inputImage, rotatedBitmap)
+                            } catch (e: Exception) {
+                                Log.e("TAG", "Error processing image", e)
+                            }
                         }
                     }
                 }
             },
-            onError = {
-                CommonMethods.showToastMessage(mActivity, it)
+            onError = { error ->
+                CommonMethods.showToastMessage(mActivity, error)
             }
         )
+    }
 
+    private fun processImage(image: InputImage, imageBitmap: Bitmap?) {
+        val options = FaceDetectorOptions.Builder()
+            .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE) // Use ACCURATE mode for better results
+            .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL) // Detect facial landmarks
+            .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL) // Enable smiling & eye open detection
+            .build()
+
+        val detector = FaceDetection.getClient(options)
+
+        detector.process(image)
+            .addOnSuccessListener { faces ->
+                displayFaces(faces, imageBitmap)
+            }
+            .addOnFailureListener { e ->
+                Log.e("TAG", "Face detection failed", e)
+            }
+    }
+
+    private fun displayFaces(faces: List<Face>, mBitmap: Bitmap?) {
+        if (mBitmap == null) return
+
+        val bitmap = mBitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = ContextCompat.getColor(mActivity, R.color.colorRed)
+            style = Paint.Style.STROKE
+            strokeWidth = 30f
+        }
+
+        for (face in faces) {
+            val bounds = face.boundingBox
+            canvas.drawRect(bounds, paint)
+        }
+
+        binding.imgSelfie.setImageBitmap(bitmap)
+
+        if (faces.isNotEmpty()) {
+            binding.tvSelfiUploaded.text = "Face Detected"
+            totalFaceCount = faces.size
+            binding.tvSelfiUploaded.setTextColor(
+                ContextCompat.getColor(
+                    mActivity,
+                    R.color.colorGreenDark
+                )
+            )
+        } else {
+            binding.tvSelfiUploaded.text = "Face not detected, please recapture photo"
+            binding.tvSelfiUploaded.setTextColor(
+                ContextCompat.getColor(
+                    mActivity,
+                    R.color.colorRed
+                )
+            )
+        }
     }
 
     private fun setupRecyclerView() {
@@ -979,7 +1075,10 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         val objReq = JsonObject()
         objReq.addProperty("BranchMasterId", ID_ZERO)
         objReq.addProperty("UserId", loginData.userId)
-        objReq.addProperty("ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_VISIT")
+        objReq.addProperty(
+            "ParameterString",
+            "CompanyMasterId=${selectedCompany?.companyMasterId} and $FORM_ID_VISIT"
+        )
 
         val branchCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -1009,7 +1108,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                                 binding.tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
-                            }else{
+                            } else {
                                 //callDivisionListApi()
                                 /*val userDialog = UserSearchDialogUtil(
                                     mActivity,
@@ -1020,7 +1119,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                                 userDialog.showUserSearchDialog()*/
                             }
-                        }else{
+                        } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
                                 getString(R.string.branch_list_not_found)
@@ -1104,7 +1203,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 )
                                 binding.tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
-                            }else{
+                            } else {
                                 /*val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_DIVISION,
@@ -1115,7 +1214,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                 userDialog.showUserSearchDialog()*/
                                 //callCategoryListApi()
                             }
-                        }else{
+                        } else {
                             CommonMethods.showToastMessage(
                                 mActivity,
                                 getString(R.string.division_list_not_found)
@@ -1297,7 +1396,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
     }
 
-    private fun showInquiryDialog(inquiries: List<InquiryResponse>, isViewOnly : Boolean = false) {
+    private fun showInquiryDialog(inquiries: List<InquiryResponse>, isViewOnly: Boolean = false) {
         val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
         inquiryDialog = builder.create()
         inquiryDialog!!.setCancelable(false)
@@ -1316,7 +1415,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         val tvTitle = layout.findViewById<TextView>(R.id.tvTitle)
         val adapter = InquiryAdapter(mActivity, inquiries, isViewOnly)
 
-        if(isViewOnly){
+        if (isViewOnly) {
             btnSubmit.visibility = View.GONE
             cbAll.visibility = View.GONE
             tvClearAll.visibility = View.GONE
@@ -1418,10 +1517,10 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             binding.spCategory.setSelection(1)
             categoryList[1]
         } else {
-            if(isCompanyChange) {
+            if (isCompanyChange) {
                 binding.spCategory.setSelection(0)
                 categoryList[0]
-            }else{
+            } else {
                 val selectedCategoryIndex =
                     categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
                 binding.spCategory.setSelection(selectedCategoryIndex)
@@ -1432,6 +1531,10 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     private fun callAddVisitApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
+            return
+        }
+        if (base64SelfieImage.isNotEmpty() && totalFaceCount <= 0) {
+            CommonMethods.showToastMessage(mActivity, "Please capture valid selfie picture")
             return
         }
         CommonMethods.showLoading(mActivity)
@@ -1537,14 +1640,14 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
         addVisitReq.add("visitDetail", jsonArray)
 
-        val expenseTypeCall = WebApiClient.getInstance(mActivity)
+        val addVisitCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.addVisit(addVisitReq)
 
-        expenseTypeCall?.enqueue(object : Callback<CommonSuccessResponse> {
+        addVisitCall?.enqueue(object : Callback<AddVisitSuccessResponse> {
             override fun onResponse(
-                call: Call<CommonSuccessResponse>,
-                response: Response<CommonSuccessResponse>
+                call: Call<AddVisitSuccessResponse>,
+                response: Response<AddVisitSuccessResponse>
             ) {
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
@@ -1567,6 +1670,38 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                         } else {
                                             mActivity.onBackPressed()
                                         }
+                                        if (binding.cbAddOrder.isChecked) {
+                                            mActivity.addFragment(
+                                                AddOrderEntryFragment.newInstance(
+                                                    orderId = 0,
+                                                    allowDelete = false,
+                                                    allowEdit = false,
+                                                    accountName = visitData.accountName,
+                                                    accountMasterId = visitData.accountMasterId,
+                                                    contactPersonName = binding.etContactPerson.text.toString()
+                                                        .trim() ?: ""
+                                                ),
+                                                addToBackStack = true,
+                                                ignoreIfCurrent = true,
+                                                animationType = AnimationType.fadeInfadeOut
+                                            )
+                                        }
+                                        if (binding.cbAddInqury.isChecked) {
+                                            mActivity.addFragment(
+                                                AddInquiryEntryFragment.newInstance(
+                                                    orderId = 0,
+                                                    allowDelete = false,
+                                                    allowEdit = false,
+                                                    accountName = visitData.accountName,
+                                                    accountMasterId = visitData.accountMasterId,
+                                                    contactPersonName = binding.etContactPerson.text.toString()
+                                                        .trim() ?: ""
+                                                ),
+                                                addToBackStack = true,
+                                                ignoreIfCurrent = true,
+                                                animationType = AnimationType.fadeInfadeOut
+                                            )
+                                        }
                                     }
                                 }
                             }, isCancelVisibility = false
@@ -1582,7 +1717,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 }
             }
 
-            override fun onFailure(call: Call<CommonSuccessResponse>, t: Throwable) {
+            override fun onFailure(call: Call<AddVisitSuccessResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -1633,9 +1768,11 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                     response.body()?.let { it ->
                         if (it.isNotEmpty()) {
                             setupVisitDetails(it[0])
-                        }else{
-                            CommonMethods.showToastMessage(mActivity,
-                                getString(R.string.no_visit_details_found))
+                        } else {
+                            CommonMethods.showToastMessage(
+                                mActivity,
+                                getString(R.string.no_visit_details_found)
+                            )
                         }
                     }
                 } else {
@@ -1650,7 +1787,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
 
             override fun onFailure(call: Call<List<VisitReportListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         mActivity.getString(R.string.error),
@@ -1682,14 +1819,20 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.tvStartTime.text = CommonMethods.convertToAmPm(visitReportData.startTime)
         binding.tvEndTime.text = CommonMethods.convertToAmPm(visitReportData.endTime)
         binding.tvSelectStage.text = visitReportData.dmdStageName.ifEmpty { "" }
-        if(visitReportData.listInquiryFilter.isNotEmpty()){
+        if (visitReportData.listInquiryFilter.isNotEmpty()) {
             inquiryList.addAll(visitReportData.listInquiryFilter)
-            binding.tvTotalSelectedItem.text = inquiryList.size.toString() + " Inquiry/Quotation Selected"
-            binding.tvTotalSelectedItem.setTextColor(ContextCompat.getColor(mActivity, R.color.colorGreen))
-            binding.tvTotalSelectedItem.setOnClickListener{
+            binding.tvTotalSelectedItem.text =
+                inquiryList.size.toString() + " Inquiry/Quotation Selected"
+            binding.tvTotalSelectedItem.setTextColor(
+                ContextCompat.getColor(
+                    mActivity,
+                    R.color.colorGreen
+                )
+            )
+            binding.tvTotalSelectedItem.setOnClickListener {
                 showInquiryDialog(inquiryList, true)
             }
-            if(visitReportData.selfieFilePath.isNotEmpty()) {
+            if (visitReportData.selfieFilePath.isNotEmpty()) {
                 binding.tvSelfiUploaded.setTextColor(
                     ContextCompat.getColor(
                         mActivity,
@@ -1698,9 +1841,14 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 )
                 binding.tvSelfiUploaded.text = "View Photo"
             }
-            binding.tvSelfiUploaded.setOnClickListener{
-                if(visitReportData.selfieFilePath.isNotEmpty()){
-                    binding.tvSelfiUploaded.setTextColor(ContextCompat.getColor(mActivity, R.color.colorGreen))
+            binding.tvSelfiUploaded.setOnClickListener {
+                if (visitReportData.selfieFilePath.isNotEmpty()) {
+                    binding.tvSelfiUploaded.setTextColor(
+                        ContextCompat.getColor(
+                            mActivity,
+                            R.color.colorGreen
+                        )
+                    )
                     ImagePreviewCommonDialog.showImagePreviewDialog(
                         mActivity,
                         appDatabase.appDao()
@@ -1725,7 +1873,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             3 -> binding.radioGroupStatus.check(R.id.rbClose)
             else -> binding.radioGroupStatus.clearCheck()
         }
-        if(selectedModeOfCommunication == 2){
+        if (selectedModeOfCommunication == 2) {
             binding.llNextVisitLayout.visibility = View.VISIBLE
         }
 
@@ -1739,16 +1887,16 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         binding.etRemarks.isEnabled = false
         binding.etContactPerson.isEnabled = false
 
-        if((visitReportData.filePath ?: "").isNotEmpty()){
+        if ((visitReportData.filePath ?: "").isNotEmpty()) {
             imageAnyList.add((visitReportData.filePath) ?: "")
         }
-        if((visitReportData.filePath2 ?: "").isNotEmpty()){
+        if ((visitReportData.filePath2 ?: "").isNotEmpty()) {
             imageAnyList.add((visitReportData.filePath2) ?: "")
         }
-        if((visitReportData.filePath3 ?: "").isNotEmpty()){
+        if ((visitReportData.filePath3 ?: "").isNotEmpty()) {
             imageAnyList.add((visitReportData.filePath3) ?: "")
         }
-        if((visitReportData.filePath4 ?: "").isNotEmpty()){
+        if ((visitReportData.filePath4 ?: "").isNotEmpty()) {
             imageAnyList.add((visitReportData.filePath4) ?: "")
         }
         imageAdapter?.addImage(imageAnyList, true)
@@ -2061,7 +2209,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             resetDivision = true,
             resetCategory = true
         )
-        if((selectedCompany?.companyMasterId ?: 0) > 0) {
+        if ((selectedCompany?.companyMasterId ?: 0) > 0) {
             callBranchListApi()
         }
     }
@@ -2074,7 +2222,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             resetDivision = true,
             resetCategory = true
         )
-        if((selectedBranch?.branchMasterId ?: 0) > 0){
+        if ((selectedBranch?.branchMasterId ?: 0) > 0) {
             callDivisionListApi()
         }
     }
@@ -2087,7 +2235,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             resetDivision = false,
             resetCategory = true
         )
-        if((selectedDivision?.divisionMasterId ?: 0) > 0) {
+        if ((selectedDivision?.divisionMasterId ?: 0) > 0) {
             callCategoryListApi()
         }
     }
@@ -2102,7 +2250,11 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
     }
 
-    class InquiryAdapter(private val context: Context, private val items: List<InquiryResponse>, private val isViewOnly: Boolean = false) :
+    class InquiryAdapter(
+        private val context: Context,
+        private val items: List<InquiryResponse>,
+        private val isViewOnly: Boolean = false
+    ) :
         RecyclerView.Adapter<InquiryAdapter.ItemViewHolder>() {
 
         private var filteredItems: MutableList<InquiryResponse> = items.toMutableList()
@@ -2110,7 +2262,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         // Method to re-check previously selected items
         fun updateCheckedItems(selectedItems: List<InquiryResponse>) {
             items.forEach { item ->
-                item.isSelected = selectedItems.any { it.documentDetailsId == item.documentDetailsId }
+                item.isSelected =
+                    selectedItems.any { it.documentDetailsId == item.documentDetailsId }
             }
             notifyDataSetChanged()
         }
@@ -2125,7 +2278,7 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             val item = filteredItems[position]
             holder.bind(item)
 
-            if(isViewOnly){
+            if (isViewOnly) {
                 holder.itemCheckBox.visibility = View.GONE
             }
             // Clear previous listeners
@@ -2188,7 +2341,11 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
     }
 
 
-    private fun resetSelection(resetBranch: Boolean, resetDivision: Boolean, resetCategory: Boolean) {
+    private fun resetSelection(
+        resetBranch: Boolean,
+        resetDivision: Boolean,
+        resetCategory: Boolean
+    ) {
         if (resetBranch) {
             selectedBranch = null
             binding.tvSelectBranch.hint = mActivity.getString(R.string.select_branch)
@@ -2211,14 +2368,14 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
     }
 
-    private fun disableRadioModeOfCom(isRadioEnable: Boolean){
-        if(!isRadioEnable){
+    private fun disableRadioModeOfCom(isRadioEnable: Boolean) {
+        if (!isRadioEnable) {
             for (i in 0 until binding.radioGroupModeOfCom.childCount) {
                 val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
                 radioButton.isEnabled = false
                 radioButton.isClickable = false
             }
-        }else{
+        } else {
             for (i in 0 until binding.radioGroupModeOfCom.childCount) {
                 val radioButton = binding.radioGroupModeOfCom.getChildAt(i)
                 radioButton.isEnabled = true
@@ -2227,14 +2384,14 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
         }
     }
 
-    private fun disableRadioStatus(isRadioEnable: Boolean){
-        if(!isRadioEnable){
+    private fun disableRadioStatus(isRadioEnable: Boolean) {
+        if (!isRadioEnable) {
             for (i in 0 until binding.radioGroupStatus.childCount) {
                 val radioButton = binding.radioGroupStatus.getChildAt(i)
                 radioButton.isEnabled = false
                 radioButton.isClickable = false
             }
-        }else{
+        } else {
             for (i in 0 until binding.radioGroupStatus.childCount) {
                 val radioButton = binding.radioGroupStatus.getChildAt(i)
                 radioButton.isEnabled = true
@@ -2242,4 +2399,5 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
             }
         }
     }
+
 }

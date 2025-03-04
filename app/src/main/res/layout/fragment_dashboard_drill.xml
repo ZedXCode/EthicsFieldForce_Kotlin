@@ -53,6 +53,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/lylRow2"
                     style="@style/LinearLayoutHorizontal"
                     android:layout_gravity="center"
                     android:layout_marginTop="@dimen/_10sdp"

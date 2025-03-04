@@ -660,6 +660,12 @@
 
                 </LinearLayout>
 
+                <CheckBox
+                    android:id="@+id/cbAddVisitDetails"
+                    android:text="Add Visit Details"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
                 <TextView
                     android:id="@+id/tvSubmit"
                     style="@style/CommonButtonStyle"

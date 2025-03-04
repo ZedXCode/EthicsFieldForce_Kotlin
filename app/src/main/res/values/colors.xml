@@ -37,5 +37,10 @@
     <color name="cardStrokeColor">#D1D5DB</color>
     <color name="cardBackground">#F2F2F0</color>
 
+    <color name="color_card1">#FFBCC8</color>
+    <color name="color_card2">#FFFFD8</color>
+    <color name="color_card3">#EAEBFF</color>
+    <color name="color_card4">#E0FEFE</color>
+
 
 </resources>

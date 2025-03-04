@@ -435,9 +435,12 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
                         AddInquiryEntryFragment.newInstance(
-                            orderData.inquiryId ?: 0,
-                            orderData.allowEdit,
-                            orderData.allowDelete
+                            orderId = orderData.inquiryId ?: 0,
+                            allowEdit = orderData.allowEdit,
+                            allowDelete = orderData.allowDelete,
+                            accountName = "",
+                            accountMasterId = 0,
+                            contactPersonName = ""
                         ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,

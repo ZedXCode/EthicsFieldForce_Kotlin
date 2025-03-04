@@ -112,15 +112,18 @@ public class AlbumUtils {
      * @param requestCode code, see {@link //Activity#onActivityResult(int, int, Intent)}.
      * @param outPath     file path.
      */
-    public static void takeImage(@NonNull Activity activity, int requestCode, File outPath) {
+    public static void takeImage(@NonNull Activity activity, int requestCode, File outPath, boolean isFrontCamera) {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         Uri uri = getUri(activity, outPath);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-        /*if(isCameraFront){
+        if(isFrontCamera){
+            intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
+            intent.putExtra("android.intent.extra.USE_FRONT_CAMERA", true); // Preferred way
+            intent.putExtra("android.intent.extras.LENS_FACING_FRONT", 1); // Alternative for some devices
             intent.putExtra("android.intent.extras.CAMERA_FACING", 1);
         }else{
             intent.putExtra("android.intent.extras.CAMERA_FACING", 0);
-        }*/
+        }
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         activity.startActivityForResult(intent, requestCode);

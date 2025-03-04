@@ -413,6 +413,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
     private fun openAlbum() {
         AlbumUtility(mActivity, true).openAlbumAndHandleCameraSelection(
+            isFrontCamera = false,
             onImageSelected = {
                 meterReadingImageFile = it
 

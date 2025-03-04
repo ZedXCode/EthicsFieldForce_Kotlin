@@ -65,7 +65,7 @@ class OrderDetailsAdapter(
                 val srNo = (position + 1).toString()
                 tvSRNo.text = srNo
                 tvProduct.text = item.productName
-                tvQty.text = CommonMethods.formatBigDecimal(item.qty)
+                tvQty.text = item.qty.toString() //CommonMethods.formatBigDecimal(item.qty)
                 tvPrice.text = CommonMethods.formatBigDecimal(item.price)
                 tvAmount.text = CommonMethods.formatBigDecimal(item.amount)
                 tvUnit.text = item.unit.toString()

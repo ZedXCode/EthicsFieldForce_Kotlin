@@ -82,6 +82,7 @@ import ethicstechno.com.fieldforce.utils.PAGE_ABOUT_US
 import ethicstechno.com.fieldforce.utils.PAGE_PRIVACY_POLICY
 import ethicstechno.com.fieldforce.utils.PAGE_TERMS_CONDITION
 import ethicstechno.com.fieldforce.utils.PermissionUtil
+import ethicstechno.com.fieldforce.utils.SELECT_COMPANY
 
 class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -316,6 +317,8 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             NavMenuModel(NAV_LOGOUT, "Logout", R.drawable.ic_nav_logout)
         )
 
+
+
         val adapter = NavMenuAdapter(menuItems) { menuItem ->
             closeDrawer()
             when(menuItem.navId){
@@ -378,6 +381,9 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         //val tvUserName: TextView = headerView.findViewById(R.id.tvUserName)
         binding.headerLayout.tvUserName.text = appDao.getLoginData().userName+"\n"+appDao.getLoginData().lastLoginDateTime
         binding.headerLayout.tvVersion.text = BuildConfig.VERSION_NAME
+
+        var displanCompany = AppPreference.getStringPreference(this,SELECT_COMPANY)
+        binding.headerLayout.tvDisplayCompany.text = displanCompany
         //tvLastLoginData.text = appDao.getLoginData().lastLoginDateTime
         ImageUtils().loadCircleIMageUrl(
             this,

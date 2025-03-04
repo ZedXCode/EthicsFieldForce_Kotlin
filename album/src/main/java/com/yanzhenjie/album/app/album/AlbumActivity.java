@@ -320,7 +320,7 @@ public class AlbumActivity extends BaseActivity implements
             File file = new File(mAlbumFolders.get(mCurrentFolder).getAlbumFiles().get(0).getPath());
             filePath = AlbumUtils.randomJPGPath(file.getParentFile());
         }
-        Album.camera(this)
+        Album.camera(this, false)
                 .image()
                 .filePath(filePath)
                 .onResult(mCameraAction)
@@ -335,7 +335,7 @@ public class AlbumActivity extends BaseActivity implements
             File file = new File(mAlbumFolders.get(mCurrentFolder).getAlbumFiles().get(0).getPath());
             filePath = AlbumUtils.randomMP4Path(file.getParentFile());
         }
-        Album.camera(this)
+        Album.camera(this, false)
                 .video()
                 .filePath(filePath)
                 .quality(mQuality)

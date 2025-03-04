@@ -24,7 +24,11 @@ data class DashboardDrillResponse(
     @SerializedName("Filter") val filter: String,
     @SerializedName("StoreProcedureName") val storeProcedureName: String?, // Change to the actual type if needed
     @SerializedName("PopUpScreenFlag") val popUpScreenFlag: Int,
-    @SerializedName("ReportFileName") val reportFileName: String = ""
+    @SerializedName("ReportFileName") val reportFileName: String = "",
+    @SerializedName("Color1") val color1: String = "",
+    @SerializedName("Color2") val color2: String = "",
+    @SerializedName("ReportName") val reportName: String = ""
+
 ): Parcelable{
     constructor() : this(
         "",

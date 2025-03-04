@@ -209,6 +209,10 @@ const val NAV_CHANGE_PASSWORD = 5
 const val NAV_SUPPORT = 6
 const val NAV_LOGOUT = 7
 
+const val QUANTITY_ROUND_OF_0 = 0
+const val QUANTITY_ROUND_OF_1 = 1
+const val QUANTITY_ROUND_OF_2 = 2
 
 
+const val SELECT_COMPANY = "select_company"
 

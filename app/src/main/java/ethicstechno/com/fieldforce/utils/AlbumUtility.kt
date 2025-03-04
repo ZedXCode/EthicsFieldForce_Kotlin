@@ -50,9 +50,10 @@ class AlbumUtility(private val activity: Activity, private val isCamera: Boolean
 
     fun openAlbumAndHandleCameraSelection(
         onImageSelected: (File) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        isFrontCamera: Boolean
     ) {
-        Album.camera(activity)
+        Album.camera(activity, isFrontCamera)
             .image()
             .onResult { result ->
                 if (result != null && result.isNotEmpty()) {

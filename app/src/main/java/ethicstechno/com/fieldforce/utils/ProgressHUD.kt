@@ -11,7 +11,6 @@ import ethicstechno.com.fieldforce.R
 
 open class ProgressHUD : Dialog {
 
-
     constructor(context: Context) : super(context) {}
 
     constructor(context: Context, theme: Int) : super(context, theme) {}

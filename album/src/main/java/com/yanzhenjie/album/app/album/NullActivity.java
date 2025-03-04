@@ -93,7 +93,7 @@ public class NullActivity extends BaseActivity implements Contract.NullPresenter
 
     @Override
     public void takePicture() {
-        Album.camera(this)
+        Album.camera(this, false)
                 .image()
                 .onResult(mCameraAction)
                 .start();
@@ -101,7 +101,7 @@ public class NullActivity extends BaseActivity implements Contract.NullPresenter
 
     @Override
     public void takeVideo() {
-        Album.camera(this)
+        Album.camera(this, false)
                 .video()
                 .quality(mQuality)
                 .limitDuration(mLimitDuration)

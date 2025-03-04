@@ -16,9 +16,9 @@ import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentVisitReportBinding
 import ethicstechno.com.fieldforce.databinding.ItemVisitReportBinding
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
+import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
-import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
 import ethicstechno.com.fieldforce.models.reports.UserListResponse
 import ethicstechno.com.fieldforce.models.reports.VisitReportListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
@@ -26,7 +26,7 @@ import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.AddVisitFragmen
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateTypeList
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.FORM_ID_VISIT
+import ethicstechno.com.fieldforce.utils.DROP_DOWN_VISIT_TYPE
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
 import retrofit2.Call
 import retrofit2.Callback
@@ -39,9 +39,9 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
     lateinit var binding: FragmentVisitReportBinding
     var visitReportList: ArrayList<VisitReportListResponse> = arrayListOf()
     var userList: ArrayList<UserListResponse> = arrayListOf()
-    var visitTypeList: ArrayList<CategoryMasterResponse> = arrayListOf()
+    var visitTypeList: ArrayList<CommonDropDownResponse> = arrayListOf()
     private var selectedUser = UserListResponse()
-    private var selectedVisitType: CategoryMasterResponse = CategoryMasterResponse()
+    private var selectedVisitType: CommonDropDownResponse = CommonDropDownResponse()
     var startDate = ""
     var endDate = ""
     private var selectedDateOptionPosition = 4 // This MONTH
@@ -98,7 +98,6 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
         binding.llVisitReportHeader.tvUsername.text = selectedUser.userName
         callUserListApi()
-        callVisitTypeListApi()
         setupAttendanceReportData()
 
     }
@@ -145,7 +144,8 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
             }
         }
     }
-    private fun callVisitTypeListApi() {
+
+    /*private fun callVisitTypeListApi() {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.no_internet))
             return
@@ -174,7 +174,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                         response.body()?.let {
                             if (it.isNotEmpty()) {
                                 visitTypeList.clear()
-                                visitTypeList.add(CategoryMasterResponse(categoryMasterId = 0, categoryName = "All"))
+                                visitTypeList.add(CommonDropDownResponse(dropdownKeyId = "0", dropdownValue = "All"))
                                 visitTypeList.addAll(it)
                                 selectedVisitType = visitTypeList[0]
                                 callVisitReportListApi(startDate, endDate)
@@ -197,6 +197,63 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
             }
         })
 
+    }*/
+
+    private fun callCommonDropDownListApi(apiType: String) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showAlertDialog(
+                mActivity,
+                getString(R.string.network_error),
+                getString(R.string.network_error_msg),
+                null,
+                isCancelVisibility = false
+            )
+            return
+        }
+
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val stageCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getDropDownMasterDetails(apiType, "")
+
+        stageCall?.enqueue(object : Callback<List<CommonDropDownResponse>> {
+            override fun onResponse(
+                call: Call<List<CommonDropDownResponse>>,
+                response: Response<List<CommonDropDownResponse>>
+            ) {
+                CommonMethods.hideLoading()
+                when {
+                    response.code() == 200 -> {
+                        response.body()?.let {
+                            if (it.isNotEmpty()) {
+                                visitTypeList.clear()
+                                visitTypeList.add(CommonDropDownResponse(dropdownKeyId = "0", dropdownValue = "All"))
+                                visitTypeList.addAll(it)
+                                selectedVisitType = visitTypeList[0]
+                                callVisitReportListApi(startDate, endDate)
+                            }
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<CommonDropDownResponse>>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null,
+                        isCancelVisibility = false
+                    )
+                }
+            }
+
+        })
+
     }
 
 
@@ -216,7 +273,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
 
         val tripListReq = JsonObject()
         tripListReq.addProperty("UserId", selectedUser.userId)
-        tripListReq.addProperty("CategoryMasterId", selectedVisitType.categoryMasterId)
+        tripListReq.addProperty("VisitTypeId", selectedVisitType.dropdownKeyId)
         tripListReq.addProperty("StartDate", startDate)
         tripListReq.addProperty("EndDate", endDate)
 
@@ -339,7 +396,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
             }
 
         })
-
+        callCommonDropDownListApi(DROP_DOWN_VISIT_TYPE)
     }
 
     inner class VisitReportAdapter(
@@ -386,7 +443,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         statusPosition: Int,
         selectedItemPosition: FilterListResponse,
         toString: FilterListResponse,
-        visitType: CategoryMasterResponse,
+        visitType: CommonDropDownResponse,
         partyDealer: AccountMasterList,
         visitPosition: Int
     ) {
