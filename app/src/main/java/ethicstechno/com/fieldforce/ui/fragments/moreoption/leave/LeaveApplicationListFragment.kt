@@ -185,7 +185,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
         leaveApplicationBinding.llBottom.visibility = View.VISIBLE
         if (isForApproval) {
             setupSearchFilter()
-            leaveApplicationBinding.toolbar.imgFilter.visibility = View.GONE
+            leaveApplicationBinding.toolbar.imgFilter.visibility = View.VISIBLE
             leaveApplicationBinding.toolbar.svView.visibility = View.VISIBLE
             leaveApplicationBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
             leaveApplicationBinding.tvAddLeave.visibility = View.GONE
@@ -432,33 +432,12 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
 
                 statusColor = leaveData.statusColor.toString()
 
-                when (leaveData.leaveApprovalStatusName) {
-                    "Raised" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
-                    "Approved" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-
-                    }
-                    "Rejected" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
+                if (statusColor.isEmpty()) {
+                    binding.tvValue4.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                }else{
+                    binding.tvValue4.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
                 if (AppPreference.getBooleanPreference(mActivity, INQUIRY_PRINT)){

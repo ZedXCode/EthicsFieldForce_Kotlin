@@ -46,6 +46,6 @@ class OrderListResponse(
     @SerializedName("AllowDelete") var allowDelete: Boolean? = false,
     @SerializedName("ProductCount") var productCount: Int? = null,
     @SerializedName("TotalQuantity") var totalQuantity: Double? = null,
-    @SerializedName("StatusColor") var statusColor: String? = null
-
+    @SerializedName("StatusColor") var statusColor: String? = null,
+    var isChecked: Boolean = false
 )

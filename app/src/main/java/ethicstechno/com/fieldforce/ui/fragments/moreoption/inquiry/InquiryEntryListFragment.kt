@@ -388,38 +388,12 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvStatus.text = orderData.inquiryStatusName
 
                 statusColor = orderData.statusColor.toString()
-
-                when (orderData.inquiryStatusName) {
-                    "Raised" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                        } else {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
-
-                    "Approved" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                        } else {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-
-                    }
-
-                    "Rejected" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
-                        } else {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
+                if (statusColor.isEmpty()) {
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                } else {
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
                 if (AppPreference.getBooleanPreference(mActivity, INQUIRY_PRINT)) {

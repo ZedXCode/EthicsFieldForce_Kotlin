@@ -67,7 +67,7 @@
             style="@style/LinearLayoutVertical"
             android:paddingHorizontal="@dimen/_4sdp"
             android:background="@color/color_card1"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <LinearLayout
                 android:orientation="horizontal"
@@ -289,6 +289,7 @@
 
         <LinearLayout
             android:id="@+id/liView3"
+            android:visibility="gone"
             style="@style/LinearLayoutVertical"
             android:layout_marginBottom="@dimen/_5sdp"
             >

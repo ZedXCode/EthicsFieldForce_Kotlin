@@ -29,15 +29,19 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
+import androidx.core.text.HtmlCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.databinding.ItemUserBinding
+import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.ApproveRejectResponse
 import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.OrderListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
@@ -48,11 +52,13 @@ import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterRespons
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CUSTOM_RANGE
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DOCUMENT_NAME_ORDER
 import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
@@ -119,12 +125,16 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     var statusColor = ""
 
+    var isForApproval = false
+    var orderForDelete: ArrayList<String> = arrayListOf()
     companion object {
 
         fun newInstance(
-            isFromInquiry: Boolean
+            //isFromInquiry: Boolean,
+            isForApproval: Boolean
         ): OrderEntryListFragment {
             val args = Bundle()
+            args.putBoolean(ARG_PARAM1, isForApproval)
             val fragment = OrderEntryListFragment()
             fragment.arguments = args
             return fragment
@@ -135,8 +145,10 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        orderEntryListBinding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_order_entry_list, container, false)
+        orderEntryListBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_order_entry_list, container, false)
+        arguments?.let {
+            isForApproval = it.getBoolean(ARG_PARAM1, false)
+        }
         return orderEntryListBinding.root
     }
 
@@ -207,7 +219,12 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
-        orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
+
+        //orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
+        orderEntryListBinding.toolbar.tvHeader.text = if (isForApproval) getString(
+            R.string.order_approval_list
+        ) else getString(R.string.order_entry_list)
+
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
         //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_order_entry)
@@ -218,6 +235,21 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
         selectedDivision = DivisionMasterResponse(divisionMasterId = 0)
         selectedCategory = CategoryMasterResponse(categoryMasterId = 0)
+
+        orderEntryListBinding.tvAccept.setOnClickListener(this)
+        orderEntryListBinding.tvReject.setOnClickListener(this)
+        orderEntryListBinding.llBottom.visibility = View.VISIBLE
+
+        if (isForApproval) {
+            setupSearchFilter()
+            orderEntryListBinding.toolbar.imgFilter.visibility = View.GONE
+            orderEntryListBinding.toolbar.svView.visibility = View.VISIBLE
+            orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
+            orderEntryListBinding.tvAddOrderEntry.visibility = View.GONE
+        } else {
+            orderEntryListBinding.tvAddOrderEntry.visibility = View.VISIBLE
+        }
+
         callOrderListApi()
     }
 
@@ -256,25 +288,29 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val loginData = appDao.getLoginData()
 
         val orderEntryListReq = JsonObject()
-        orderEntryListReq.addProperty("OrderId", 0)
-        orderEntryListReq.addProperty("UserId", loginData.userId)
-        orderEntryListReq.addProperty("AccountMasterId", selectedPartyDealerId)
-        orderEntryListReq.addProperty("FromDate", startDate)
-        orderEntryListReq.addProperty("ToDate", endDate)
 
-        val parameterString =
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY"
+        val isApprovalFlag = if (isForApproval) 1 else 0
 
-        orderEntryListReq.addProperty("ParameterString", parameterString)
+        orderEntryListReq.apply {
+            addProperty("OrderId", 0)
+            addProperty("UserId", loginData.userId)
+            addProperty("AccountMasterId", selectedPartyDealerId)
+            addProperty("FromDate", startDate)
+            addProperty("ToDate", endDate)
+            addProperty("isFromApproval", isApprovalFlag)
+            addProperty("ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and " +
+                    "BranchMasterId=${selectedBranch?.branchMasterId} and " +
+                    "DivisionMasterid=${selectedDivision?.divisionMasterId} and " +
+                    "CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY")
+        }
 
-        CommonMethods.getBatteryPercentage(mActivity)
-        val leaveListCall = WebApiClient.getInstance(mActivity)
+        val orderEntryListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getOrderList(orderEntryListReq)
 
 
-        leaveListCall?.enqueue(object : Callback<List<OrderListResponse>> {
+
+        orderEntryListCall?.enqueue(object : Callback<List<OrderListResponse>> {
             override fun onResponse(
                 call: Call<List<OrderListResponse>>,
                 response: Response<List<OrderListResponse>>
@@ -324,6 +360,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderList: List<OrderListResponse>
     ) : RecyclerView.Adapter<OrderEntryListAdapter.ViewHolder>() {
         var filteredItems: List<OrderListResponse> = orderList
+        private val itemStates = mutableMapOf<Int, Boolean>()
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val binding = ItemOrderLayoutBinding.inflate(inflater, parent, false)
@@ -351,6 +388,39 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             fun bind(orderData: OrderListResponse) {
 
+                if (isForApproval) {
+                    binding.cbApprove.visibility = View.VISIBLE
+                    binding.llTop.visibility = View.VISIBLE
+
+                    binding.tvUserName.visibility = View.VISIBLE
+                    binding.tvUserName.text = orderData.userName
+
+                    binding.cbApprove.isChecked =
+                        itemStates[bindingAdapterPosition] ?: false // Restore the state
+
+                    binding.cbApprove.setOnCheckedChangeListener { p0, isChecked ->
+                        itemStates[bindingAdapterPosition] = isChecked // Update the state
+                        orderData.isChecked = isChecked // Update the data model
+                        if (isChecked) {
+                            orderForDelete.add(orderData.orderId.toString())
+                            //orderForDelete.add(orderData.toString())
+                        } else {
+                            orderForDelete.remove(orderData.orderId.toString())
+                            //orderForDelete.remove(orderData.toString())
+                        }
+                        if (orderForDelete.size > 0) {
+                            orderEntryListBinding.llAcceptReject.visibility = View.VISIBLE
+                            orderEntryListBinding.llBottom.visibility = View.VISIBLE
+                        } else {
+                            orderEntryListBinding.llAcceptReject.visibility = View.GONE
+                            orderEntryListBinding.llBottom.visibility = View.GONE
+                        }
+                    }
+                } else {
+                    binding.cbApprove.visibility = View.GONE
+                    binding.llTop.visibility = View.GONE
+                }
+
                 binding.tvDateTitle.text = "Date"
                 binding.tvDateName.text = orderData.orderDate
 
@@ -374,53 +444,13 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
                 binding.tvStatus.text = orderData.orderStatusName
                 statusColor = orderData.statusColor.toString()
-
-                when (orderData.orderStatusName) {
-                    "Pending" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
-
-                    "Approve" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-
-
-                    }
-
-                    "Rejected" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
+                if (statusColor.isEmpty()) {
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                }else{
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
-
-
-//                Log.d("STATUSCOLOR===>", "" + statusColor)
-//
-//                val color = if (statusColor.isEmpty()) {
-//                    ContextCompat.getColor(mActivity, R.color.colorGreen)
-//                } else {
-//                    Color.parseColor(statusColor)
-//                }
-//
-//                // Update the shape drawable's color
-//                val background = binding.tvStatus.background as GradientDrawable
-//                background.setColor(color)
-
-
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
@@ -571,9 +601,136 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     callAccountMasterList()
                 }*/
             }
+
+            R.id.tvAccept -> {
+                showRemarksDialog(true)
+            }
+            R.id.tvReject -> {
+                showRemarksDialog(false)
+            }
         }
     }
 
+    private fun showRemarksDialog(isLeaveApprove: Boolean) {
+        val companyDialog = Dialog(mActivity)
+        companyDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        companyDialog.setCancelable(true)
+        companyDialog.setContentView(R.layout.company_selection_dialog)
+
+        val flCompany: FrameLayout = companyDialog.findViewById(R.id.flCompany)
+        val tvLabel: TextView = companyDialog.findViewById(R.id.tvLabel)
+        val etRemarks: EditText = companyDialog.findViewById(R.id.etRemarks)
+        val btnSubmit: TextView = companyDialog.findViewById(R.id.btnSubmit)
+        flCompany.visibility = View.GONE
+        etRemarks.visibility = View.VISIBLE
+        tvLabel.text = getString(R.string.remark)
+
+
+        btnSubmit.setOnClickListener {
+            if (etRemarks.text.toString().trim().isEmpty()) {
+                showToastMessage(mActivity, getString(R.string.enter_remark))
+                return@setOnClickListener
+            }
+            companyDialog.dismiss()
+            for (i in orderForDelete.indices) {
+                callApproveRejectOrderApi(
+                    isLeaveApprove,
+                    etRemarks.text.toString().trim(),
+                    orderForDelete[i]
+                )
+            }
+        }
+
+        val window = companyDialog.window
+        window!!.setLayout(
+            AbsListView.LayoutParams.MATCH_PARENT,
+            AbsListView.LayoutParams.WRAP_CONTENT
+        )
+        companyDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        companyDialog.show()
+    }
+
+    private fun callApproveRejectOrderApi(
+        isLeaveApprove: Boolean,
+        remarks: String,
+        orderId: String
+    ) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val expenseListReq = JsonObject()
+        expenseListReq.addProperty("loginUserId", loginData.userId)
+
+        val objDetailsArray = JsonArray()
+       // for (i in orderDetailsList) {
+            val objDetails = JsonObject()
+            objDetails.addProperty("documentId", orderId)
+            objDetails.addProperty("remarks", remarks)
+            objDetails.addProperty("isApprove",isLeaveApprove)
+            objDetails.addProperty("documentName",DOCUMENT_NAME_ORDER)
+            objDetailsArray.add(objDetails)
+       // }
+        expenseListReq.add("authorizeApprove",objDetailsArray)
+
+        CommonMethods.getBatteryPercentage(mActivity)
+        val leaveApprovalCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getApprovaReject(expenseListReq)
+
+        leaveApprovalCall?.enqueue(object : Callback<ApproveRejectResponse> {
+            override fun onResponse(
+                call: Call<ApproveRejectResponse>,
+                response: Response<ApproveRejectResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.success) {
+                            orderForDelete.clear()
+                            orderEntryListBinding.llBottom.visibility = View.GONE
+                            CommonMethods.showAlertDialog(mActivity,
+                                getString(R.string.order_approval),
+                                it.returnMessage/*if (isLeaveApprove) getString(R.string.leave_approve_msg) else getString(
+                                    R.string.leave_reject_msg
+                                )*/,
+                                isCancelVisibility = false,
+                                okListener = object : PositiveButtonListener {
+                                    override fun okClickListener() {
+                                        callOrderListApi()
+                                    }
+                                })
+                        }
+                    }
+                }else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ApproveRejectResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
 
     private fun showFilterDialog() {
 

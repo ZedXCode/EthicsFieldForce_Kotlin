@@ -2,6 +2,8 @@ package ethicstechno.com.fieldforce.api
 
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
+import ethicstechno.com.fieldforce.models.ApprovalCountResponse
+import ethicstechno.com.fieldforce.models.ApproveRejectResponse
 import ethicstechno.com.fieldforce.models.CheckUserMobileResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
@@ -398,4 +400,11 @@ interface WebApi {
 
     @POST("api/Report/GetReport")
     fun getReport(@Body jsonObject: JsonObject): Call<ReportResponse>
+
+    @POST("api/Authorization/ApprovalCountGet")
+    fun getApprovalCount(@Body jsonObject: JsonObject): Call<List<ApprovalCountResponse>>
+
+    @POST("api/Authorization/AuthorizeApproveReject")
+    //fun getApprovaReject(@Body jsonObject: JsonObject): Call<List<ApproveRejectResponse>>
+    fun getApprovaReject(@Body jsonObject: JsonObject): Call<ApproveRejectResponse>
 }

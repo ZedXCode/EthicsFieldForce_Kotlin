@@ -129,7 +129,6 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
 
 
     companion object {
-
         fun newInstance(
             isForApproval: Boolean
         ): ExpenseListFragment {
@@ -179,7 +178,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         expenseBinding.tvReject.setOnClickListener(this)
         if (isForApproval) {
             setupSearchFilter()
-            expenseBinding.toolbar.imgFilter.visibility =View.GONE
+            expenseBinding.toolbar.imgFilter.visibility =View.VISIBLE
             expenseBinding.toolbar.svView.visibility = View.VISIBLE
             expenseBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
             expenseBinding.tvAddExpense.visibility = View.GONE
@@ -333,6 +332,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
 
                 if (isForApproval) {
                     binding.cbApprove.visibility = View.VISIBLE
+                    binding.llTop.visibility = View.VISIBLE
                     binding.tvUserName.text = expenseData.userName
 
                     binding.cbApprove.isChecked =
@@ -383,34 +383,12 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                 //binding.executePendingBindings()
 
                 statusColor = expenseData.statusColor.toString()
-
-                when (expenseData.expenseStatusName) {
-                    "Raised" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
-                    "Approved" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-
-                    }
-                    "Rejected" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvValue4.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
-                        }else{
-                            binding.tvValue4.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
+                if (statusColor.isEmpty()) {
+                    binding.tvValue4.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                }else{
+                    binding.tvValue4.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
                 if (AppPreference.getBooleanPreference(mActivity, EXPENSE_ENTRY_PRINT)){

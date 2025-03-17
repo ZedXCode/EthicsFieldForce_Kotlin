@@ -23,6 +23,9 @@
 
             <LinearLayout
                 android:id="@+id/llTop"
+                android:layout_marginTop="@dimen/_6sdp"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:layout_marginEnd="@dimen/_4sdp"
                 style="@style/LinearLayoutHorizontal"
                 android:visibility="gone">
 
@@ -220,6 +223,7 @@
                         style="@style/ListItemValue"
                         android:layout_width="wrap_content"
                         android:singleLine="true"
+                        android:layout_marginBottom="@dimen/_4sdp"
                         android:text=""
                         android:textColor="@color/colorPrimary" />
                 </LinearLayout>

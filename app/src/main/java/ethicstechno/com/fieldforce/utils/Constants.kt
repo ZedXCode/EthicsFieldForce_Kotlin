@@ -85,6 +85,7 @@ const val MORE_TOUR_PLAN = 7
 const val MORE_ORDER_ENTRY = 8
 const val MORE_INQUIRY_ENTRY = 9
 const val MORE_QUOTATION_ENTRY = 10
+const val MORE_APPROVAL = 11
 
 
 const val FOR_USER = 1
@@ -175,6 +176,7 @@ const val EXPENSE_ENTRY_MODULE = "expense_entry_module";
 const val EXPENSE_APPROVAL_MODULE = "expense_approval_module";
 const val LEAVE_APPLICATION_MODULE = "leave_application_module";
 const val LEAVE_APPROVAL_MODULE = "leave_approval_module";
+const val APPROVAL_MODULE = "approval_module";
 
 var PARTY_DEALER_PRINT = "party_dealer"
 var VISIT_PRINT = "visit_print"
@@ -197,6 +199,7 @@ const val MENU_LEAVE_APPROVAL = "Leave Approval"
 const val MENU_INQUIRY = "Inquiry"
 const val MENU_QUOTATION = "Quotation"
 const val MENU_ORDER_ENTRY = "Order Entry"
+const val MENU_APPROVAL = "Approval"
 
 const val REPORT_M = "M"
 const val REPORT_R = "R"
@@ -213,6 +216,12 @@ const val QUANTITY_ROUND_OF_0 = 0
 const val QUANTITY_ROUND_OF_1 = 1
 const val QUANTITY_ROUND_OF_2 = 2
 
+const val ORDER_APPROVAL_MODULE = "order_approval_module";
+const val MORE_ORDER_APPROVAL = 11
+var ORDER_APPROVAL_PRINT = "order_approval_print"
+const val MENU_ORDER_APPROVAL = "Order Approval"
 
 const val SELECT_COMPANY = "select_company"
+const val DOCUMENT_NAME_ORDER = "order"
+const val DOCUMENT_NAME_QUOTATION = "quotation"
 

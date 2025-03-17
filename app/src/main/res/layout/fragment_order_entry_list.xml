@@ -91,6 +91,45 @@
                 android:padding="15dp"
                 android:src="@drawable/ic_add"
                 app:tint="@color/white" />-->
+
+            <LinearLayout
+                android:id="@+id/llBottom"
+                android:visibility="gone"
+                android:background="@color/white"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/llAcceptReject"
+                android:visibility="gone"
+                android:layout_margin="@dimen/_4sdp"
+                android:layout_height="@dimen/_50sdp"
+                android:layout_alignParentBottom="true"
+                style="@style/LinearLayoutHorizontal">
+
+                <TextView
+                    android:id="@+id/tvAccept"
+                    style="@style/CommonButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_margin="@dimen/_5sdp"
+                    android:backgroundTint="@color/colorGreen"
+                    android:text="@string/accept" />
+
+                <TextView
+                    android:id="@+id/tvReject"
+                    android:layout_margin="@dimen/_5sdp"
+                    style="@style/CommonButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/colorRed"
+                    android:text="@string/reject" />
+            </LinearLayout>
+            </LinearLayout>
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tvAddOrderEntry"
                 android:layout_width="@dimen/_56sdp"

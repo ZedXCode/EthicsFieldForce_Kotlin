@@ -79,6 +79,9 @@
     <string name="home" translatable="false">Home</string>
     <string name="reports" translatable="false">Reports</string>
     <string name="more_options" translatable="false">More Options</string>
+
+    <string name="approval_list" translatable="false">Approval List</string>
+
     <string name="str_location_fetch" translatable="false">Please wait, We are fetching current location</string>
     <string name="str_punch_in_msg" translatable="false">Punch In Successfully</string>
     <string name="cancel" translatable="false">Cancel</string>
@@ -109,11 +112,14 @@
     <string name="limit" translatable="false">Limit</string>
     <string name="expense" translatable="false">Expense</string>
     <string name="more_expense_entry" translatable="false">Expense &#10; Entry</string>
-    <string name="more_expense_approval" translatable="false">Expense &#10; Approval</string>
+    <string name="more_expense_approval" translatable="false">Expense</string>
     <string name="more_party_dealer" translatable="false">Party/Dealer</string>
     <string name="more_visit" translatable="false">Visit Follow-Up</string>
     <string name="more_leave_application" translatable="false">Leave &#10; Application</string>
-    <string name="more_leave_approval" translatable="false">Leave &#10; Approval</string>
+    <string name="more_leave_approval" translatable="false">Leave</string>
+
+    <string name="approval" translatable="false">Approval</string>
+
     <string name="more_tour_plan" translatable="false">Tour &#10; Plan</string>
     <string name="more_order_entry" translatable="false">Order Entry</string>
     <string name="more_inquiry_entry" translatable="false">Inquiry</string>
@@ -173,12 +179,19 @@
     <string name="reject" translatable="false">Reject</string>
     <string name="leave_approval" translatable="false">Leave Approval</string>
     <string name="expense_approval" translatable="false">Expense Approval</string>
+
+    <string name="order_approval" translatable="false">Order</string>
+    <string name="quotation_approval" translatable="false">Quotation</string>
+
     <string name="approve_msg" translatable="false">Are you sure to Approve?</string>
     <string name="reject_msg" translatable="false">Are you sure to Reject?</string>
     <string name="enter_remark" translatable="false">Please enter remarks</string>
     <string name="remarks_label" translatable="false">Enter Remarks..</string>
     <string name="leave_application_list" translatable="false">Leave Application List</string>
     <string name="leave_approval_list" translatable="false">Leave Approval List</string>
+
+    <string name="order_approval_list" translatable="false">Order Approval List</string>
+
     <string name="leave_approve_msg" translatable="false">Leave Approved Successfully</string>
     <string name="expense_approve_msg" translatable="false">Expense Approved Successfully</string>
     <string name="leave_reject_msg" translatable="false">Leave Reject Successfully</string>
@@ -351,7 +364,10 @@
     <string name="quotation_entry_confirmation" translatable="false">Are you sure you want to add quotation?</string>
     <string name="order_entry_list" translatable="false">Order List</string>
     <string name="inquiry_entry_list" translatable="false">Inquiry List</string>
+
     <string name="quotation_entry_list" translatable="false">Quotation List</string>
+    <string name="quotation_approval_list" translatable="false">Quotation Approval List</string>
+
     <string name="inquiry_list" translatable="false">Inquiry List</string>
     <string name="select_group" translatable="false">Select Group</string>
     <string name="please_enter_quantity" translatable="false">Please enter quantity</string>
@@ -464,4 +480,5 @@
     <string name="no_product_found" translatable="false">No Product Found</string>
     <string name="please_enter_valid_quantity" translatable="false">Please enter valid quantity</string>
     <string name="product_filter" translatable="false">Product Filter</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

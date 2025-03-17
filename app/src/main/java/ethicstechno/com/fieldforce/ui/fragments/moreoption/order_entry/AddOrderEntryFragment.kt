@@ -561,8 +561,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun setOrderDetailsAdapter() {
-        orderDetailsAdapter =
-            OrderDetailsAdapter(mActivity, orderDetailsList, this@AddOrderEntryFragment)
+        orderDetailsAdapter = OrderDetailsAdapter(mActivity, orderDetailsList, this@AddOrderEntryFragment)
         val layoutManager = LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
         binding.rvProduct.layoutManager = layoutManager
         binding.rvProduct.adapter = orderDetailsAdapter
@@ -679,11 +678,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and $FORM_ID_ORDER_ENTRY"
         )
 
-        val visitTypeCall = WebApiClient.getInstance(mActivity)
+        val categoryListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getCategoryMasterList(jsonReq)
 
-        visitTypeCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
+        categoryListCall?.enqueue(object : Callback<List<CategoryMasterResponse>> {
             override fun onResponse(
                 call: Call<List<CategoryMasterResponse>>,
                 response: Response<List<CategoryMasterResponse>>
@@ -738,8 +737,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         } else if (isCompanyChange) {
             binding.spCategory.setSelection(0)
         } else {
-            val selectedCategoryIndex =
-                categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+            val selectedCategoryIndex = categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
             binding.spCategory.setSelection(selectedCategoryIndex)
         }
 
@@ -1633,7 +1631,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             selectedCompany?.companyMasterId ?: 0,
             selectedBranch?.branchMasterId ?: 0,
             selectedDivision?.divisionMasterId ?: 0,
-            selectedCategory?.categoryMasterId ?: 0,
+            selectedCategory?.categoryMasterId ?: 0
         )
         productDialogFragment.setStyle(DialogFragment.STYLE_NO_TITLE, R.style.MyAppTheme)
         productDialogFragment.setOrderDetailsListener(this)
@@ -2045,20 +2043,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         objReq.addProperty("shippingAddress", binding.edtShippingAddress.text.toString().trim())
         objReq.addProperty("shippingAddressId", selectedShippingAddressId)
         objReq.addProperty("ddmFreightTermsId", selectedFreightTerms?.dropdownKeyId)
-        objReq.addProperty(
-            "expectedDispatchDate",
-            CommonMethods.convertToAppDateFormat(
-                binding.tvDispatchDate.text.toString(),
-                "MM/dd/yyyy"
-            )
-        )
+        objReq.addProperty("expectedDispatchDate", CommonMethods.convertToAppDateFormat(binding.tvDispatchDate.text.toString(), "MM/dd/yyyy"))
         val creditDays = if (binding.edtPaymentTerms.text.toString().isEmpty()) {
             0
         } else {
             binding.edtPaymentTerms.text.toString().toInt()
         }
         objReq.addProperty("creditDays", creditDays)
-        //objReq.addProperty("creditDays", binding.edtPaymentTerms.text.toString())
         objReq.addProperty("termsAndCondition", binding.edtTermsAndCondition.text.toString())
         objReq.addProperty("EntrySystem", 1)
 

@@ -21,6 +21,11 @@ import ethicstechno.com.fieldforce.models.MoreOptionMenuListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.ExpenseListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicationListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
+import ethicstechno.com.fieldforce.utils.APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
@@ -29,12 +34,17 @@ import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_PRINT
 import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_MODULE
 import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_PRINT
+import ethicstechno.com.fieldforce.utils.FORM_ID_EXPENSE_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.INQUIRY_MODULE
 import ethicstechno.com.fieldforce.utils.INQUIRY_PRINT
 import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_MODULE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_PRINT
 import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_PRINT
+import ethicstechno.com.fieldforce.utils.MENU_APPROVAL
 import ethicstechno.com.fieldforce.utils.MENU_EXPENSE_APPROVAL
 import ethicstechno.com.fieldforce.utils.MENU_EXPENSE_ENTRY
 import ethicstechno.com.fieldforce.utils.MENU_INQUIRY
@@ -150,7 +160,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<DashboardListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -190,44 +200,145 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         moreOptionMenuList.forEach { option ->
                             when (option.formName) {
                                 MENU_PARTY_DEALER -> {
-                                    AppPreference.saveBooleanPreference(mActivity, PARTY_DEALER_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, PARTY_DEALER_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        PARTY_DEALER_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        PARTY_DEALER_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_VISIT -> {
-                                    AppPreference.saveBooleanPreference(mActivity, VISIT_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, VISIT_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        VISIT_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        VISIT_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_TOUR_PLAN -> {
-                                    AppPreference.saveBooleanPreference(mActivity, TOUR_PLAN_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, TOUR_PLAN_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TOUR_PLAN_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TOUR_PLAN_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_EXPENSE_ENTRY -> {
-                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_ENTRY_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_ENTRY_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        EXPENSE_ENTRY_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        EXPENSE_ENTRY_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_EXPENSE_APPROVAL -> {
-                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_APPROVAL_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, EXPENSE_APPROVAL_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        EXPENSE_APPROVAL_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        EXPENSE_APPROVAL_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_LEAVE_APPLICATION -> {
-                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPLICATION_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPLICATION_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        LEAVE_APPLICATION_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        LEAVE_APPLICATION_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_LEAVE_APPROVAL -> {
-                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPROVAL_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, LEAVE_APPROVAL_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        LEAVE_APPROVAL_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        LEAVE_APPROVAL_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_INQUIRY -> {
-                                    AppPreference.saveBooleanPreference(mActivity, INQUIRY_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, INQUIRY_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        INQUIRY_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        INQUIRY_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_QUOTATION -> {
-                                    AppPreference.saveBooleanPreference(mActivity, QUOTATION_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, QUOTATION_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        QUOTATION_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        QUOTATION_PRINT,
+                                        option.allowPrint
+                                    )
                                 }
+
                                 MENU_ORDER_ENTRY -> {
-                                    AppPreference.saveBooleanPreference(mActivity, ORDER_ENTRY_MODULE, option.allowRights)
-                                    AppPreference.saveBooleanPreference(mActivity, ORDER_ENTRY_PRINT, option.allowPrint)
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        ORDER_ENTRY_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        ORDER_ENTRY_PRINT,
+                                        option.allowPrint
+                                    )
+                                }
+                                MENU_APPROVAL -> {
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        APPROVAL_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        APPROVAL_MODULE,
+                                        option.allowPrint
+                                    )
                                 }
                             }
                         }
@@ -262,6 +373,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         if (isAdded && !hidden) {
             mActivity.bottomVisible()
             dashboardBinding.rvDashboard.isEnabled = true
+            callDashboardListApi()
         }
     }
 
@@ -295,14 +407,14 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(dashboardData: DashboardListResponse) {
-                Log.d("VIEWTYPE===>",""+dashboardData.viewType)
-               // Log.d("VIEWCOLOR===>",""+dashboardData.color4)
+                Log.d("VIEWTYPE===>", "" + dashboardData.viewType)
+                // Log.d("VIEWCOLOR===>",""+dashboardData.color4)
 
-                dashboardList.forEach { (dashboardData)
-                    Log.d("LISTDATA===>",""+dashboardList.size)
-                    if (dashboardData.viewType == 1)
-                    {//For New Design
-                        Log.d("VIEW===>","view1")
+                dashboardList.forEach {
+                    (dashboardData)
+                    Log.d("LISTDATA===>", "" + dashboardList.size)
+                    if (dashboardData.viewType == 1) {//For New Design
+                        Log.d("VIEW===>", "view1")
                         binding.liView1.visibility = View.VISIBLE
                         binding.liView2.visibility = View.GONE
                         binding.liView3.visibility = View.GONE
@@ -313,35 +425,32 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         binding.tvTitleLine1.text = dashboardData.titleLine1
                         binding.tvValue1.text = dashboardData.value1
 
-                       // statusColor = dashboardData.color4
+                        // statusColor = dashboardData.color4
 
                         val colors = dashboardData.color4.split("|")
-                        if (colors[1].isEmpty()){
+                        if (colors[1].isEmpty()) {
                             binding.liView1.setBackgroundColor(Color.parseColor("#FFBCC8"))
-                        }else{
+                        } else {
                             binding.liView1.setBackgroundColor(Color.parseColor(colors[1]))
-                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+                            Log.d("VIEWCOLOR2===>", "" + dashboardData.color4)
                         }
 
                         val colors1 = dashboardData.color1.split("|")
-                        if (colors1[0].isEmpty()){
+                        if (colors1[0].isEmpty()) {
                             binding.tvValue2.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvValue2.setTextColor(Color.parseColor(colors1[0]))
                         }
 
                         val colors2 = dashboardData.color2.split("|")
-                        if (colors2[0].isEmpty()){
+                        if (colors2[0].isEmpty()) {
                             binding.tvValue1.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvValue1.setTextColor(Color.parseColor(colors2[0]))
                         }
 
-                    }
-                    else if (dashboardData.viewType == 2){//OLD View
-                        Log.d("VIEW===>","view2")
+                    } else if (dashboardData.viewType == 2) {//OLD View
+                        Log.d("VIEW===>", "view2")
                         binding.liView1.visibility = View.GONE
                         binding.liView2.visibility = View.VISIBLE
                         binding.liView3.visibility = View.GONE
@@ -359,45 +468,40 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         binding.tvView2TitleLine4.text = dashboardData.titleLine4
 
                         val colors4 = dashboardData.color4.split("|")
-                        if (colors4[1].isEmpty()){
+                        if (colors4[1].isEmpty()) {
                             binding.liView2.setBackgroundColor(Color.parseColor("#FFBCC8"))
-                        }else{
+                        } else {
                             binding.liView2.setBackgroundColor(Color.parseColor(colors4[1]))
-                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
+                            Log.d("VIEWCOLOR2===>", "" + dashboardData.color4)
                         }
-                        if (colors4[0].isEmpty()){
+                        if (colors4[0].isEmpty()) {
                             binding.tvView2Value4.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView2Value4.setTextColor(Color.parseColor(colors4[0]))
                         }
 
                         val colors1 = dashboardData.color1.split("|")
-                        if (colors1[0].isEmpty()){
+                        if (colors1[0].isEmpty()) {
                             binding.tvView2Value1.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView2Value1.setTextColor(Color.parseColor(colors1[0]))
                         }
 
                         val colors2 = dashboardData.color2.split("|")
-                        if (colors2[0].isEmpty()){
+                        if (colors2[0].isEmpty()) {
                             binding.tvView2Value2.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView2Value2.setTextColor(Color.parseColor(colors2[0]))
                         }
 
                         val colors3 = dashboardData.color3.split("|")
-                        if (colors3[0].isEmpty()){
+                        if (colors3[0].isEmpty()) {
                             binding.tvView2Value3.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView2Value3.setTextColor(Color.parseColor(colors3[0]))
                         }
-                    }
-                    else if (dashboardData.viewType == 3){
-                        Log.d("VIEW===>","view3")
+                    } else if (dashboardData.viewType == 3) {
+                        Log.d("VIEW===>", "view3")
                         binding.liView1.visibility = View.GONE
                         binding.liView2.visibility = View.GONE
                         binding.liView3.visibility = View.VISIBLE
@@ -416,66 +520,62 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
 
                         val color1 = dashboardData.color1.split("|")
-                        if (color1[0].isEmpty()){
+                        if (color1[0].isEmpty()) {
                             binding.tvView3TitleLine1.setTextColor(Color.parseColor("#FF000000"))
                             binding.tvView3Value1.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView3Value1.setTextColor(Color.parseColor(color1[0]))
                             binding.tvView3TitleLine1.setTextColor(Color.parseColor(color1[0]))
                         }
 
-                        if (color1[1].isEmpty()){
+                        if (color1[1].isEmpty()) {
                             binding.lvView3layout1.setBackgroundColor(Color.parseColor("#FFBCC8"))
-                        }else{
+                        } else {
                             binding.lvView3layout1.setBackgroundColor(Color.parseColor(color1[1]))
                         }
 
                         val color2 = dashboardData.color2.split("|")
-                        if (color2[0].isEmpty()){
+                        if (color2[0].isEmpty()) {
                             binding.tvView3TitleLine2.setTextColor(Color.parseColor("#FF000000"))
                             binding.tvView3Value2.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView3Value2.setTextColor(Color.parseColor(color2[0]))
                             binding.tvView3TitleLine2.setTextColor(Color.parseColor(color2[0]))
                         }
 
-                        if (color2[1].isEmpty()){
+                        if (color2[1].isEmpty()) {
                             binding.lvView3layout2.setBackgroundColor(Color.parseColor("#FFFFD8"))
-                        }else{
+                        } else {
                             binding.lvView3layout2.setBackgroundColor(Color.parseColor(color2[1]))
                         }
 
                         val color3 = dashboardData.color3.split("|")
-                        if (color3[0].isEmpty()){
+                        if (color3[0].isEmpty()) {
                             binding.tvView3TitleLine3.setTextColor(Color.parseColor("#FF000000"))
                             binding.tvView3Value3.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView3Value3.setTextColor(Color.parseColor(color3[0]))
                             binding.tvView3TitleLine3.setTextColor(Color.parseColor(color3[0]))
                         }
 
-                        if (color3[1].isEmpty()){
+                        if (color3[1].isEmpty()) {
                             binding.lvView3layout3.setBackgroundColor(Color.parseColor("#EAEBFF"))
-                        }else{
+                        } else {
                             binding.lvView3layout3.setBackgroundColor(Color.parseColor(color3[1]))
                         }
 
                         val colors4 = dashboardData.color4.split("|")
-                        if (colors4[0].isEmpty()){
+                        if (colors4[0].isEmpty()) {
                             binding.tvView3TitleLine4.setTextColor(Color.parseColor("#FF000000"))
                             binding.tvView3Value4.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView3Value4.setTextColor(Color.parseColor(colors4[0]))
                             binding.tvView3TitleLine4.setTextColor(Color.parseColor(colors4[0]))
                         }
 
-                        if (colors4[1].isEmpty()){
+                        if (colors4[1].isEmpty()) {
                             binding.lvView3layout4.setBackgroundColor(Color.parseColor("#E0FEFE"))
-                        }else{
+                        } else {
                             binding.lvView3layout4.setBackgroundColor(Color.parseColor(colors4[1]))
                         }
 //                        if (colors4[1].isEmpty()){
@@ -485,48 +585,38 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 //                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
 //                        }
 
-                        if (dashboardData.titleLine1.isEmpty()){
+                        if (dashboardData.titleLine1.isEmpty()) {
                             binding.tvView4TitleLine1.visibility = View.GONE
-                        }
-                        else if (dashboardData.value1.isEmpty()){
+                        } else if (dashboardData.value1.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine2.isEmpty()){
+                        } else if (dashboardData.titleLine2.isEmpty()) {
                             binding.tvView4TitleLine2.visibility = View.GONE
-                        }
-                        else if (dashboardData.value2.isEmpty()){
+                        } else if (dashboardData.value2.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine3.isEmpty()){
+                        } else if (dashboardData.titleLine3.isEmpty()) {
                             binding.tvView4TitleLine3.visibility = View.GONE
-                        }
-                        else if (dashboardData.value3.isEmpty()){
+                        } else if (dashboardData.value3.isEmpty()) {
                             binding.tvView4Value3.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine4.isEmpty()){
+                        } else if (dashboardData.titleLine4.isEmpty()) {
                             binding.tvView4TitleLine4.visibility = View.GONE
-                        }
-                        else if (dashboardData.value4.isEmpty()){
+                        } else if (dashboardData.value4.isEmpty()) {
                             binding.tvView4Value4.visibility = View.GONE
                         }
 
-                        if(dashboardData.titleLine1.isEmpty() && dashboardData.value1.isEmpty()){
+                        if (dashboardData.titleLine1.isEmpty() && dashboardData.value1.isEmpty()) {
                             binding.lvView3layout1.visibility = View.GONE
-                        }
-                        else if(dashboardData.titleLine2.isEmpty() && dashboardData.value2.isEmpty()){
+                        } else if (dashboardData.titleLine2.isEmpty() && dashboardData.value2.isEmpty()) {
                             binding.lvView3layout2.visibility = View.GONE
-                        }
-                        else if(dashboardData.titleLine4.isEmpty() && dashboardData.value4.isEmpty()){
+                        } else if (dashboardData.titleLine4.isEmpty() && dashboardData.value4.isEmpty()) {
                             binding.lvView3layout4.visibility = View.GONE
                         }
 
 
-                        if(dashboardData.titleLine3.isEmpty() && dashboardData.value3.isEmpty()){
+                        if (dashboardData.titleLine3.isEmpty() && dashboardData.value3.isEmpty()) {
                             binding.lvView3layout3.visibility = View.GONE
                         }
-                    }
-                    else if (dashboardData.viewType == 4){
-                        Log.d("VIEW===>","view4")
+                    } else if (dashboardData.viewType == 4) {
+                        Log.d("VIEW===>", "view4")
                         binding.liView1.visibility = View.GONE
                         binding.liView2.visibility = View.GONE
                         binding.liView3.visibility = View.GONE
@@ -544,70 +634,66 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         binding.tvView4Value4.text = dashboardData.value4
 
                         val colors1 = dashboardData.color1.split("|")
-                        if (colors1[0].isEmpty()){
+                        if (colors1[0].isEmpty()) {
                             binding.tvView4Value1.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value1.setTextColor(Color.parseColor(colors1[0]))
                         }
 
-                        if (colors1[1].isEmpty()){
+                        if (colors1[1].isEmpty()) {
                             binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor("#FFBCC8"))
                             binding.tvView4Value1.setBackgroundColor(Color.parseColor("#FFBCC8"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor(colors1[1]))
                             binding.tvView4Value1.setBackgroundColor(Color.parseColor(colors1[1]))
                         }
 
 
                         val colors2 = dashboardData.color2.split("|")
-                        if (colors2[0].isEmpty()){
+                        if (colors2[0].isEmpty()) {
                             binding.tvView4Value2.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value2.setTextColor(Color.parseColor(colors2[0]))
                         }
 
-                        if (colors2[1].isEmpty()){
+                        if (colors2[1].isEmpty()) {
                             binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor("#FFFFD8"))
                             binding.tvView4Value2.setBackgroundColor(Color.parseColor("#FFFFD8"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor(colors2[1]))
                             binding.tvView4Value2.setBackgroundColor(Color.parseColor(colors2[1]))
                         }
 
                         val colors3 = dashboardData.color3.split("|")
-                        if (colors3[0].isEmpty()){
+                        if (colors3[0].isEmpty()) {
                             binding.tvView4Value3.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value3.setTextColor(Color.parseColor(colors3[0]))
                         }
 
-                        if (colors3[1].isEmpty()){
+                        if (colors3[1].isEmpty()) {
                             binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor("#EAEBFF"))
                             binding.tvView4Value3.setBackgroundColor(Color.parseColor("#EAEBFF"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor(colors3[1]))
                             binding.tvView4Value3.setBackgroundColor(Color.parseColor(colors3[1]))
                         }
 
                         val colors4 = dashboardData.color4.split("|")
-                        if (colors4[0].isEmpty()){
+                        if (colors4[0].isEmpty()) {
                             binding.tvView4Value4.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value4.setTextColor(Color.parseColor(colors4[0]))
                         }
 
-                        if (colors4[1].isEmpty()){
+                        if (colors4[1].isEmpty()) {
                             binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor("#E0FEFE"))
                             binding.tvView4Value4.setBackgroundColor(Color.parseColor("#E0FEFE"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor(colors4[1]))
                             binding.tvView4Value4.setBackgroundColor(Color.parseColor(colors4[1]))
                         }
@@ -619,33 +705,25 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 //                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
 //                        }
 
-                        if (dashboardData.titleLine1.isEmpty()){
+                        if (dashboardData.titleLine1.isEmpty()) {
                             binding.tvView4TitleLine1.visibility = View.GONE
-                        }
-                        else if (dashboardData.value1.isEmpty()){
+                        } else if (dashboardData.value1.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine2.isEmpty()){
+                        } else if (dashboardData.titleLine2.isEmpty()) {
                             binding.tvView4TitleLine2.visibility = View.GONE
-                        }
-                        else if (dashboardData.value2.isEmpty()){
+                        } else if (dashboardData.value2.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine3.isEmpty()){
+                        } else if (dashboardData.titleLine3.isEmpty()) {
                             binding.tvView4TitleLine3.visibility = View.GONE
-                        }
-                        else if (dashboardData.value3.isEmpty()){
+                        } else if (dashboardData.value3.isEmpty()) {
                             binding.tvView4Value3.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine4.isEmpty()){
+                        } else if (dashboardData.titleLine4.isEmpty()) {
                             binding.tvView4TitleLine4.visibility = View.GONE
-                        }
-                        else if (dashboardData.value4.isEmpty()){
+                        } else if (dashboardData.value4.isEmpty()) {
                             binding.tvView4Value4.visibility = View.GONE
                         }
-                    }
-                    else {
-                        Log.d("VIEW===>","view4")
+                    } else {
+                        Log.d("VIEW===>", "view4")
                         binding.liView1.visibility = View.GONE
                         binding.liView2.visibility = View.GONE
                         binding.liView3.visibility = View.GONE
@@ -668,70 +746,66 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         binding.tvView4Value4.text = dashboardData.value4
 
                         val colors1 = dashboardData.color1.split("|")
-                        if (colors1[0].isEmpty()){
+                        if (colors1[0].isEmpty()) {
                             binding.tvView4Value1.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value1.setTextColor(Color.parseColor(colors1[0]))
                         }
 
-                        if (colors1[1].isEmpty()){
+                        if (colors1[1].isEmpty()) {
                             binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor("#FFBCC8"))
                             binding.tvView4Value1.setBackgroundColor(Color.parseColor("#FFBCC8"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine1.setBackgroundColor(Color.parseColor(colors1[1]))
                             binding.tvView4Value1.setBackgroundColor(Color.parseColor(colors1[1]))
                         }
 
 
                         val colors2 = dashboardData.color2.split("|")
-                        if (colors2[0].isEmpty()){
+                        if (colors2[0].isEmpty()) {
                             binding.tvView4Value2.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value2.setTextColor(Color.parseColor(colors2[0]))
                         }
 
-                        if (colors2[1].isEmpty()){
+                        if (colors2[1].isEmpty()) {
                             binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor("#FFFFD8"))
                             binding.tvView4Value2.setBackgroundColor(Color.parseColor("#FFFFD8"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine2.setBackgroundColor(Color.parseColor(colors2[1]))
                             binding.tvView4Value2.setBackgroundColor(Color.parseColor(colors2[1]))
                         }
 
                         val colors3 = dashboardData.color3.split("|")
-                        if (colors3[0].isEmpty()){
+                        if (colors3[0].isEmpty()) {
                             binding.tvView4Value3.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value3.setTextColor(Color.parseColor(colors3[0]))
                         }
 
-                        if (colors3[1].isEmpty()){
+                        if (colors3[1].isEmpty()) {
                             binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor("#EAEBFF"))
                             binding.tvView4Value3.setBackgroundColor(Color.parseColor("#EAEBFF"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine3.setBackgroundColor(Color.parseColor(colors3[1]))
                             binding.tvView4Value3.setBackgroundColor(Color.parseColor(colors3[1]))
                         }
 
                         val colors4 = dashboardData.color4.split("|")
-                        if (colors4[0].isEmpty()){
+                        if (colors4[0].isEmpty()) {
                             binding.tvView4Value4.setTextColor(Color.parseColor("#FF000000"))
-                        }
-                        else{
+                        } else {
                             binding.tvView4Value4.setTextColor(Color.parseColor(colors4[0]))
                         }
 
-                        if (colors4[1].isEmpty()){
+                        if (colors4[1].isEmpty()) {
                             binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor("#E0FEFE"))
                             binding.tvView4Value4.setBackgroundColor(Color.parseColor("#E0FEFE"))
 
-                        }else{
+                        } else {
                             binding.tvView4TitleLine4.setBackgroundColor(Color.parseColor(colors4[1]))
                             binding.tvView4Value4.setBackgroundColor(Color.parseColor(colors4[1]))
                         }
@@ -743,28 +817,21 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 //                            Log.d("VIEWCOLOR2===>",""+dashboardData.color4)
 //                        }
 
-                        if (dashboardData.titleLine1.isEmpty()){
+                        if (dashboardData.titleLine1.isEmpty()) {
                             binding.tvView4TitleLine1.visibility = View.GONE
-                        }
-                        else if (dashboardData.value1.isEmpty()){
+                        } else if (dashboardData.value1.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine2.isEmpty()){
+                        } else if (dashboardData.titleLine2.isEmpty()) {
                             binding.tvView4TitleLine2.visibility = View.GONE
-                        }
-                        else if (dashboardData.value2.isEmpty()){
+                        } else if (dashboardData.value2.isEmpty()) {
                             binding.tvView4Value1.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine3.isEmpty()){
+                        } else if (dashboardData.titleLine3.isEmpty()) {
                             binding.tvView4TitleLine3.visibility = View.GONE
-                        }
-                        else if (dashboardData.value3.isEmpty()){
+                        } else if (dashboardData.value3.isEmpty()) {
                             binding.tvView4Value3.visibility = View.GONE
-                        }
-                        else if (dashboardData.titleLine4.isEmpty()){
+                        } else if (dashboardData.titleLine4.isEmpty()) {
                             binding.tvView4TitleLine4.visibility = View.GONE
-                        }
-                        else if (dashboardData.value4.isEmpty()){
+                        } else if (dashboardData.value4.isEmpty()) {
                             binding.tvView4Value4.visibility = View.GONE
                         }
                     }
@@ -1016,27 +1083,69 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                 binding.liView1.setOnClickListener {
                     Log.e("TAG", "bind: DASHBOAR")
                     if (mActivity.isDashboardVisible()) {
-                        mActivity.addFragment(
-                            DashboardDrillFragment.newInstance(
-                                false,
-                                dashboardData,
-                                DashboardDrillResponse(),
-                                dashboardData.storeProcedureName,
-                                dashboardData.reportSetupId, arrayListOf(),
-                                dashboardData.reportName,
-                                dashboardData.filter,
-                                dashboardData.reportGroupBy,
-                                startDate = "",
-                                endDate = ""
-                            ),
-                            addToBackStack = true,
-                            ignoreIfCurrent = true,
-                            animationType = AnimationType.fadeInfadeOut
-                        )
+
+                        if (dashboardData.reportType == "Authorization") {
+                            when (dashboardData.value4) {
+                                FORM_ID_ORDER_ENTRY_NUMBER -> {
+                                    mActivity.addFragment(
+                                        OrderEntryListFragment.newInstance(true),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
+
+                                FORM_ID_QUOTATION_ENTRY_NUMBER -> {
+                                    mActivity.addFragment(
+                                        QuotationEntryListFragment.newInstance(true),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
+
+                                FORM_ID_EXPENSE_ENTRY_NUMBER -> {
+                                    mActivity.addFragment(
+                                        ExpenseListFragment.newInstance(true),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
+
+                                FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER -> {
+                                    mActivity.addFragment(
+                                        LeaveApplicationListFragment.newInstance(true),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
+                            }
+                        } else {
+
+                            mActivity.addFragment(
+                                DashboardDrillFragment.newInstance(
+                                    false,
+                                    dashboardData,
+                                    DashboardDrillResponse(),
+                                    dashboardData.storeProcedureName,
+                                    dashboardData.reportSetupId, arrayListOf(),
+                                    dashboardData.reportName,
+                                    dashboardData.filter,
+                                    dashboardData.reportGroupBy,
+                                    startDate = "",
+                                    endDate = ""
+                                ),
+                                addToBackStack = true,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
                         dashboardBinding.rvDashboard.isEnabled = false
                     }
                 }
-               // binding.executePendingBindings()
+                // binding.executePendingBindings()
 
                 binding.liView2.setOnClickListener {
                     Log.e("TAG", "bind: DASHBOAR")
@@ -1111,6 +1220,8 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                         dashboardBinding.rvDashboard.isEnabled = false
                     }
                 }
+
+
 
                 binding.executePendingBindings()
 

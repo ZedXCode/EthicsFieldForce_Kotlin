@@ -23,6 +23,7 @@ import ethicstechno.com.fieldforce.models.moreoption.MoreModel
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.ExpenseListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.approval.ApprovalFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.inquiry.InquiryEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicationListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
@@ -30,19 +31,17 @@ import ethicstechno.com.fieldforce.ui.fragments.moreoption.partydealer.PartyDeal
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.tourplan.TourPlanFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.visit.VisitListFragment
+import ethicstechno.com.fieldforce.utils.APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.EXPENSE_APPROVAL_MODULE
 import ethicstechno.com.fieldforce.utils.EXPENSE_ENTRY_MODULE
 import ethicstechno.com.fieldforce.utils.INQUIRY_MODULE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_MODULE
-import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_MODULE
-import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_APPROVAL
+import ethicstechno.com.fieldforce.utils.MORE_APPROVAL
 import ethicstechno.com.fieldforce.utils.MORE_EXPENSE_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_INQUIRY_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPLICATION
-import ethicstechno.com.fieldforce.utils.MORE_LEAVE_APPROVAL
 import ethicstechno.com.fieldforce.utils.MORE_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.MORE_PARTY_DEALER
 import ethicstechno.com.fieldforce.utils.MORE_QUOTATION_ENTRY
@@ -121,10 +120,12 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
             Triple(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_menu_quotation) to QUOTATION_MODULE,
             Triple(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_menu_order) to ORDER_ENTRY_MODULE,
             Triple(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_menu_expense) to EXPENSE_ENTRY_MODULE,
-            Triple(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_menu_approval) to EXPENSE_APPROVAL_MODULE,
+            //Triple(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_menu_approval) to EXPENSE_APPROVAL_MODULE,
             Triple(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_menu_leave) to LEAVE_APPLICATION_MODULE,
-            Triple(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_menu_approval) to LEAVE_APPROVAL_MODULE
+            Triple(MORE_APPROVAL, getString(R.string.approval), R.drawable.ic_menu_approval) to APPROVAL_MODULE
+            //Triple(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_menu_approval) to LEAVE_APPROVAL_MODULE
         )
+
 
         menuItems.forEach { (moreModel, key) ->
             if (AppPreference.getBooleanPreference(mActivity, key)) {
@@ -296,12 +297,22 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         }
                         getString(R.string.more_order_entry) ->{
                             mActivity.addFragment(
-                                OrderEntryListFragment(),
+//                                OrderEntryListFragment(),
+                                OrderEntryListFragment.newInstance(false),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
+                        getString(R.string.order_approval) ->{
+                            mActivity.addFragment(
+                                OrderEntryListFragment.newInstance(true),
+                                addToBackStack = true,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
+
                         getString(R.string.more_inquiry_entry) ->{
                             mActivity.addFragment(
                                 InquiryEntryListFragment.newInstance(true),
@@ -312,7 +323,16 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         }
                         getString(R.string.more_quotation_entry) ->{
                             mActivity.addFragment(
-                                QuotationEntryListFragment.newInstance(true),
+                                QuotationEntryListFragment.newInstance(false),
+                                addToBackStack = true,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
+
+                        getString(R.string.approval) ->{
+                            mActivity.addFragment(
+                                ApprovalFragment.newInstance(true),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut

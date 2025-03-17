@@ -3,7 +3,6 @@ package ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation
 import AnimationType
 import addFragment
 import android.app.Dialog
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -11,8 +10,6 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -29,19 +26,22 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
+import androidx.core.text.HtmlCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentOrderEntryListBinding
 import ethicstechno.com.fieldforce.databinding.ItemOrderLayoutBinding
 import ethicstechno.com.fieldforce.databinding.ItemUserBinding
+import ethicstechno.com.fieldforce.listener.PositiveButtonListener
+import ethicstechno.com.fieldforce.models.ApproveRejectResponse
 import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.quotation.QuotationListResponse
@@ -52,11 +52,13 @@ import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterRespons
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CUSTOM_RANGE
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.DOCUMENT_NAME_QUOTATION
 import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY
 import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
@@ -72,15 +74,9 @@ import ethicstechno.com.fieldforce.utils.THIS_MONTH
 import ethicstechno.com.fieldforce.utils.TODAY
 import ethicstechno.com.fieldforce.utils.YESTERDAY
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
 
 
 class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
@@ -129,12 +125,16 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     var statusColor = ""
 
+    var isForApproval = false
+    var orderForDelete: ArrayList<String> = arrayListOf()
     companion object {
 
         fun newInstance(
-            isFromInquiry: Boolean
+            //isFromInquiry: Boolean,
+            isForApproval: Boolean
         ): QuotationEntryListFragment {
             val args = Bundle()
+            args.putBoolean(ARG_PARAM1, isForApproval)
             val fragment = QuotationEntryListFragment()
             fragment.arguments = args
             return fragment
@@ -147,6 +147,9 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
     ): View {
         orderEntryListBinding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_order_entry_list, container, false)
+        arguments?.let {
+            isForApproval = it.getBoolean(ARG_PARAM1, false)
+        }
         return orderEntryListBinding.root
     }
 
@@ -217,7 +220,12 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
-        orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.quotation_entry_list)
+
+        //orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
+        orderEntryListBinding.toolbar.tvHeader.text = if (isForApproval) getString(
+            R.string.quotation_approval_list
+        ) else getString(R.string.quotation_entry_list)
+
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
         //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_quotation_entry)
@@ -228,6 +236,21 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
         selectedDivision = DivisionMasterResponse(divisionMasterId = 0)
         selectedCategory = CategoryMasterResponse(categoryMasterId = 0)
+
+        orderEntryListBinding.tvAccept.setOnClickListener(this)
+        orderEntryListBinding.tvReject.setOnClickListener(this)
+        orderEntryListBinding.llBottom.visibility = View.VISIBLE
+
+        if (isForApproval) {
+            setupSearchFilter()
+            orderEntryListBinding.toolbar.imgFilter.visibility = View.GONE
+            orderEntryListBinding.toolbar.svView.visibility = View.VISIBLE
+            orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
+            orderEntryListBinding.tvAddOrderEntry.visibility = View.GONE
+        } else {
+            orderEntryListBinding.tvAddOrderEntry.visibility = View.VISIBLE
+        }
+
         callOrderListApi()
     }
 
@@ -266,25 +289,28 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val loginData = appDao.getLoginData()
 
         val orderEntryListReq = JsonObject()
-        orderEntryListReq.addProperty("QuotationId", 0)
-        orderEntryListReq.addProperty("UserId", loginData.userId)
-        orderEntryListReq.addProperty("AccountMasterId", selectedPartyDealerId)
-        orderEntryListReq.addProperty("FromDate", startDate)
-        orderEntryListReq.addProperty("ToDate", endDate)
 
-        val parameterString =
-            "CompanyMasterId=${selectedCompany?.companyMasterId} and BranchMasterId=${selectedBranch?.branchMasterId} and DivisionMasterid=${selectedDivision?.divisionMasterId} and" +
-                    " CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_QUOTATION_ENTRY"
+        val isApprovalFlag = if (isForApproval) 1 else 0
 
-        orderEntryListReq.addProperty("ParameterString", parameterString)
+        orderEntryListReq.apply {
+            addProperty("QuotationId", 0)
+            addProperty("UserId", loginData.userId)
+            addProperty("AccountMasterId", selectedPartyDealerId)
+            addProperty("FromDate", startDate)
+            addProperty("ToDate", endDate)
+            addProperty("isFromApproval", isApprovalFlag)
+            addProperty("ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and " +
+                    "BranchMasterId=${selectedBranch?.branchMasterId} and " +
+                    "DivisionMasterid=${selectedDivision?.divisionMasterId} and " +
+                    "CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_QUOTATION_ENTRY")
+        }
 
-        CommonMethods.getBatteryPercentage(mActivity)
-        val leaveListCall = WebApiClient.getInstance(mActivity)
+        val quotationEntryListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getQuotationList(orderEntryListReq)
 
 
-        leaveListCall?.enqueue(object : Callback<List<QuotationListResponse>> {
+        quotationEntryListCall?.enqueue(object : Callback<List<QuotationListResponse>> {
             override fun onResponse(
                 call: Call<List<QuotationListResponse>>,
                 response: Response<List<QuotationListResponse>>
@@ -332,6 +358,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderList: List<QuotationListResponse>
     ) : RecyclerView.Adapter<OrderEntryListAdapter.ViewHolder>() {
         var filteredItems: List<QuotationListResponse> = orderList
+        private val itemStates = mutableMapOf<Int, Boolean>()
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): ViewHolder {
             val inflater = LayoutInflater.from(parent.context)
             val binding = ItemOrderLayoutBinding.inflate(inflater, parent, false)
@@ -358,6 +385,38 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(orderData: QuotationListResponse) {
+                if (isForApproval) {
+                    binding.cbApprove.visibility = View.VISIBLE
+                    binding.llTop.visibility = View.VISIBLE
+
+                    binding.tvUserName.visibility = View.VISIBLE
+                    binding.tvUserName.text = orderData.userName
+
+                    binding.cbApprove.isChecked =
+                        itemStates[bindingAdapterPosition] ?: false // Restore the state
+
+                    binding.cbApprove.setOnCheckedChangeListener { p0, isChecked ->
+                        itemStates[bindingAdapterPosition] = isChecked // Update the state
+                        orderData.isChecked = isChecked // Update the data model
+                        if (isChecked) {
+                            orderForDelete.add(orderData.quotationId.toString())
+                            //orderForDelete.add(orderData.toString())
+                        } else {
+                            orderForDelete.remove(orderData.quotationId.toString())
+                            //orderForDelete.remove(orderData.toString())
+                        }
+                        if (orderForDelete.size > 0) {
+                            orderEntryListBinding.llAcceptReject.visibility = View.VISIBLE
+                            orderEntryListBinding.llBottom.visibility = View.VISIBLE
+                        } else {
+                            orderEntryListBinding.llAcceptReject.visibility = View.GONE
+                            orderEntryListBinding.llBottom.visibility = View.GONE
+                        }
+                    }
+                } else {
+                    binding.cbApprove.visibility = View.GONE
+                    binding.llTop.visibility = View.GONE
+                }
 
                 binding.tvDateTitle.text = "Date"
                 binding.tvDateName.text = orderData.quotationDate
@@ -407,34 +466,12 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 //                binding.tvStatus.text = orderData.quotationStatusName
 
                 statusColor = orderData.statusColor.toString()
-
-                when (orderData.quotationStatusName) {
-                    "Raised" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
-                    "Approved" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#4CAF50"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-
-                    }
-                    "Rejected" -> {
-                        if (statusColor.isEmpty()) {
-                            binding.tvStatus.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#FF4C4C"))
-                        }else{
-                            binding.tvStatus.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor(statusColor))
-                        }
-                    }
+                if (statusColor.isEmpty()) {
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor("#FFC107"))
+                }else{
+                    binding.tvStatus.backgroundTintList =
+                        ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
                 if (AppPreference.getBooleanPreference(mActivity, QUOTATION_PRINT)){
@@ -530,72 +567,6 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         })
     }
 
-    fun downloadAndOpenPDF(context: Context, url: String) {
-        val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
-
-        // Run the download on a background thread
-        Thread {
-            try {
-                val response = client.newCall(request).execute()
-                val inputStream: InputStream? = response.body?.byteStream()
-                if (inputStream != null) {
-                    // Save the file
-                    val file = saveFileToStorage(context, inputStream)
-                    // Open the file
-                    openPDF(file, context)
-                }
-            } catch (e: IOException) {
-                Log.e("DownloadError", "Error downloading file", e)
-
-                // Show the Toast on the main thread
-                Handler(context.mainLooper).post {
-                    Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }.start()
-    }
-    // Function to save the file locally
-    private fun saveFileToStorage(context: Context, inputStream: InputStream): File {
-        val fileName = "downloaded_report.pdf"
-        val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName)
-
-        try {
-            val outputStream = FileOutputStream(file)
-            val buffer = ByteArray(1024)
-            var bytesRead: Int
-            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                outputStream.write(buffer, 0, bytesRead)
-            }
-            outputStream.flush()
-            outputStream.close()
-        } catch (e: IOException) {
-            Log.e("SaveFileError", "Error saving file", e)
-        }
-
-        return file
-    }
-
-    private fun openPDF(file: File?, context: Context) {
-        val pdfUrl = "http://ffms.ethicstechno.com:41429/CrystalExportReportPath/212_StockReport_05_02_2025_22_07_04.pdf"
-        // Attempt to open the URL in the browser
-        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(pdfUrl))
-        context.startActivity(browserIntent)
-    }
-
-
-    private fun openUrlInChrome(url: String) {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(url)
-            intent.setPackage("com.android.chrome")
-            mActivity.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            mActivity.startActivity(intent)
-        }
-    }
-
     private fun setupSearchFilter() {
         orderEntryListBinding.toolbar.svView.setOnQueryTextListener(object :
             SearchView.OnQueryTextListener {
@@ -648,9 +619,136 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     callAccountMasterList()
                 }*/
             }
+
+            R.id.tvAccept -> {
+                showRemarksDialog(true)
+            }
+            R.id.tvReject -> {
+                showRemarksDialog(false)
+            }
         }
     }
 
+    private fun showRemarksDialog(isLeaveApprove: Boolean) {
+        val companyDialog = Dialog(mActivity)
+        companyDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        companyDialog.setCancelable(true)
+        companyDialog.setContentView(R.layout.company_selection_dialog)
+
+        val flCompany: FrameLayout = companyDialog.findViewById(R.id.flCompany)
+        val tvLabel: TextView = companyDialog.findViewById(R.id.tvLabel)
+        val etRemarks: EditText = companyDialog.findViewById(R.id.etRemarks)
+        val btnSubmit: TextView = companyDialog.findViewById(R.id.btnSubmit)
+        flCompany.visibility = View.GONE
+        etRemarks.visibility = View.VISIBLE
+        tvLabel.text = getString(R.string.remark)
+
+
+        btnSubmit.setOnClickListener {
+            if (etRemarks.text.toString().trim().isEmpty()) {
+                showToastMessage(mActivity, getString(R.string.enter_remark))
+                return@setOnClickListener
+            }
+            companyDialog.dismiss()
+            for (i in orderForDelete.indices) {
+                callApproveRejectOrderApi(
+                    isLeaveApprove,
+                    etRemarks.text.toString().trim(),
+                    orderForDelete[i]
+                )
+            }
+        }
+
+        val window = companyDialog.window
+        window!!.setLayout(
+            AbsListView.LayoutParams.MATCH_PARENT,
+            AbsListView.LayoutParams.WRAP_CONTENT
+        )
+        companyDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        companyDialog.show()
+    }
+
+    private fun callApproveRejectOrderApi(
+        isLeaveApprove: Boolean,
+        remarks: String,
+        orderId: String
+    ) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val expenseListReq = JsonObject()
+        expenseListReq.addProperty("loginUserId", loginData.userId)
+
+        val objDetailsArray = JsonArray()
+       // for (i in orderDetailsList) {
+            val objDetails = JsonObject()
+            objDetails.addProperty("documentId", orderId)
+            objDetails.addProperty("remarks", remarks)
+            objDetails.addProperty("isApprove",isLeaveApprove)
+            objDetails.addProperty("documentName",DOCUMENT_NAME_QUOTATION)
+            objDetailsArray.add(objDetails)
+       // }
+        expenseListReq.add("authorizeApprove",objDetailsArray)
+
+        CommonMethods.getBatteryPercentage(mActivity)
+        val leaveApprovalCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getApprovaReject(expenseListReq)
+
+        leaveApprovalCall?.enqueue(object : Callback<ApproveRejectResponse> {
+            override fun onResponse(
+                call: Call<ApproveRejectResponse>,
+                response: Response<ApproveRejectResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.success) {
+                            orderForDelete.clear()
+                            orderEntryListBinding.llBottom.visibility = View.GONE
+                            CommonMethods.showAlertDialog(mActivity,
+                                getString(R.string.order_approval),
+                                it.returnMessage/*if (isLeaveApprove) getString(R.string.leave_approve_msg) else getString(
+                                    R.string.leave_reject_msg
+                                )*/,
+                                isCancelVisibility = false,
+                                okListener = object : PositiveButtonListener {
+                                    override fun okClickListener() {
+                                        callOrderListApi()
+                                    }
+                                })
+                        }
+                    }
+                }else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ApproveRejectResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
 
     private fun showFilterDialog() {
 
@@ -672,6 +770,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         llSelectDivision = filterDialog.findViewById(R.id.llSelectDivision)
         spCategory = filterDialog.findViewById(R.id.spCategory)
         flPartyDealer = filterDialog.findViewById(R.id.flPartyDealer)
+        spCategory = filterDialog.findViewById(R.id.spCategory)
         val btnSubmit = filterDialog.findViewById<TextView>(R.id.btnSubmit)
 
         callCompanyListApi()

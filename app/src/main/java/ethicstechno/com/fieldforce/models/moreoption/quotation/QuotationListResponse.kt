@@ -46,6 +46,7 @@ class QuotationListResponse(
     @SerializedName("AllowDelete") var allowDelete: Boolean? = false,
     @SerializedName("ProductCount") var productCount: Int? = 0,
     @SerializedName("TotalQuantity") var totalQuantity: Double? = 0.0,
-    @SerializedName("StatusColor") var statusColor: String? = null
+    @SerializedName("StatusColor") var statusColor: String? = null,
+    var isChecked: Boolean = false
 
 )
