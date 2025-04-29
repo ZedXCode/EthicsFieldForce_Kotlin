@@ -45,6 +45,8 @@ import ethicstechno.com.fieldforce.models.moreoption.visit.CompanyMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.DivisionMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.InquiryResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.VisitListResponse
+import ethicstechno.com.fieldforce.models.notification.NotificationCountResponse
+import ethicstechno.com.fieldforce.models.notification.NotificationListResponse
 import ethicstechno.com.fieldforce.models.profile.CountryListResponse
 import ethicstechno.com.fieldforce.models.profile.StateListResponse
 import ethicstechno.com.fieldforce.models.profile.UserProfileResponse
@@ -407,4 +409,13 @@ interface WebApi {
     @POST("api/Authorization/AuthorizeApproveReject")
     //fun getApprovaReject(@Body jsonObject: JsonObject): Call<List<ApproveRejectResponse>>
     fun getApprovaReject(@Body jsonObject: JsonObject): Call<ApproveRejectResponse>
+
+    @POST("api/usernotificationget")
+    fun getNotificationList(@Body jsonObject: JsonObject): Call<List<NotificationListResponse>>
+
+    @POST("api/notificationcountget")
+    fun getNotificationCount(@Body jsonObject: JsonObject): Call<NotificationCountResponse>
+
+    @POST("api/notificationreadupdate")
+    fun notificationRead(@Body jsonObject: JsonObject) : Call<CommonSuccessResponse>
 }

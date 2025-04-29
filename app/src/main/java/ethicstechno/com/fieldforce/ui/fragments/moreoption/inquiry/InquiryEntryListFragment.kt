@@ -414,7 +414,8 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                             allowDelete = orderData.allowDelete,
                             accountName = "",
                             accountMasterId = 0,
-                            contactPersonName = ""
+                            contactPersonName = "",
+                            isForApproval = false
                         ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,

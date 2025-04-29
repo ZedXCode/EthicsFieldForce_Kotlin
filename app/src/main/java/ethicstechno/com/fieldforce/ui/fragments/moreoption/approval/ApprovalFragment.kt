@@ -225,7 +225,11 @@ class ApprovalFragment : HomeBaseFragment(),View.OnClickListener {
     override fun onClick(p0: View?) {
         when (p0?.id) {
             R.id.imgBack ->{
-                mActivity.onBackPressed()
+                if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    mActivity.onBackPressedDispatcher.onBackPressed()
+                } else {
+                    mActivity.onBackPressed()
+                }
             }
         }
     }

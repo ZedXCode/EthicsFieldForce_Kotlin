@@ -32,6 +32,7 @@ const val ARG_PARAM17 = "arg_17"
 
 const val USER_NAME = "username"
 const val USER_PWD = "password"
+const val FCM_TOKEN = "fcm_token"
 
 const val TODAY = "Today"
 const val YESTERDAY = "Yesterday"
@@ -68,6 +69,7 @@ const val FORM_ID_INQUIRY_ENTRY_NUMBER = "212"
 const val FORM_ID_QUOTATION_ENTRY_NUMBER = "213"
 const val FORM_ID_EXPENSE_ENTRY_NUMBER = "207"
 const val FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER = "210"
+const val FORM_ID_APPROVAL = "226"
 
 
 
@@ -177,6 +179,10 @@ const val EXPENSE_APPROVAL_MODULE = "expense_approval_module";
 const val LEAVE_APPLICATION_MODULE = "leave_application_module";
 const val LEAVE_APPROVAL_MODULE = "leave_approval_module";
 const val APPROVAL_MODULE = "approval_module";
+const val ATTENDANCE_REPORT_MODULE = "attendance_report"
+const val TRIP_REPORT_MODULE = "trip_report"
+const val TRIP_SUMMERY_REPORT_MODULE = "trip_summery_report"
+const val VISIT_REPORT_MODULE = "visit_report"
 
 var PARTY_DEALER_PRINT = "party_dealer"
 var VISIT_PRINT = "visit_print"
@@ -200,6 +206,11 @@ const val MENU_INQUIRY = "Inquiry"
 const val MENU_QUOTATION = "Quotation"
 const val MENU_ORDER_ENTRY = "Order Entry"
 const val MENU_APPROVAL = "Approval"
+const val ATTENDANCE_REPORT = "Attendance Report"
+const val TRIP_REPORT = "Trip Report"
+const val TRIP_SUMMERY_REPORT = "Trip Summery Report"
+const val VISIT_REPORT = "Visit Report"
+
 
 const val REPORT_M = "M"
 const val REPORT_R = "R"
@@ -224,4 +235,8 @@ const val MENU_ORDER_APPROVAL = "Order Approval"
 const val SELECT_COMPANY = "select_company"
 const val DOCUMENT_NAME_ORDER = "order"
 const val DOCUMENT_NAME_QUOTATION = "quotation"
+
+const val APPROVAL_STRING = "Approval"
+
+const val NOTIFICATION_ID_BIG_IMAGE = 101
 

@@ -316,8 +316,8 @@ class AddPartyDealerFragment : HomeBaseFragment(), View.OnClickListener,
         binding.tvCategory.visibility = View.VISIBLE
         binding.tvAccountHandleBy.visibility = View.VISIBLE
 
-        binding.toolbar.imgEdit.visibility = View.VISIBLE
-        binding.toolbar.imgDelete.visibility = View.VISIBLE
+        binding.toolbar.imgEdit.visibility = if(partyDealerDataForUpdate.allowEdit) View.VISIBLE else View.GONE
+        binding.toolbar.imgDelete.visibility = if(partyDealerDataForUpdate.allowEdit) View.VISIBLE else View.GONE
         binding.toolbar.imgDelete.setOnClickListener(this)
         binding.toolbar.imgEdit.setOnClickListener(this)
 

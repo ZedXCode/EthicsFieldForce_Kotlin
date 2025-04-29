@@ -19,6 +19,9 @@ data class DashboardListResponse(
     @SerializedName("Filter") val filter: String,
     @SerializedName("UserId") val userId: Int,
     @SerializedName("SerialNo") val serialNo: Int,
+    @SerializedName("ProductFilter") val productFilter: Boolean,
+    @SerializedName("IsAppReport") val isAppReport: Boolean,
+    @SerializedName("CrystalReportPath") val crystalReportPath: String?,
     @SerializedName("Value1") val value1: String,
     @SerializedName("Value2") val value2: String,
     @SerializedName("Value3") val value3: String,
@@ -27,25 +30,12 @@ data class DashboardListResponse(
     @SerializedName("Color2") val color2: String,
     @SerializedName("Color3") val color3: String,
     @SerializedName("Color4") val color4: String,
-    @SerializedName("ViewType") val viewType: Int): Parcelable {
+    @SerializedName("AllowPrint") val allowPrint: Boolean,
+    @SerializedName("ViewType") val viewType: Int,
+    @SerializedName("RedirectFormId") val redirectFormId: Int
+) : Parcelable {
     constructor() : this(
-        0,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        0,
-        0,
-        "",
-        "",
-        "",
-        "","","","","",
-        0
+        0, "", "", "", "", "", "", "", "", "", "", 0, 0,
+        false, false, null, "", "", "", "", "", "", "", "", false, 0, 0
     )
 }

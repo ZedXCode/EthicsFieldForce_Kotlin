@@ -50,7 +50,6 @@ import ethicstechno.com.fieldforce.utils.FOR_DIVISION
 import ethicstechno.com.fieldforce.utils.ID_ZERO
 import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPROVED_STATUS
-import ethicstechno.com.fieldforce.utils.LEAVE_RAISED_STATUS
 import ethicstechno.com.fieldforce.utils.LEAVE_REJECTED_STATUS
 import ethicstechno.com.fieldforce.utils.REJECT_STATUS
 import ethicstechno.com.fieldforce.utils.dialog.UserSearchDialogUtil
@@ -153,25 +152,6 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         }
 
         binding.toolbar.imgBack.visibility = View.VISIBLE
-        if (isForUpdate) {
-            if (leaveApplicationData.allowEdit) {
-                binding.toolbar.imgEdit.visibility = if (isForUpdate) View.VISIBLE else View.GONE
-            } else {
-                binding.toolbar.imgEdit.visibility = View.GONE
-            }
-            if (leaveApplicationData.allowDelete) {
-                binding.toolbar.imgDelete.visibility = if (isForUpdate) View.VISIBLE else View.GONE
-            } else {
-                binding.toolbar.imgEdit.visibility = View.GONE
-            }
-            binding.tvLeaveBalance.visibility = View.GONE
-
-        } else {
-            binding.toolbar.imgDelete.visibility = View.GONE
-            binding.toolbar.imgEdit.visibility = View.GONE
-
-        }
-
         if (isFromApproval) {
             binding.tvSubmit.visibility = View.GONE
             binding.llAcceptReject.visibility = View.VISIBLE
@@ -195,7 +175,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         binding.tvToDate.setOnClickListener(this)
         binding.tvSubmit.setOnClickListener(this)
         binding.tvReportTo.text = loginData.reportingToUserName
-        binding.tvDate.text = CommonMethods.getCurrentDate()
+        //binding.tvDate.text = CommonMethods.getCurrentDate()
         binding.tvFromDate.text = CommonMethods.getCurrentDate()
         binding.tvToDate.text = CommonMethods.getCurrentDate()
 
@@ -219,7 +199,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
             }
         }
 //----------------------------------------------------------
-        if (isForUpdate || isFromApproval) {
+        /*if (isForUpdate || isFromApproval) {
 
             if (isForUpdate && !isFromApproval && (leaveApplicationData.leaveApprovalStatus == LEAVE_APPROVED_STATUS || leaveApplicationData.leaveApprovalStatus == LEAVE_REJECTED_STATUS)) {
                 binding.llApprovalRemarks.visibility = View.VISIBLE
@@ -234,25 +214,27 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                 }
             }
 
-            binding.tvLeaveType.text = leaveApplicationData.leaveTypeName
-            binding.tvLeaveType.visibility = View.VISIBLE
-            binding.flLeaveType.visibility = View.GONE
+            //binding.tvLeaveType.text = leaveApplicationData.leaveTypeName
+            //binding.tvLeaveType.visibility = View.VISIBLE
+            //binding.flLeaveType.visibility = View.GONE
 
-            binding.tvDate.text = leaveApplicationData.leaveApplicationDate
+            *//*binding.tvDate.text = leaveApplicationData.leaveApplicationDate
             binding.tvFromDate.text = leaveApplicationData.leaveFromDate
             binding.tvToDate.text = leaveApplicationData.leaveToDate
             binding.etReason.setText(leaveApplicationData.leaveReason)
-            binding.cbHalfDay.isChecked = leaveApplicationData.isHalfDayLeave
+            binding.cbHalfDay.isChecked = leaveApplicationData.isHalfDayLeave*//*
 
             Log.d("FROMDATEOTHER===>",""+leaveApplicationData.leaveFromDate)
             Log.d("TODATEOTHER===>",""+leaveApplicationData.leaveToDate)
             setWidgetsClickability(false)
         } else {
             callLeaveTypeList()
-        }
+        }*/
 
         if (leaveApplicationId > 0) {
             callLiveDetailListApi()
+        }else{
+            callLeaveTypeList()
         }
     }
 
@@ -281,7 +263,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
-                            setupOrderDetailsData(it[0], appRegistrationData)
+                            setupLeaveDetailsData(it[0], appRegistrationData)
                         }
                     }
                 } else {
@@ -309,17 +291,22 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         })
     }
 
-    private fun setupOrderDetailsData(
+    private fun setupLeaveDetailsData(
         leaveDetails: LeaveDetailListResponse,
         appRegistrationData: AppRegistrationResponse
     ) {
-        binding.tvDate.text = leaveDetails.leaveApplicationDate
-        binding.tvReportTo.text = leaveDetails.reportingToUserName
-//        binding.tvFromDate.text = leaveDetails.fromDate
-//        binding.tvToDate.text = leaveDetails.toDate
+        //binding.tvDate.text = leaveDetails.leaveApplicationDate
+        binding.toolbar.imgEdit.visibility = if(leaveApplicationData.allowEdit) View.VISIBLE else View.GONE
+        binding.toolbar.imgDelete.visibility = if(leaveApplicationData.allowEdit) View.VISIBLE else View.GONE
 
-//        Log.d("FROMDATE===>",""+leaveDetails.fromDate)
- //       Log.d("TODATE===>",""+leaveDetails.toDate)
+
+        binding.tvReportTo.text = leaveDetails.reportingToUserName
+        binding.tvFromDate.text = leaveDetails.leaveFromDate
+        binding.tvToDate.text = leaveDetails.leaveToDate
+        binding.etReason.setText(leaveDetails.leaveReason)
+        binding.cbHalfDay.isChecked = leaveDetails.isHalfDayLeave
+        binding.tvLeaveType.text = leaveDetails.leaveTypeName
+
         binding.etReason.setText(leaveDetails.leaveReason)
 
         binding.tvSelectCompany.text = leaveDetails.companyName
@@ -340,15 +327,36 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         if (leaveApplicationId > 0) {
             binding.flCategory.visibility = View.GONE
             binding.tvCategory.visibility = View.VISIBLE
-            binding.tvCategory.setText(detail)
+            binding.tvLeaveType.visibility = View.VISIBLE
+            binding.flLeaveType.visibility = View.GONE
+            binding.tvCategory.text = detail
             Log.d("TEXT===>",""+detail)
         }
-//        if (expenseId > 0) {
-//            binding.flCategory.visibility = View.GONE
-//            binding.tvCategory.visibility = View.VISIBLE
-//            binding.tvCategory.setText(detail)
-//            Log.d("TEXT===>",""+detail)
-//        }
+        binding.tvLeaveBalance.visibility = View.GONE
+
+        if (isForUpdate || isFromApproval) {
+
+            if (isForUpdate && !isFromApproval && (leaveDetails.leaveApprovalStatus == LEAVE_APPROVED_STATUS || leaveDetails.leaveApprovalStatus == LEAVE_REJECTED_STATUS)) {
+                binding.llApprovalRemarks.visibility = View.VISIBLE
+                binding.etLeaveApprovalRemarks.setText(leaveDetails.leaveApprovalRemarks)
+                binding.etLeaveApprovalRemarks.isEnabled = false
+            } else {
+                if (isFromApproval) {
+                    binding.llApprovalRemarks.visibility = View.VISIBLE
+                    binding.etLeaveApprovalRemarks.isEnabled = true
+                } else {
+                    binding.llApprovalRemarks.visibility = View.GONE
+                }
+            }
+            val leaveTypeId = leaveDetails.dDMLeaveTypeId
+            callLeaveTypeList(leaveTypeId)
+
+            Log.d("FROMDATEOTHER===>",""+leaveDetails.leaveFromDate)
+            Log.d("TODATEOTHER===>",""+leaveDetails.leaveToDate)
+            setWidgetsClickability(false)
+        } else {
+            callLeaveTypeList(leaveDetails.dDMLeaveTypeId)
+        }
     }
 
     private fun toggleSectionVisibility(view: View, toggleIcon: ImageView) {
@@ -377,7 +385,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
             binding.tvLeaveType.visibility = View.GONE
             binding.flLeaveType.visibility = View.VISIBLE
             binding.tvLeaveBalance.visibility = View.VISIBLE
-            callLeaveTypeList()
+            //callLeaveTypeList()
         }
     }
 
@@ -397,7 +405,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
 //        CommonMethods.getBatteryPercentage(mActivity)
 //    }
 
-    private fun callLeaveTypeList() {
+    private fun callLeaveTypeList(leaveTypeId : Int = 0) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showToastMessage(mActivity, getString(R.string.no_internet))
             return
@@ -435,7 +443,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                                 )
                             )
                             leaveTypeList.addAll(it)
-                            setupLeaveTypeSpinner()
+                            setupLeaveTypeSpinner(leaveTypeId)
                         }
                     }
                 } else {
@@ -466,16 +474,17 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
     }
 
 
-    private fun setupLeaveTypeSpinner() {
+    private fun setupLeaveTypeSpinner(leaveTypeId : Int) {
         val adapter = LeaveTypeAdapter(
             mActivity,
             R.layout.simple_spinner_item,
             leaveTypeList
         )
         binding.spLeaveType.adapter = adapter
+        Log.e("TAG", "setupLeaveTypeSpinner:MY LEAVE TYPE ::  "+leaveTypeId.toString() )
         if (isForUpdate) {
             val indexToSelect =
-                leaveTypeList.indexOfFirst { it.categoryMasterId == leaveApplicationData.ddmLeaveTypeId }
+                leaveTypeList.indexOfFirst { it.categoryMasterId == leaveTypeId }
             Log.e("TAG", "setupExpenseTypeSpinner: " + indexToSelect)
             binding.spLeaveType.setSelection(indexToSelect)
             selectedLeaveType = leaveTypeList[indexToSelect]
@@ -537,7 +546,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                         mActivity,
                         mActivity.getString(R.string.please_select_company)
                     )
-                    return;
+                    return
                 }
                 if (branchMasterList.size > 0) {
                     val userDialog = UserSearchDialogUtil(
@@ -562,7 +571,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                         mActivity,
                         mActivity.getString(R.string.please_select_branch)
                     )
-                    return;
+                    return
                 }
                 if (divisionMasterList.size > 0) {
                     val userDialog = UserSearchDialogUtil(
@@ -774,7 +783,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                 mActivity,
                 mActivity.getString(R.string.please_select_branch)
             )
-            return;
+            return
         }
         CommonMethods.showLoading(mActivity)
 
@@ -865,22 +874,15 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         )
         binding.spCategory.adapter = adapter
         if (isCompanyChange && categoryList.size == 2) {
-            selectedCategory = CategoryMasterResponse(
-                categoryMasterId = categoryList[1].categoryMasterId,
-                categoryName = categoryList[1].categoryName
-            )
+            selectedCategory = categoryList[1]
             binding.spCategory.setSelection(1)
             Log.d("LIST","true")
             categoryList[1]
+        } else if (isCompanyChange) {
+            binding.spCategory.setSelection(0)
         } else {
-            if(isCompanyChange) {
-                binding.spCategory.setSelection(0)
-                categoryList[0]
-            }else{
-                val selectedCategoryIndex =
-                    categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
-                binding.spCategory.setSelection(selectedCategoryIndex)
-            }
+            val selectedCategoryIndex = categoryList.indexOfFirst { it.categoryMasterId == selectedCategory?.categoryMasterId }
+            binding.spCategory.setSelection(selectedCategoryIndex)
         }
     }
 
@@ -923,7 +925,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
-                        if ( it.isNotEmpty()) {
+                        if (it.isNotEmpty()) {
                             companyMasterList.clear()
                             companyMasterList.add(
                                 CompanyMasterResponse(
@@ -932,12 +934,13 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
                                 )
                             )
                             companyMasterList.addAll(it)
-                            if (isCompanyChange && it.size == 1) {
+                            if (it.size == 1) {
                                 selectedCompany = CompanyMasterResponse(
                                     companyMasterId = companyMasterList[1].companyMasterId,
                                     companyName = companyMasterList[1].companyName
                                 )
                                 binding.tvSelectCompany.text = selectedCompany?.companyName ?: ""
+                                isCompanyChange = true
                             }
                             callBranchListApi()
                         }
@@ -1169,7 +1172,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         )//for update pass id
         leaveApplicationReq.addProperty("UserId", loginData.userId)
         //leaveApplicationReq.addProperty("UserName", loginData.userName)
-        leaveApplicationReq.addProperty("LeaveApplicationDate", binding.tvDate.text.toString())
+        leaveApplicationReq.addProperty("LeaveApplicationDate", binding.tvCompanyDate.text.toString())
         //leaveApplicationReq.addProperty("LeaveCategoryMasterId", selectedLeaveType.categoryMasterId)
         //leaveApplicationReq.addProperty("LeaveCategoryName", selectedLeaveType.categoryName)
         leaveApplicationReq.addProperty("LeaveFromDate", binding.tvFromDate.text.toString())
@@ -1250,7 +1253,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
     }
 
     override fun onDateSelect(date: String) {
-        binding.tvDate.text = date
+        //binding.tvDate.text = date
     }
 
 

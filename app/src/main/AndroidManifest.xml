@@ -94,6 +94,13 @@
         <activity android:name=".ui.activities.HomeActivity"
             android:exported="false"/>
         <service
+            android:name=".notification.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <service
             android:name=".service.EthicsBackgroundService"
             android:foregroundServiceType="location"
             android:enabled="true"

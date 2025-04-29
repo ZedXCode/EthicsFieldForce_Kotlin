@@ -45,6 +45,7 @@ import ethicstechno.com.fieldforce.databinding.ItemUserBinding
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
+import ethicstechno.com.fieldforce.models.ApproveRejectResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
@@ -67,6 +68,7 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM3
 import ethicstechno.com.fieldforce.utils.ARG_PARAM4
 import ethicstechno.com.fieldforce.utils.ARG_PARAM5
 import ethicstechno.com.fieldforce.utils.ARG_PARAM6
+import ethicstechno.com.fieldforce.utils.ARG_PARAM7
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -75,6 +77,7 @@ import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessag
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
+import ethicstechno.com.fieldforce.utils.DOCUMENT_NAME_ORDER
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_CURRENCY
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_FREIGHT_TERMS
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_TRANSACTION_TYPE
@@ -192,6 +195,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var accountMasterIdFromVisit: Int = 0
     private var contactPersonNameFromVisit = ""
     private var isPartyChangeFromVisit = false
+    private var isForApproval : Boolean = false
 
     private val groupItemClickListener =
         object : ItemClickListener<ProductGroupResponse> {
@@ -223,7 +227,8 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             allowDelete: Boolean?,
             accountName: String?,
             accountMasterId: Int?,
-            contactPersonName: String?
+            contactPersonName: String?,
+            isForApproval: Boolean
         ): AddOrderEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
@@ -232,6 +237,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             args.putString(ARG_PARAM4, accountName ?: "")
             args.putInt(ARG_PARAM5, accountMasterId ?: 0)
             args.putString(ARG_PARAM6, contactPersonName ?: "")
+            args.putBoolean(ARG_PARAM7, isForApproval)
             val fragment = AddOrderEntryFragment()
             fragment.arguments = args
             return fragment
@@ -269,6 +275,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             accountNameFromVisit = it.getString(ARG_PARAM4, "")
             accountMasterIdFromVisit = it.getInt(ARG_PARAM5, 0)
             contactPersonNameFromVisit = it.getString(ARG_PARAM6, "")
+            isForApproval = it.getBoolean(ARG_PARAM7, false)
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -282,7 +289,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.etContactPersonName.setText(contactPersonNameFromVisit)
             selectedPartyDealerId = accountMasterIdFromVisit
         }
-
 
         selectedCurrency = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
         selectedTransactionType = CommonDropDownResponse(dropdownKeyId = "0", dropdownName = "")
@@ -300,6 +306,22 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.cardImageCapture.setOnClickListener(this)
         setupImageUploadRecyclerView()
 
+        if(isForApproval){
+            binding.llApprovalRemarks.visibility = View.VISIBLE
+            binding.tvSubmit.visibility = View.GONE
+            binding.llAcceptReject.visibility = View.VISIBLE
+        }else{
+            if(orderId > 0){
+                binding.tvSubmit.visibility = View.GONE
+                binding.llAcceptReject.visibility = View.GONE
+            }else{
+                binding.tvSubmit.visibility = View.VISIBLE
+                binding.llAcceptReject.visibility = View.GONE
+            }
+        }
+        binding.tvAccept.setOnClickListener(this)
+        binding.tvReject.setOnClickListener(this)
+
         setOrderDetailsAdapter()
         binding.llHeader.setOnClickListener {
             toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle, true)
@@ -311,11 +333,13 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (allowEdit) {
                 binding.toolbar.imgEdit.visibility = View.VISIBLE
             }
-            if (allowEdit) {
+            if (allowDelete) {
                 binding.toolbar.imgDelete.visibility = View.VISIBLE
             }
+
             binding.toolbar.imgEdit.setOnClickListener(this)
             binding.toolbar.imgDelete.setOnClickListener(this)
+
             formViewMode(true)
             callOrderDetailsApi()
         } else {
@@ -349,7 +373,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.VISIBLE
             binding.tvRemarks.visibility = View.VISIBLE
             binding.etRemarks.visibility = View.GONE
-            binding.llBottom.visibility = View.GONE
+            //binding.llAcceptReject.visibility = View.GONE
             binding.flCategory.visibility = View.GONE
             binding.edtPaymentTerms.isEnabled = false
             binding.edtTermsAndCondition.isEnabled = false
@@ -362,7 +386,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.GONE
             binding.tvRemarks.visibility = View.GONE
             binding.etRemarks.visibility = View.VISIBLE
-            binding.llBottom.visibility = View.VISIBLE
+            //binding.llAcceptReject.visibility = View.VISIBLE
             disableRadioButtons(true)
             binding.flConsingneeName.setOnClickListener(this)
             binding.llSelectTransactionType.setOnClickListener(this)
@@ -1342,7 +1366,11 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
         when (p0?.id) {
             R.id.imgBack -> {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
-                mActivity.onBackPressed()
+                if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    mActivity.onBackPressedDispatcher.onBackPressed()
+                } else {
+                    mActivity.onBackPressed()
+                }
             }
 
             R.id.flPartyDealer -> {
@@ -1449,6 +1477,9 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     object : PositiveButtonListener {
                         override fun okClickListener() {
                             binding.toolbar.imgEdit.visibility = View.GONE
+                            binding.llAcceptReject.visibility = View.GONE
+                            binding.tvSubmit.visibility = View.VISIBLE
+                            binding.tvSubmit.text = getString(R.string.update)
                             formViewMode(false)
                         }
                     },
@@ -1619,6 +1650,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.edtShippingAddress.setText("")
                 binding.edtShippingAddress.isEnabled = true
                 binding.imgAddressClear.visibility = View.GONE
+            }
+            R.id.tvAccept -> {
+                callApproveRejectOrder(true)
+            }
+            R.id.tvReject -> {
+                callApproveRejectOrder(false)
             }
         }
     }
@@ -2112,7 +2149,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("ProductName", i.productName)
             objDetails.addProperty("Unit", i.unit)
             objDetails.addProperty("Quantity", i.qty)
-            objDetails.addProperty("Rate", i.price)
+            objDetails.addProperty("Rate", i.salesPrice)
             objDetails.addProperty("Amount", i.amount)
             objDetails.addProperty("MRP", i.mrp)
             objDetails.addProperty("Discount", i.standardDiscount)
@@ -2490,7 +2527,7 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 tvUnit.text = productModel.unit
                 tvSelectProduct.text = productModel.productName
                 etAmount.setText(CommonMethods.formatBigDecimal(productModel.amount))
-                etPrice.setText(CommonMethods.formatBigDecimal(productModel.price))
+                etPrice.setText(CommonMethods.formatBigDecimal(productModel.salesPrice ?: BigDecimal.ZERO))
                 if (productModel.quantityRoundOffType == 0) {
                     etQty.setText(CommonMethods.formatThreeDecimal(productModel.qty))//changed
                     etQty.filters = arrayOf(DecimalDigitsInputFilter(10, 3, etQty))
@@ -2503,11 +2540,12 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
                 tvSchemeValue.text = buildString {
                     append(productModel.altUnit)
-                    if (productModel.finalQty?.takeIf { it > BigDecimal.ZERO } != null) {
-                        append(":${productModel.finalQty}")
+                    if ((productModel.qty)?.takeIf { it > BigDecimal.ZERO } != null) {
+                        append(":${productModel.qty * (productModel.conversionFactor?.toBigDecimal() ?: BigDecimal.ZERO)}")
                     }
                     append(", ${productModel.scheme}")
                 }
+                //tvSchemeValue.text =  (if (productModel.qty != null && newQty > BigDecimal.ZERO) item.unit + ":"+item.finalQty else item.unit) + ", " + item.scheme
 
             }
 
@@ -2863,7 +2901,6 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     override fun companySelect(dropDownData: CompanyMasterResponse) {
-        Log.e("TAG", "DropDown :: companySelect: ")
         selectedCompany = dropDownData
         clearPartyTransactionAddressData()
         isCompanyChange = true
@@ -2947,6 +2984,95 @@ class AddOrderEntryFragment : HomeBaseFragment(), View.OnClickListener,
             categoryList.add(CategoryMasterResponse(categoryName = "Select Category"))
             setupCategorySpinner()
         }
+    }
+
+    private fun callApproveRejectOrder(isApprove:Boolean) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        if(binding.etApprovalRemarks.text.toString().isEmpty()){
+            CommonMethods.showToastMessage(mActivity, getString(R.string.enter_approval_remarks))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+
+
+        val orderEntryApproveReq = JsonObject()
+        orderEntryApproveReq.addProperty("loginUserId", loginData.userId)
+
+        val objDetailsArray = JsonArray()
+        // for (i in orderDetailsList) {
+        val objDetails = JsonObject()
+        objDetails.addProperty("documentId", orderId)
+        objDetails.addProperty("remarks", binding.etApprovalRemarks.text.toString())
+        objDetails.addProperty("isApprove",isApprove)
+        objDetails.addProperty("documentName", DOCUMENT_NAME_ORDER)
+        objDetailsArray.add(objDetails)
+        // }
+        orderEntryApproveReq.add("authorizeApprove",objDetailsArray)
+
+        /*val orderEntryReq = JsonObject()
+        orderEntryReq.addProperty("documentId", orderId)
+        orderEntryReq.addProperty("remarks", binding.etApprovalRemarks.text.toString())
+        orderEntryReq.addProperty("isApprove",isApprove)
+        orderEntryReq.addProperty("documentName","order")*/
+        val orderApprovalCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getApprovaReject(orderEntryApproveReq)
+
+        orderApprovalCall?.enqueue(object : Callback<ApproveRejectResponse> {
+            override fun onResponse(
+                call: Call<ApproveRejectResponse>,
+                response: Response<ApproveRejectResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.success) {
+                            CommonMethods.showAlertDialog(mActivity,
+                                getString(R.string.order_approval),
+                                it.returnMessage/*if (isLeaveApprove) getString(R.string.leave_approve_msg) else getString(
+                                    R.string.leave_reject_msg
+                                )*/,
+                                isCancelVisibility = false,
+                                okListener = object : PositiveButtonListener {
+                                    override fun okClickListener() {
+                                        AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, true)
+                                        if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                                            mActivity.onBackPressedDispatcher.onBackPressed()
+                                        } else {
+                                            mActivity.onBackPressed()
+                                        }
+                                    }
+                                })
+                        }
+                    }
+                }else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ApproveRejectResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
     }
 
     inner class PartyDealerListAdapter(

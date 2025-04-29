@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name" translatable="false">Ethics Fieldforce</string>
     <string name="google_key" translatable="false">AIzaSyCN6x6R3PNj63Eh0YmnnrYwwu-3K4kzEOY</string>
+    <string name="default_notification_channel_id" translatable="false">ethicsfieldforcechannel</string>
+    <string name="default_notification_channel_name" translatable="false">ethicsfieldforce</string>
+
 
     <string name="str_ok" translatable="false">Ok</string>
     <string name="str_cancel" translatable="false">Cancel</string>
@@ -480,5 +483,6 @@
     <string name="no_product_found" translatable="false">No Product Found</string>
     <string name="please_enter_valid_quantity" translatable="false">Please enter valid quantity</string>
     <string name="product_filter" translatable="false">Product Filter</string>
+    <string name="notification_list" translatable="false">Notifications</string>
     <!-- TODO: Remove or change this placeholder text -->
 </resources>

@@ -20,12 +20,16 @@ import ethicstechno.com.fieldforce.databinding.ItemDashboardBinding
 import ethicstechno.com.fieldforce.models.MoreOptionMenuListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
+import ethicstechno.com.fieldforce.models.notification.NotificationCountResponse
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.ExpenseListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicationListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.utils.APPROVAL_MODULE
+import ethicstechno.com.fieldforce.utils.APPROVAL_STRING
+import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT
+import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT_MODULE
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
@@ -40,6 +44,7 @@ import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.INQUIRY_MODULE
 import ethicstechno.com.fieldforce.utils.INQUIRY_PRINT
+import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_MODULE
 import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_PRINT
 import ethicstechno.com.fieldforce.utils.LEAVE_APPROVAL_MODULE
@@ -63,8 +68,14 @@ import ethicstechno.com.fieldforce.utils.QUOTATION_MODULE
 import ethicstechno.com.fieldforce.utils.QUOTATION_PRINT
 import ethicstechno.com.fieldforce.utils.TOUR_PLAN_MODULE
 import ethicstechno.com.fieldforce.utils.TOUR_PLAN_PRINT
+import ethicstechno.com.fieldforce.utils.TRIP_REPORT
+import ethicstechno.com.fieldforce.utils.TRIP_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT
+import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT_MODULE
 import ethicstechno.com.fieldforce.utils.VISIT_MODULE
 import ethicstechno.com.fieldforce.utils.VISIT_PRINT
+import ethicstechno.com.fieldforce.utils.VISIT_REPORT
+import ethicstechno.com.fieldforce.utils.VISIT_REPORT_MODULE
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -105,14 +116,27 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         dashboardBinding.toolbar.imgBack.visibility = View.GONE
         dashboardBinding.toolbar.tvHeader.text = "Welcome, ${appDao.getLoginData().userName}"
         dashboardBinding.toolbar.imgMenu.setOnClickListener(this)
+        dashboardBinding.toolbar.rlNotification.setOnClickListener(this)
+        dashboardBinding.toolbar.rlNotification.visibility = View.VISIBLE
 
         callDashboardListApi()
         callMoreOptionList()
+        callGetNotificationCountApi()
     }
 
     override fun onClick(p0: View?) {
         when (p0?.id) {
-            R.id.imgMenu -> mActivity.openDrawer()
+            R.id.imgMenu -> {
+                mActivity.openDrawer()
+            }
+            R.id.rlNotification -> {
+                mActivity.addFragment(
+                    NotificationFragment(),
+                    addToBackStack = true,
+                    ignoreIfCurrent = true,
+                    animationType = AnimationType.fadeInfadeOut
+                )
+            }
         }
     }
 
@@ -340,6 +364,54 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                         option.allowPrint
                                     )
                                 }
+                                ATTENDANCE_REPORT -> {
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                       ATTENDANCE_REPORT_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        ATTENDANCE_REPORT_MODULE,
+                                        option.allowPrint
+                                    )
+                                }
+                                TRIP_REPORT -> {
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TRIP_REPORT_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TRIP_REPORT_MODULE,
+                                        option.allowPrint
+                                    )
+                                }
+                                TRIP_SUMMERY_REPORT -> {
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TRIP_SUMMERY_REPORT_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        TRIP_SUMMERY_REPORT_MODULE,
+                                        option.allowPrint
+                                    )
+                                }
+                                VISIT_REPORT -> {
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        VISIT_REPORT_MODULE,
+                                        option.allowRights
+                                    )
+                                    AppPreference.saveBooleanPreference(
+                                        mActivity,
+                                        VISIT_REPORT_MODULE,
+                                        option.allowPrint
+                                    )
+                                }
                             }
                         }
                     }
@@ -362,6 +434,72 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         })
     }
 
+    private fun callGetNotificationCountApi() {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+
+        val notificationCountReq = JsonObject()
+        notificationCountReq.addProperty("UserId", loginData.userId)
+
+        val notificationReqCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getNotificationCount(notificationCountReq)
+
+        notificationReqCall?.enqueue(object : Callback<NotificationCountResponse> {
+            override fun onResponse(
+                call: Call<NotificationCountResponse>,
+                response: Response<NotificationCountResponse>
+            ) {
+                if (response.isSuccessful) {
+                    response.body()?.let { notificationCount ->
+                        if(notificationCount.unReadCount > 0) {
+                            dashboardBinding.toolbar.cardNotificationCount.visibility = View.VISIBLE
+                            dashboardBinding.toolbar.txtNotificationCount.text =
+                                notificationCount.unReadCount.toString()
+                            val topBottomPadding =
+                                if (notificationCount.unReadCount.toString().length <= 1) 0 else 2
+                            val leftRightPadding =
+                                if (notificationCount.unReadCount.toString().length <= 1) 5 else 3
+                            if (notificationCount.unReadCount.toString().length <= 1) {
+                                dashboardBinding.toolbar.txtNotificationCount.setPadding(
+                                    dpToPx(leftRightPadding),  // left
+                                    dpToPx(topBottomPadding),  // top
+                                    dpToPx(leftRightPadding),  // right
+                                    dpToPx(topBottomPadding)   // bottom
+                                )
+                            }
+                        }else{
+                            dashboardBinding.toolbar.cardNotificationCount.visibility = View.GONE
+                        }
+
+                    }
+                }
+                CommonMethods.hideLoading()
+            }
+
+            override fun onFailure(call: Call<NotificationCountResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+    }
+
+    fun dpToPx(dp: Int): Int {
+        return (dp * mActivity.resources.displayMetrics.density).toInt()
+    }
+
 
     override fun onResume() {
         super.onResume()
@@ -370,10 +508,11 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (isAdded && !hidden) {
-            mActivity.bottomVisible()
+        mActivity.bottomVisible()
+        if (isAdded && !hidden && AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE, false)) {
+            AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
             dashboardBinding.rvDashboard.isEnabled = true
-            callDashboardListApi()
+            callGetNotificationCountApi()
         }
     }
 
@@ -1084,11 +1223,12 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                     Log.e("TAG", "bind: DASHBOAR")
                     if (mActivity.isDashboardVisible()) {
 
-                        if (dashboardData.reportType == "Authorization") {
-                            when (dashboardData.value4) {
+                        if (dashboardData.redirectFormId > 0) {
+                            when (dashboardData.redirectFormId.toString()) {
                                 FORM_ID_ORDER_ENTRY_NUMBER -> {
+                                    val isForApproval = dashboardData.reportType == APPROVAL_STRING
                                     mActivity.addFragment(
-                                        OrderEntryListFragment.newInstance(true),
+                                        OrderEntryListFragment.newInstance(isForApproval),
                                         addToBackStack = true,
                                         ignoreIfCurrent = true,
                                         animationType = AnimationType.fadeInfadeOut
@@ -1096,8 +1236,9 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                 }
 
                                 FORM_ID_QUOTATION_ENTRY_NUMBER -> {
+                                    val isForApproval = dashboardData.reportType == APPROVAL_STRING
                                     mActivity.addFragment(
-                                        QuotationEntryListFragment.newInstance(true),
+                                        QuotationEntryListFragment.newInstance(isForApproval),
                                         addToBackStack = true,
                                         ignoreIfCurrent = true,
                                         animationType = AnimationType.fadeInfadeOut
@@ -1105,8 +1246,9 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                 }
 
                                 FORM_ID_EXPENSE_ENTRY_NUMBER -> {
+                                    val isForApproval = dashboardData.reportType == APPROVAL_STRING
                                     mActivity.addFragment(
-                                        ExpenseListFragment.newInstance(true),
+                                        ExpenseListFragment.newInstance(isForApproval),
                                         addToBackStack = true,
                                         ignoreIfCurrent = true,
                                         animationType = AnimationType.fadeInfadeOut
@@ -1114,8 +1256,9 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                 }
 
                                 FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER -> {
+                                    val isForApproval = dashboardData.reportType == APPROVAL_STRING
                                     mActivity.addFragment(
-                                        LeaveApplicationListFragment.newInstance(true),
+                                        LeaveApplicationListFragment.newInstance(isForApproval),
                                         addToBackStack = true,
                                         ignoreIfCurrent = true,
                                         animationType = AnimationType.fadeInfadeOut

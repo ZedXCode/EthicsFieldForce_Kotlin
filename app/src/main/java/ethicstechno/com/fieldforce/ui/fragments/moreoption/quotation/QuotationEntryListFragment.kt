@@ -226,11 +226,11 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             R.string.quotation_approval_list
         ) else getString(R.string.quotation_entry_list)
 
+        orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
         //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_quotation_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
-        orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         //orderEntryListBinding.llBottom.visibility = View.VISIBLE
         selectedCompany = CompanyMasterResponse(companyMasterId = 0)
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
@@ -243,7 +243,6 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         if (isForApproval) {
             setupSearchFilter()
-            orderEntryListBinding.toolbar.imgFilter.visibility = View.GONE
             orderEntryListBinding.toolbar.svView.visibility = View.VISIBLE
             orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
             orderEntryListBinding.tvAddOrderEntry.visibility = View.GONE
@@ -264,7 +263,6 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
                 orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
                 initView()
-                callOrderListApi()
             }
         }
     }
@@ -486,7 +484,7 @@ class QuotationEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        AddQuotationEntryFragment.newInstance(orderData.quotationId ?: 0, orderData.allowEdit, orderData.allowDelete),
+                        AddQuotationEntryFragment.newInstance(orderData.quotationId ?: 0, orderData.allowEdit, orderData.allowDelete, isForApproval),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
                         animationType = AnimationType.rightInLeftOut

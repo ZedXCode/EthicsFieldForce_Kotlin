@@ -176,14 +176,13 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         expenseBinding.tvAddExpense.setOnClickListener(this)
         expenseBinding.tvAccept.setOnClickListener(this)
         expenseBinding.tvReject.setOnClickListener(this)
+        expenseBinding.toolbar.imgFilter.visibility =View.VISIBLE
         if (isForApproval) {
             setupSearchFilter()
-            expenseBinding.toolbar.imgFilter.visibility =View.VISIBLE
             expenseBinding.toolbar.svView.visibility = View.VISIBLE
             expenseBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
             expenseBinding.tvAddExpense.visibility = View.GONE
         } else {
-            expenseBinding.toolbar.imgFilter.visibility = View.VISIBLE
             expenseBinding.llBottom.visibility = View.VISIBLE
             expenseBinding.tvAddExpense.visibility = View.VISIBLE
         }
@@ -338,7 +337,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                     binding.cbApprove.isChecked =
                         itemStates[bindingAdapterPosition] ?: false // Restore the state
 
-                    binding.cbApprove.setOnCheckedChangeListener { p0, isChecked ->
+                    binding.cbApprove.setOnCheckedChangeListener { _, isChecked ->
                         itemStates[bindingAdapterPosition] = isChecked // Update the state
                         expenseData.isChecked = isChecked // Update the data model
                         if (isChecked) {
@@ -355,7 +354,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                         }
                     }
                     binding.cardMain.setOnClickListener {
-                        mActivity.addFragment(AddExpenseFragment.newInstance(expenseData.expenseId ?: 0,true, expenseData, true),
+                        mActivity.addFragment(AddExpenseFragment.newInstance(expenseData.expenseId,true, expenseData, true, isForApproval),
                             addToBackStack = true,
                             ignoreIfCurrent = true,
                             animationType = AnimationType.fadeInfadeOut
@@ -365,7 +364,7 @@ class ExpenseListFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
                 } else {
                     binding.cbApprove.visibility = View.GONE
                     binding.cardMain.setOnClickListener {
-                        mActivity.addFragment(AddExpenseFragment.newInstance(expenseData.expenseId ?: 0,true, expenseData, false),
+                        mActivity.addFragment(AddExpenseFragment.newInstance(expenseData.expenseId,true, expenseData, false, isForApproval),
                             addToBackStack = true,
                             ignoreIfCurrent = true,
                             animationType = AnimationType.fadeInfadeOut

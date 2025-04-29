@@ -32,7 +32,6 @@ import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.databinding.FragmentAddExpenceBinding
-import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
@@ -52,10 +51,12 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM16
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CONTROL_TYPE_FIX_PER_KM
 import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateFormat
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.EXPENSE_RAISED
 import ethicstechno.com.fieldforce.utils.FORM_ID_EXPENSE_ENTRY
@@ -80,7 +81,7 @@ import java.io.File
 import java.util.Calendar
 import java.util.concurrent.Executors
 
-class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickListener,
+class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
     UserSearchDialogUtil.CompanyDialogDetect, UserSearchDialogUtil.DivisionDialogDetect,
     UserSearchDialogUtil.BranchDialogDetect,
     UserSearchDialogUtil.PlaceSearchDialogDetect, LeaveTypeAdapter.TypeSelect {
@@ -121,6 +122,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
     private var isCompanyChange = false
     private var selectIndex: Int = 0
     private var detail: String = ""
+    private var isForApproval : Boolean = false
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -134,13 +136,15 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             expenseId: Int,
             isForUpdate: Boolean,
             expenseDataForUpdate: ExpenseListResponse = ExpenseListResponse(),
-            isForDetails: Boolean
+            isForDetails: Boolean,
+            isForApproval:Boolean
         ): AddExpenseFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM16, expenseId)
             args.putBoolean(ARG_PARAM1, isForUpdate)
             args.putParcelable(ARG_PARAM2, expenseDataForUpdate)
             args.putBoolean(ARG_PARAM3, isForDetails)
+            args.putBoolean(ARG_PARAM4, isForApproval)
             val fragment = AddExpenseFragment()
             fragment.arguments = args
             return fragment
@@ -158,6 +162,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                 it.getParcelable(ARG_PARAM2) ?: ExpenseListResponse()
             }
             isForDetails = it.getBoolean(ARG_PARAM3)
+            isForApproval = it.getBoolean(ARG_PARAM4)
         }
         initView()
     }
@@ -183,12 +188,11 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                 R.string.add_expense
             )
 
-        binding.tvExpenseDate.text =
+        binding.tvDateForExpense.text =
             if (isForUpdate) expenseDataForUpdate.expenseDate else CommonMethods.getCurrentDate()
 
         //binding.cardImage.setOnClickListener(this)
         binding.cardImageCapture.setOnClickListener(this)
-
 
         setupImageUploadRecyclerView()
 
@@ -196,9 +200,9 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         binding.llSelectBranch.setOnClickListener(this)
         binding.llSelectDivision.setOnClickListener(this)
         binding.llHeader.setOnClickListener(this)
-        binding.tvExpenseDate.setOnClickListener(this)
+        binding.tvDateForExpense.setOnClickListener(this)
 
-        binding.tvExpenseDate.text = CommonMethods.getCurrentDate()
+        binding.tvDateForExpense.text = CommonMethods.getCurrentDate()
 
 
         binding.llHeader.setOnClickListener {
@@ -224,6 +228,15 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             }
         }
 
+        if(isForApproval){
+            binding.llAcceptReject.visibility = View.VISIBLE
+            binding.llApprovalRemarks.visibility = View.VISIBLE
+            binding.tvAccept.setOnClickListener(this)
+            binding.tvReject.setOnClickListener(this)
+        }else{
+            binding.llAcceptReject.visibility = View.GONE
+            binding.llApprovalRemarks.visibility = View.GONE
+        }
         if (isForUpdate && !isForDetails) {
             if (expenseDataForUpdate.expenseStatusName == EXPENSE_RAISED) {
                 binding.toolbar.imgDelete.visibility = if (isForUpdate) View.VISIBLE else View.GONE
@@ -242,22 +255,16 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             binding.llApprovalAmount.visibility = View.VISIBLE
             binding.tvExpenseType.visibility = View.VISIBLE
             binding.flExpnseType.visibility = View.GONE
-            binding.llAcceptReject.visibility = View.VISIBLE
-            binding.llApprovalRemarks.visibility = View.VISIBLE
-            binding.tvAccept.setOnClickListener(this)
-            binding.tvReject.setOnClickListener(this)
         } else {
-            binding.llApprovalRemarks.visibility = View.GONE
             binding.llApprovalAmount.visibility = View.GONE
             binding.tvExpenseType.visibility = View.GONE
             binding.flExpnseType.visibility = View.VISIBLE
-            binding.llAcceptReject.visibility = View.GONE
         }
         if (isForDetails) {
             binding.tvAddExpense.visibility = View.GONE
         } else {
             binding.llSelectPlace.setOnClickListener(this)
-            binding.tvExpenseDate.setOnClickListener(this)
+            binding.tvDateForExpense.setOnClickListener(this)
             binding.tvAddExpense.setOnClickListener(this)
         }
         if (isForUpdate) {
@@ -291,7 +298,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 //            binding.tvCategory.text = expenseDetail.cityCategoryName//check categoryname
 
 //
-//            binding.tvExpenseDate.isClickable = false
+//            binding.tvDateForExpense.isClickable = false
 //            Log.d("COMPANY--->",""+expenseDetail.companyName)
 //            Log.d("BRANCH--->",""+expenseDetail.branchName)
 //
@@ -432,7 +439,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
     private fun setWidgetsClickability(flag: Boolean) {
         binding.llSelectPlace.isEnabled = false
-        binding.tvExpenseDate.isEnabled = false
+        binding.tvDateForExpense.isEnabled = false
         binding.etExpenseAmount.isEnabled = flag
         binding.etRemarks.isEnabled = flag
         binding.tvSelectControlMode.isEnabled = false
@@ -442,7 +449,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
         if (flag) {
             isEditMode = true
-            binding.toolbar.imgEdit.visibility = View.GONE
+            //binding.toolbar.imgEdit.visibility = View.GONE
         }
     }
 
@@ -535,6 +542,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             return
         }
         CommonMethods.showLoading(mActivity)
+        val apiDate = CommonMethods.convertToAppDateFormat(binding.tvDateForExpense.text.toString(), "MM/dd/yyyy")
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
@@ -543,7 +551,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         placeListReq.addProperty("StateId", 0)
         placeListReq.addProperty("CityId", 0)
         placeListReq.addProperty("UserId", loginData.userId)
-        placeListReq.addProperty("ExpenseDate", CommonMethods.convertToAppDateFormat(binding.tvExpenseDate.text.toString()))
+        placeListReq.addProperty("ExpenseDate", apiDate)
 
         val placeListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -896,6 +904,8 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         appRegistrationData: AppRegistrationResponse
     ) {
         expenseDetailsResponse = expenseDetails
+        binding.toolbar.imgEdit.visibility = if(expenseDetailsResponse.allowEdit) View.VISIBLE else View.GONE
+        binding.toolbar.imgDelete.visibility = if(expenseDetailsResponse.allowEdit) View.VISIBLE else View.GONE
         binding.tvExpenseType.text = expenseDetails.expenseTypeName
         binding.tvSelectPlace.text = expenseDetails.cityName
         Log.d("COMPANY--->", "" + expenseDetails.cityName)
@@ -917,9 +927,9 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
         //var catSP = expenseDetails.CategoryName
 
-        binding.tvExpenseDate.text = expenseDetails.expenseDate
+        binding.tvDateForExpense.text = expenseDetails.expenseDate
         detail = expenseDetails.categoryName
-        binding.tvExpenseDate.isClickable = false
+        binding.tvDateForExpense.isClickable = false
 
         if (expenseId > 0) {
             binding.flCategory.visibility = View.GONE
@@ -992,11 +1002,13 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
+        val apiDate = CommonMethods.convertToAppDateFormat(binding.tvDateForExpense.text.toString(), "MM/dd/yyyy")
+
 
         val expenseTypeReq = JsonObject()
         expenseTypeReq.addProperty("UserId", loginData.userId)
         expenseTypeReq.addProperty("CityId", placeId)
-        expenseTypeReq.addProperty("ExpenseDate", binding.tvExpenseDate.text.toString())
+        expenseTypeReq.addProperty("ExpenseDate", apiDate)
 
         val expenseTypeCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -1104,7 +1116,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                     // Display the selected item in the TextView
                     if (binding.spExpenseType.selectedItemPosition != 0) {
                         if (!isForUpdate && expenseData.expenseTypeId > 0) {
-                            binding.tvExpenseDate.isEnabled = false
+                            binding.tvDateForExpense.isEnabled = false
                             Log.e("TAG", "onItemSelected: " + expenseData.expenseTypeId)
                             selectedExpenseType = expenseData
                             isAttachmentRequired = selectedExpenseType.isAttachmentRequired
@@ -1281,6 +1293,8 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             return
         }
         CommonMethods.showLoading(mActivity)
+        val apiDate = CommonMethods.convertToAppDateFormat(binding.tvDateForExpense.text.toString(), "MM/dd/yyyy")
+
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
@@ -1296,7 +1310,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         addUpdateExpenseReq.addProperty("userId", loginData.userId)
         addUpdateExpenseReq.addProperty("attendanceId", expenseDetailsResponse.attendanceId)
         //if (!isForUpdate) {
-        addUpdateExpenseReq.addProperty("expenseDate", binding.tvExpenseDate.text.toString())
+        addUpdateExpenseReq.addProperty("expenseDate", apiDate)
         addUpdateExpenseReq.addProperty(
             "cityId",
             if (isForUpdate) expenseDetailsResponse.cityId else selectedPlace.cityId
@@ -1467,13 +1481,6 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
 
     }
 
-    override fun onDateSelect(date: String) {
-        binding.tvSelectPlace.text = ""
-        selectedPlace = ExpenseCityListResponse();
-        binding.tvExpenseDate.text = date
-        callCityListApi()
-    }
-
     override fun onClick(p0: View?) {
         when (p0?.id) {
             R.id.imgBack -> {
@@ -1485,18 +1492,21 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                 }
             }
 
-            R.id.tvExpenseDate -> {
-                val selectedCalendar = if (binding.tvExpenseDate.text.toString()
+            R.id.tvDateForExpense -> {
+                val selectedCalendar = if (binding.tvDateForExpense.text.toString()
                         .isEmpty()
-                ) null else CommonMethods.dateStringToCalendar(binding.tvExpenseDate.text.toString())
+                ) null else CommonMethods.dateStringToCalendar(binding.tvDateForExpense.text.toString())
                 openDatePicker(
                     selectedCalendar
                 ) { selectedDate ->
-                    if (binding.tvExpenseDate.text.toString().isNotEmpty()) {
-                        binding.tvExpenseDate.text = selectedDate
+                    if (binding.tvDateForExpense.text.toString().isNotEmpty()) {
+                        binding.tvDateForExpense.text = selectedDate
                     } else {
-                        binding.tvExpenseDate.text = selectedDate
+                        binding.tvDateForExpense.text = selectedDate
                     }
+                    binding.tvSelectPlace.text = ""
+                    selectedPlace = ExpenseCityListResponse();
+                    callCityListApi()
                 }
             }
 
@@ -1513,9 +1523,6 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
                 }
             }
 
-            R.id.tvExpenseDate -> {
-                CommonMethods.openDatePickerDialog(this, mActivity)
-            }
 //            R.id.cardImage -> {
 //                if (isPreviewImage) {
 //                    Log.e("TAG", "onClick: preview iamge")
@@ -1686,7 +1693,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         }
     }
 
-    private fun openDatePicker(
+   /* private fun openDatePicker(
         previousSelectedDate: Calendar? = null,
         onDateSelected: (String) -> Unit,
     ) {
@@ -1700,7 +1707,33 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
             mActivity,
             { _, year, monthOfYear, dayOfMonth ->
                 calendar.set(year, monthOfYear, dayOfMonth)
-                val dateString = CommonMethods.dateFormat.format(calendar.time)
+                val dateString = dateFormat.format(calendar.time)
+                onDateSelected(dateString)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+        datePickerDialog.datePicker.maxDate =
+            CommonMethods.dateStringToCalendar(CommonMethods.getCurrentDate()).timeInMillis
+        datePickerDialog.show()
+    }*/
+
+    private fun openDatePicker(
+        previousSelectedDate: Calendar? = null,
+        onDateSelected: (String) -> Unit
+    ) {
+        val calendar = Calendar.getInstance()
+
+        previousSelectedDate?.let {
+            calendar.timeInMillis = it.timeInMillis
+        }
+
+        val datePickerDialog = DatePickerDialog(
+            mActivity,
+            { _, year, monthOfYear, dayOfMonth ->
+                calendar.set(year, monthOfYear, dayOfMonth)
+                val dateString = dateFormat.format(calendar.time)
                 onDateSelected(dateString)
             },
             calendar.get(Calendar.YEAR),
@@ -2020,7 +2053,7 @@ class AddExpenseFragment : HomeBaseFragment(), DatePickerListener, View.OnClickL
         Log.e("TAG", "userSelect: " + placeData.cityName)
         binding.tvSelectPlace.text = placeData.cityName
         selectedPlace = placeData
-        binding.tvExpenseDate.isEnabled = false
+        binding.tvDateForExpense.isEnabled = false
         callGetExpenseTypeList(selectedPlace.cityId)
     }
 

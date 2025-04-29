@@ -82,7 +82,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        Log.e("TAG", "onResume: " )
+        Log.e("TAG", "onResume: ")
         mActivity.bottomVisible()
     }
 
@@ -92,7 +92,6 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
             mActivity.bottomVisible()
         }
     }
-
 
 
     override fun onStart() {
@@ -113,16 +112,52 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
         moreList.clear()
 
         val menuItems = listOf(
-            Triple(MORE_PARTY_DEALER, getString(R.string.more_party_dealer), R.drawable.ic_menu_party_dealer) to PARTY_DEALER_MODULE,
-            Triple(MORE_VISIT, getString(R.string.more_visit), R.drawable.ic_menu_visit) to VISIT_MODULE,
-            Triple(MORE_TOUR_PLAN, getString(R.string.more_tour_plan), R.drawable.ic_menu_tour_plan) to TOUR_PLAN_MODULE,
-            Triple(MORE_INQUIRY_ENTRY, getString(R.string.more_inquiry_entry), R.drawable.ic_menu_inquiry) to INQUIRY_MODULE,
-            Triple(MORE_QUOTATION_ENTRY, getString(R.string.more_quotation_entry), R.drawable.ic_menu_quotation) to QUOTATION_MODULE,
-            Triple(MORE_ORDER_ENTRY, getString(R.string.more_order_entry), R.drawable.ic_menu_order) to ORDER_ENTRY_MODULE,
-            Triple(MORE_EXPENSE_ENTRY, getString(R.string.more_expense_entry), R.drawable.ic_menu_expense) to EXPENSE_ENTRY_MODULE,
+            Triple(
+                MORE_PARTY_DEALER,
+                getString(R.string.more_party_dealer),
+                R.drawable.ic_menu_party_dealer
+            ) to PARTY_DEALER_MODULE,
+            Triple(
+                MORE_VISIT,
+                getString(R.string.more_visit),
+                R.drawable.ic_menu_visit
+            ) to VISIT_MODULE,
+            Triple(
+                MORE_TOUR_PLAN,
+                getString(R.string.more_tour_plan),
+                R.drawable.ic_menu_tour_plan
+            ) to TOUR_PLAN_MODULE,
+            Triple(
+                MORE_INQUIRY_ENTRY,
+                getString(R.string.more_inquiry_entry),
+                R.drawable.ic_menu_inquiry
+            ) to INQUIRY_MODULE,
+            Triple(
+                MORE_QUOTATION_ENTRY,
+                getString(R.string.more_quotation_entry),
+                R.drawable.ic_menu_quotation
+            ) to QUOTATION_MODULE,
+            Triple(
+                MORE_ORDER_ENTRY,
+                getString(R.string.more_order_entry),
+                R.drawable.ic_menu_order
+            ) to ORDER_ENTRY_MODULE,
+            Triple(
+                MORE_EXPENSE_ENTRY,
+                getString(R.string.more_expense_entry),
+                R.drawable.ic_menu_expense
+            ) to EXPENSE_ENTRY_MODULE,
             //Triple(MORE_EXPENSE_APPROVAL, getString(R.string.more_expense_approval), R.drawable.ic_menu_approval) to EXPENSE_APPROVAL_MODULE,
-            Triple(MORE_LEAVE_APPLICATION, getString(R.string.more_leave_application), R.drawable.ic_menu_leave) to LEAVE_APPLICATION_MODULE,
-            Triple(MORE_APPROVAL, getString(R.string.approval), R.drawable.ic_menu_approval) to APPROVAL_MODULE
+            Triple(
+                MORE_LEAVE_APPLICATION,
+                getString(R.string.more_leave_application),
+                R.drawable.ic_menu_leave
+            ) to LEAVE_APPLICATION_MODULE,
+            Triple(
+                MORE_APPROVAL,
+                getString(R.string.approval),
+                R.drawable.ic_menu_approval
+            ) to APPROVAL_MODULE
             //Triple(MORE_LEAVE_APPROVAL, getString(R.string.more_leave_approval), R.drawable.ic_menu_approval) to LEAVE_APPROVAL_MODULE
         )
 
@@ -174,15 +209,21 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         if (it.isNotEmpty()) {
                             dynamicMenuList.clear()
                             dynamicMenuList.addAll(it)
-                            for(i in dynamicMenuList){
-                                moreList.add(MoreModel(i.dynamicScreenSetupId, i.dynamicScreenName, R.drawable.ic_expense_entry))
+                            for (i in dynamicMenuList) {
+                                moreList.add(
+                                    MoreModel(
+                                        i.dynamicScreenSetupId,
+                                        i.dynamicScreenName,
+                                        R.drawable.ic_expense_entry
+                                    )
+                                )
                             }
                             setupMoreAdapter()
-                        }else{
+                        } else {
                             setupMoreAdapter()
                         }
                     }
-                }else {
+                } else {
                     setupMoreAdapter()
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -196,7 +237,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
             override fun onFailure(call: Call<List<DynamicMenuListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
                 setupMoreAdapter()
-                if(mActivity!=null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -249,53 +290,71 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                 }
 
                 binding.cardAttendance.setOnClickListener {
-                    when (moreData.modelName){
-                        getString(R.string.more_expense_entry) ->{
-                            mActivity.addFragment(ExpenseListFragment.newInstance(false),
+                    when (moreData.modelName) {
+                        getString(R.string.more_expense_entry) -> {
+                            mActivity.addFragment(
+                                ExpenseListFragment.newInstance(false),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_expense_approval) ->{
-                            mActivity.addFragment(ExpenseListFragment.newInstance(true),
+
+                        getString(R.string.more_expense_approval) -> {
+                            mActivity.addFragment(
+                                ExpenseListFragment.newInstance(true),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
+
                         getString(R.string.more_party_dealer) -> {
-                            mActivity.addFragment(PartyDealerListFragment(), true, true, AnimationType.fadeInfadeOut)
+                            mActivity.addFragment(
+                                PartyDealerListFragment(),
+                                true,
+                                true,
+                                AnimationType.fadeInfadeOut
+                            )
                         }
-                        getString(R.string.more_visit) ->{
-                            mActivity.addFragment(VisitListFragment(),
+
+                        getString(R.string.more_visit) -> {
+                            mActivity.addFragment(
+                                VisitListFragment(),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_leave_application) ->{
-                            mActivity.addFragment(LeaveApplicationListFragment.newInstance(false),
+
+                        getString(R.string.more_leave_application) -> {
+                            mActivity.addFragment(
+                                LeaveApplicationListFragment.newInstance(false),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_leave_approval) ->{
-                            mActivity.addFragment(LeaveApplicationListFragment.newInstance(true),
+
+                        getString(R.string.more_leave_approval) -> {
+                            mActivity.addFragment(
+                                LeaveApplicationListFragment.newInstance(true),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_tour_plan) ->{
-                            mActivity.addFragment(TourPlanFragment(),
+
+                        getString(R.string.more_tour_plan) -> {
+                            mActivity.addFragment(
+                                TourPlanFragment(),
                                 addToBackStack = true,
                                 ignoreIfCurrent = true,
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_order_entry) ->{
+
+                        getString(R.string.more_order_entry) -> {
                             mActivity.addFragment(
 //                                OrderEntryListFragment(),
                                 OrderEntryListFragment.newInstance(false),
@@ -304,7 +363,8 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.order_approval) ->{
+
+                        getString(R.string.order_approval) -> {
                             mActivity.addFragment(
                                 OrderEntryListFragment.newInstance(true),
                                 addToBackStack = true,
@@ -313,7 +373,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                             )
                         }
 
-                        getString(R.string.more_inquiry_entry) ->{
+                        getString(R.string.more_inquiry_entry) -> {
                             mActivity.addFragment(
                                 InquiryEntryListFragment.newInstance(true),
                                 addToBackStack = true,
@@ -321,7 +381,8 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                                 animationType = AnimationType.fadeInfadeOut
                             )
                         }
-                        getString(R.string.more_quotation_entry) ->{
+
+                        getString(R.string.more_quotation_entry) -> {
                             mActivity.addFragment(
                                 QuotationEntryListFragment.newInstance(false),
                                 addToBackStack = true,
@@ -330,7 +391,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                             )
                         }
 
-                        getString(R.string.approval) ->{
+                        getString(R.string.approval) -> {
                             mActivity.addFragment(
                                 ApprovalFragment.newInstance(true),
                                 addToBackStack = true,
@@ -340,48 +401,49 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         }
 
 
-                        getString(R.string.more_payment_follow_up) ->{
+                        getString(R.string.more_payment_follow_up) -> {
                             gotoReportDrill(getString(R.string.more_payment_follow_up))
-                           /* for(i in dynamicMenuList){
-                                if(i.dynamicScreenName == getString(R.string.more_payment_follow_up)){
-                                    mActivity.addFragment(
-                                        DashboardDrillFragment.newInstance(
-                                            false,
-                                            DashboardListResponse(),
-                                            DashboardDrillResponse(),
-                                            i.storeProcedureName,
-                                            i.reportSetupId,
-                                            arrayListOf(),
-                                            i.reportName,
-                                            i.filter,
-                                            i.reportGroupBy,
-                                            true
-                                        ),true, true, AnimationType.fadeInfadeOut
-                                    )
-                                }
-                            }*/
+                            /* for(i in dynamicMenuList){
+                                 if(i.dynamicScreenName == getString(R.string.more_payment_follow_up)){
+                                     mActivity.addFragment(
+                                         DashboardDrillFragment.newInstance(
+                                             false,
+                                             DashboardListResponse(),
+                                             DashboardDrillResponse(),
+                                             i.storeProcedureName,
+                                             i.reportSetupId,
+                                             arrayListOf(),
+                                             i.reportName,
+                                             i.filter,
+                                             i.reportGroupBy,
+                                             true
+                                         ),true, true, AnimationType.fadeInfadeOut
+                                     )
+                                 }
+                             }*/
 
                         }
-                        getString(R.string.more_sales_inquiry) ->{
+
+                        getString(R.string.more_sales_inquiry) -> {
                             gotoReportDrill(getString(R.string.more_sales_inquiry))
-                           /* for(i in dynamicMenuList){
-                                if(i.dynamicScreenName == getString(R.string.more_payment_follow_up)){
-                                    mActivity.addFragment(
-                                        DashboardDrillFragment.newInstance(
-                                            false,
-                                            DashboardListResponse(),
-                                            DashboardDrillResponse(),
-                                            i.storeProcedureName,
-                                            i.reportSetupId,
-                                            arrayListOf(),
-                                            i.reportName,
-                                            i.filter,
-                                            i.reportGroupBy,
-                                            true
-                                        ),true, true, AnimationType.fadeInfadeOut
-                                    )
-                                }
-                            }*/
+                            /* for(i in dynamicMenuList){
+                                 if(i.dynamicScreenName == getString(R.string.more_payment_follow_up)){
+                                     mActivity.addFragment(
+                                         DashboardDrillFragment.newInstance(
+                                             false,
+                                             DashboardListResponse(),
+                                             DashboardDrillResponse(),
+                                             i.storeProcedureName,
+                                             i.reportSetupId,
+                                             arrayListOf(),
+                                             i.reportName,
+                                             i.filter,
+                                             i.reportGroupBy,
+                                             true
+                                         ),true, true, AnimationType.fadeInfadeOut
+                                     )
+                                 }
+                             }*/
                         }
                     }
                 }
@@ -390,10 +452,10 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
         }
     }
 
-    fun gotoReportDrill(screenName: String){
-        for(i in dynamicMenuList){
-            if(i.dynamicScreenName == screenName){
-                Log.e("TAG", "gotoReportDrill: " )
+    fun gotoReportDrill(screenName: String) {
+        for (i in dynamicMenuList) {
+            if (i.dynamicScreenName == screenName) {
+                Log.e("TAG", "gotoReportDrill: ")
                 mActivity.addFragment(
                     DashboardDrillFragment.newInstance(
                         false,
@@ -407,14 +469,14 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                         i.reportGroupBy,
                         true,
                         productFilter = false
-                    ),true, true, AnimationType.fadeInfadeOut
+                    ), true, true, AnimationType.fadeInfadeOut
                 )
             }
         }
     }
 
     override fun onClick(p0: View?) {
-        when(p0?.id){
+        when (p0?.id) {
             R.id.imgMenu ->
                 mActivity.openDrawer()
         }

@@ -57,7 +57,6 @@ import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DecimalDigitsInputFilter
 import ethicstechno.com.fieldforce.utils.FORM_ID_INQUIRY_ENTRY
-import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY
 import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_0
 import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_1
 import ethicstechno.com.fieldforce.utils.QUANTITY_ROUND_OF_2
@@ -71,6 +70,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.Serializable
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.regex.Pattern
 
 
@@ -1092,9 +1092,11 @@ class AddInquiryDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         if (item.salesPrice != null && (item.salesPrice
                                 ?: BigDecimal.ZERO) > BigDecimal.ZERO
                         ) {
-                            val newSalePrice =
+                            /*val newSalePrice =
                                 (item.salesPrice ?: BigDecimal.ZERO) / (item.conversionFactor
-                                    ?: 0.0).toBigDecimal()
+                                    ?: 0.0).toBigDecimal()*/
+                            val newSalePrice = (item.salesPrice ?: BigDecimal.ZERO)
+                                .divide((item.conversionFactor ?: 0.0).toBigDecimal(), 4, RoundingMode.HALF_UP)
                             etPrice.setText(newSalePrice.toString())
                         } else {
                             etPrice.setText(

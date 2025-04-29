@@ -907,15 +907,15 @@ class CommonMethods {
                 val inputFormatter = SimpleDateFormat(inputFormat, Locale.getDefault())
                 val outputFormatter = SimpleDateFormat(DATE_FORMAT, Locale.getDefault())
 
-                val inputDate = inputFormatter.parse(inputDate)
-                return outputFormatter.format(inputDate!!)
+                val parsedDate = inputFormatter.parse(inputDate)
+                return outputFormatter.format(parsedDate!!)
             } catch (e: ParseException) {
                 e.printStackTrace()
                 FirebaseCrashlytics.getInstance().recordException(e)
             }
-
-            return "" // Return an empty string in case of an error
+            return ""
         }
+
 
         fun animatePolyline(polyline: Polyline) {
             val animator = ValueAnimator.ofFloat(0f, 1f)
@@ -1106,6 +1106,13 @@ class CommonMethods {
             val decimalFormat = DecimalFormat("#.00") // Use desired format here
             return decimalFormat.format(bigDecimal)
         }
+
+        fun formatLargeDoubleFourDecimal(number: Double): String {
+            val bigDecimal = BigDecimal(number).setScale(4, RoundingMode.HALF_UP)
+            val decimalFormat = DecimalFormat("0.0000") // Always 4 digits after decimal
+            return decimalFormat.format(bigDecimal)
+        }
+
 
         fun formatBigDecimal(number: BigDecimal): String {
             val roundedNumber = number.setScale(2, RoundingMode.HALF_UP)

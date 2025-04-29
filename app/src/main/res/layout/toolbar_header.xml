@@ -178,6 +178,54 @@
             android:layout_width="@dimen/_35sdp"
             android:layout_height="@dimen/_35sdp"/>
 
+        <RelativeLayout
+            android:id="@+id/rlNotification"
+            android:layout_width="@dimen/_32sdp"
+            android:layout_height="@dimen/_32sdp"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="@dimen/_10sdp">
+
+            <!-- Notification icon -->
+            <ImageView
+                android:id="@+id/imgNotification"
+                android:layout_width="@dimen/_24sdp"
+                android:layout_height="@dimen/_24sdp"
+                android:visibility="visible"
+                android:src="@drawable/ic_notification"
+                android:layout_centerInParent="true"/>
+
+            <!-- Notification badge -->
+            <RelativeLayout
+                android:id="@+id/cardNotificationCount"
+                android:layout_width="wrap_content"
+                android:background="@drawable/circle_background_primary_without_padding"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginEnd="@dimen/_2sdp"
+               android:backgroundTint="@color/colorRed"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="end">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/txtNotificationCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1"
+                    android:gravity="center"
+                    android:textSize="@dimen/_8ssp"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/nunito_sans_regular"
+                    android:layout_gravity="center"/>
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
     </LinearLayout>
 
 

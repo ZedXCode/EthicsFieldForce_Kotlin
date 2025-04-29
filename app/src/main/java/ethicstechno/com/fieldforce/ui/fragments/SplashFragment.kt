@@ -10,8 +10,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
@@ -20,14 +21,19 @@ import ethicstechno.com.fieldforce.databinding.FragmentSplashBinding
 import ethicstechno.com.fieldforce.db.dao.AppDao
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.CheckUserMobileResponse
-import ethicstechno.com.fieldforce.models.CompanySelectionResponse
 import ethicstechno.com.fieldforce.models.LoginResponse
 import ethicstechno.com.fieldforce.ui.activities.HomeActivity
 import ethicstechno.com.fieldforce.ui.base.MainBaseFragment
 import ethicstechno.com.fieldforce.ui.fragments.loginsignup.LoginFragment
-import ethicstechno.com.fieldforce.utils.*
-import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.areThereMockPermissionApps
-import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.isMockSettingsON
+import ethicstechno.com.fieldforce.utils.AppPreference
+import ethicstechno.com.fieldforce.utils.CommonMethods
+import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FCM_TOKEN
+import ethicstechno.com.fieldforce.utils.IS_LOGIN
+import ethicstechno.com.fieldforce.utils.IS_TRIP_START
+import ethicstechno.com.fieldforce.utils.ImageUtils
+import ethicstechno.com.fieldforce.utils.USER_NAME
+import ethicstechno.com.fieldforce.utils.USER_PWD
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -148,12 +154,13 @@ class SplashFragment : MainBaseFragment() {
                         if (it.version == BuildConfig.VERSION_NAME) {
                             appDatabase.appDao().insertLogin(it)
                             AppPreference.saveBooleanPreference(mActivity, IS_LOGIN, true)
+                            val fcmToken = getFCMToken();
                             if (appDatabase.appDao().getLoginData().tripId > 0) {
                                 AppPreference.saveBooleanPreference(mActivity, IS_TRIP_START, true)
                             } else {
                                 AppPreference.saveBooleanPreference(mActivity, IS_TRIP_START, false)
                             }
-                            callCheckUserMobileDevice(it.userId)
+                            callCheckUserMobileDevice(it.userId, fcmToken)
                         } else {
                             mActivity.showUpdateDialog()
                         }
@@ -176,7 +183,45 @@ class SplashFragment : MainBaseFragment() {
 
     }
 
-    private fun callCheckUserMobileDevice(userId: Int) {
+    private fun getFCMToken(): String {
+        val fcmToken = AppPreference.getStringPreference(mActivity, FCM_TOKEN, "")
+        if(fcmToken.isNotEmpty()){
+            return fcmToken
+        }
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                try {
+                    //DialogUtils.removeCustomProcessDialog()
+                    val token = task.result
+
+                    if (!task.isSuccessful) {
+                        //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnComplete\$ :: error = ${task.exception?.stackTrace}")
+                        Toast.makeText(mActivity, "Sorry!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        // Optionally: showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
+                        return@addOnCompleteListener
+                    }
+
+                    if (token != null) {
+                        AppPreference.saveStringPreference(mActivity, FCM_TOKEN, token)
+                        Log.e("TAG", "validateLogin: FETCH NEW TOKEN $token")
+                        //performLogin(customerCode, strDeviceID)
+                    } else {
+                        //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnCompleted\$ :: error = ${task.exception?.stackTrace}")
+                        Toast.makeText(mActivity, "Oops!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        //showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
+                    }
+                } catch (e: Exception) {
+                    //PubFun.writeLog("[LoginActivity] *MSG* IN \$validateLogin\$ :: Found Device Token : ${e.message}")
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        "Token Exception : " + e.message.toString()
+                    )
+                }
+            }
+        return AppPreference.getStringPreference(mActivity, FCM_TOKEN, "")
+    }
+
+    private fun callCheckUserMobileDevice(userId: Int, fcmToken: String) {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             CommonMethods.showAlertDialog(
                 mActivity,
@@ -188,7 +233,6 @@ class SplashFragment : MainBaseFragment() {
         }
 
         val appRegistrationData = appDatabase.appDao().getAppRegistration()
-
         val checkUserMobileDeviceReq = JsonObject()
         checkUserMobileDeviceReq.addProperty("UserId", userId)
         checkUserMobileDeviceReq.addProperty("IMEINumber", CommonMethods.getDeviceId(mActivity))
@@ -199,8 +243,9 @@ class SplashFragment : MainBaseFragment() {
             "BatteryPercentage",
             CommonMethods.getBatteryPercentage(mActivity)
         )
+        checkUserMobileDeviceReq.addProperty("DeviceToken", fcmToken)
 
-        Log.e("TAG", "callLoginApi: " + checkUserMobileDeviceReq.toString())
+        Log.e("TAG", "callLoginApi: $checkUserMobileDeviceReq")
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.checkUserMobileDevice(checkUserMobileDeviceReq)

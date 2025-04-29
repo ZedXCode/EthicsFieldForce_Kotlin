@@ -42,6 +42,8 @@ class ProductGroupResponse(
     @SerializedName("ReferenceTableName") var referenceName: String = "",
     @SerializedName("ReferenceDetailsId") var ReferenceDetailsId: Int = 0,
     @SerializedName("Discount") var discount: BigDecimal = BigDecimal.ZERO,
+    var originalPrice : BigDecimal = BigDecimal.ZERO,
+    var originalAmount : BigDecimal = BigDecimal.ZERO,
     var finalQty: BigDecimal = BigDecimal.ZERO
 ) : Parcelable {
     override fun toString(): String {

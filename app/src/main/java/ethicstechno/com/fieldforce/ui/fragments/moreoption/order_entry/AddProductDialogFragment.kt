@@ -70,6 +70,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.Serializable
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.regex.Pattern
 
 
@@ -264,10 +265,10 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
 
         binding.fabCart.setOnClickListener {
-            if (binding.switchQty.isChecked) {
+            /*if (binding.switchQty.isChecked) {
                 var newProductAdapterList: ArrayList<ProductGroupResponse> = arrayListOf()
                 for (i in selectedProductAdapterList) {
-                    /*if(binding.switchQty.isChecked) {
+                    *//*if(binding.switchQty.isChecked) {
                         when (i.quantityRoundOffType) {
                             QUANTITY_ROUND_OF_0 -> {
                                 i.qty = CommonMethods.formatThreeDecimal(i.finalQty).toBigDecimal()
@@ -281,16 +282,19 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                                 i.qty = CommonMethods.roundUpHigherSide(i.finalQty).toBigDecimal()
                             }
                         }
-                    }*/
+                    }*//*
 
 
                     //i.altUnitQuantity = i.qty * i.conversionFactor
 
-                    i.salesPrice = (i.salesPrice ?: BigDecimal.ZERO) / (i.conversionFactor
-                        ?: 0.0).toBigDecimal()
+                    //comment recently as per nitin bhai 04/04/2025
+                    //i.salesPrice = (i.salesPrice ?: BigDecimal.ZERO) / (i.conversionFactor ?: 0.0).toBigDecimal()
+                    val originalSalesPrice = (i.salesPrice ?: BigDecimal.ZERO) * (i.conversionFactor ?: 0.0).toBigDecimal()
+                    i.salesPrice = originalSalesPrice
+                    i.amount = originalSalesPrice * i.qty
                     newProductAdapterList.add(i)
                 }
-            }
+            }*/
             Log.e("TAG", "initView: " + selectedProductAdapterList.toString())
             showCartItems(selectedProductAdapterList)
         }
@@ -356,6 +360,19 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
     // Function to display cart items in a dialog
     private fun showCartItems(orderDetailsList: java.util.ArrayList<ProductGroupResponse>) {
+
+        for(i in orderDetailsList) {
+            if (binding.switchQty.isChecked) {
+                val qty = BigDecimal.valueOf(i.qty.toLong())
+                val salesPrice = i.salesPrice ?: BigDecimal.ZERO
+                val standardDiscount = i.standardDiscount?.toBigDecimal() ?: BigDecimal.ZERO
+                val additionalDiscount = i.additionalDiscount?.toBigDecimal() ?: BigDecimal.ZERO
+                val discountPercent = standardDiscount + additionalDiscount
+                val discount = (qty * salesPrice * discountPercent) / BigDecimal.valueOf(100)
+                val mAmount = (qty * salesPrice) - discount
+                i.amount = mAmount
+            }
+        }
         if (orderDetailsList.isNotEmpty()) {
             //val orderDetailsList = productAdapter.getOrderDetailsList()
             listener?.onOrderDetailsSelected(orderDetailsList) // Pass the order details to the listener
@@ -1116,23 +1133,21 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
                         }
 
                         item.finalQty = itemFinalQty.toBigDecimal()
-                        tvQtyMode.text =
-                            (if (newQty != null && newQty > BigDecimal.ZERO) item.unit + ":"+item.finalQty else item.unit) + ", " + item.scheme
-                        if (item.salesPrice != null && (item.salesPrice
-                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
-                        ) {
-                            val newSalePrice =
+                        tvQtyMode.text = (if (newQty != null && newQty > BigDecimal.ZERO) item.unit + ":"+item.finalQty else item.unit) + ", " + item.scheme
+
+                        if (item.salesPrice != null && (item.salesPrice ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
+                            /*val newSalePrice =
                                 (item.salesPrice ?: BigDecimal.ZERO) / (item.conversionFactor
-                                    ?: 0.0).toBigDecimal()
+                                    ?: 0.0).toBigDecimal()*/
+                            val newSalePrice = (item.salesPrice ?: BigDecimal.ZERO)
+                                .divide((item.conversionFactor ?: 0.0).toBigDecimal(), 4, RoundingMode.HALF_UP)
                             etPrice.setText(newSalePrice.toString())
                         } else {
                             etPrice.setText(
                                 item.salesPrice.takeIf { it != BigDecimal.ZERO }?.toString() ?: ""
                             )
                         }
-                        if (item.amount != null && (item.amount
-                                ?: BigDecimal.ZERO) > BigDecimal.ZERO
-                        ) {
+                        if (item.amount != null && (item.amount ?: BigDecimal.ZERO) > BigDecimal.ZERO) {
                             val newSaleAmount =
                                 (item.amount ?: BigDecimal.ZERO) / (item.conversionFactor
                                     ?: 0.0).toBigDecimal()
@@ -1351,7 +1366,7 @@ class AddProductDialogFragment : HomeBaseDialogFragment(), View.OnClickListener 
 
             if (qty > 0) {
                 val price = amount / qty
-                etPrice.setText(CommonMethods.formatLargeDouble(price))
+                etPrice.setText(CommonMethods.formatLargeDoubleFourDecimal(price))
                 item.amount = amount.toBigDecimal()
                 item.qty = qty.toBigDecimal()
                 item.price = price.toBigDecimal()

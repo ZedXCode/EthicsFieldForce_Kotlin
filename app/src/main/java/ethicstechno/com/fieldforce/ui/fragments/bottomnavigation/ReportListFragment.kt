@@ -24,9 +24,14 @@ import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.TripReportFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.TripSummeryReportFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.VisitReportFragment
+import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.TRIP_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.VISIT_REPORT_MODULE
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -80,30 +85,38 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
         binding.toolbar.tvHeader.text = getString(R.string.reports)
         binding.toolbar.imgMenu.setOnClickListener(this)
         reportList.clear()
-        reportList.add(
-            ReportListResponse(
-                reportName = getString(R.string.attendance_report),
-                isDynamicReport = false
+        if(AppPreference.getBooleanPreference(mActivity, ATTENDANCE_REPORT_MODULE)){
+            reportList.add(
+                ReportListResponse(
+                    reportName = getString(R.string.attendance_report),
+                    isDynamicReport = false
+                )
             )
-        )
-        reportList.add(
-            ReportListResponse(
-                reportName = getString(R.string.trip_report),
-                isDynamicReport = false
+        }
+        if(AppPreference.getBooleanPreference(mActivity, TRIP_REPORT_MODULE)) {
+            reportList.add(
+                ReportListResponse(
+                    reportName = getString(R.string.trip_report),
+                    isDynamicReport = false
+                )
             )
-        )
-        reportList.add(
-            ReportListResponse(
-                reportName = getString(R.string.trip_summery_report),
-                isDynamicReport = false
+        }
+        if(AppPreference.getBooleanPreference(mActivity, TRIP_SUMMERY_REPORT_MODULE)) {
+            reportList.add(
+                ReportListResponse(
+                    reportName = getString(R.string.trip_summery_report),
+                    isDynamicReport = false
+                )
             )
-        )
-        reportList.add(
-            ReportListResponse(
-                reportName = getString(R.string.visit_report),
-                isDynamicReport = false
+        }
+        if(AppPreference.getBooleanPreference(mActivity, VISIT_REPORT_MODULE)) {
+            reportList.add(
+                ReportListResponse(
+                    reportName = getString(R.string.visit_report),
+                    isDynamicReport = false
+                )
             )
-        )
+        }
         callReportListApi()
     }
 

@@ -217,19 +217,17 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         startDate = CommonMethods.getStartDateOfCurrentMonth()
         endDate = CommonMethods.getCurrentDate()
         orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
-        orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
-        orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
 
         //orderEntryListBinding.toolbar.tvHeader.text = getString(R.string.order_entry_list)
         orderEntryListBinding.toolbar.tvHeader.text = if (isForApproval) getString(
             R.string.order_approval_list
         ) else getString(R.string.order_entry_list)
 
+        orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
         orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         orderEntryListBinding.toolbar.imgBack.setOnClickListener(this)
         //orderEntryListBinding.tvAddOrderEntry.text = getString(R.string.add_order_entry)
         orderEntryListBinding.tvAddOrderEntry.setOnClickListener(this)
-        orderEntryListBinding.toolbar.imgFilter.setOnClickListener(this)
         //orderEntryListBinding.llBottom.visibility = View.VISIBLE
         selectedCompany = CompanyMasterResponse(companyMasterId = 0)
         selectedBranch = BranchMasterResponse(branchMasterId = 0)
@@ -242,7 +240,6 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
         if (isForApproval) {
             setupSearchFilter()
-            orderEntryListBinding.toolbar.imgFilter.visibility = View.GONE
             orderEntryListBinding.toolbar.svView.visibility = View.VISIBLE
             orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
             orderEntryListBinding.tvAddOrderEntry.visibility = View.GONE
@@ -263,7 +260,6 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 orderEntryListBinding.toolbar.imgBack.visibility = View.VISIBLE
                 orderEntryListBinding.toolbar.imgFilter.visibility = View.VISIBLE
                 initView()
-                callOrderListApi()
             }
         }
     }
@@ -459,7 +455,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                             allowDelete = orderData.allowDelete,
                             accountName = "",
                             accountMasterId = 0,
-                            contactPersonName = ""
+                            contactPersonName = "",
+                            isForApproval
                         ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,
@@ -664,8 +661,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
 
-        val expenseListReq = JsonObject()
-        expenseListReq.addProperty("loginUserId", loginData.userId)
+        val orderEntryApproveReq = JsonObject()
+        orderEntryApproveReq.addProperty("loginUserId", loginData.userId)
 
         val objDetailsArray = JsonArray()
        // for (i in orderDetailsList) {
@@ -676,12 +673,12 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("documentName",DOCUMENT_NAME_ORDER)
             objDetailsArray.add(objDetails)
        // }
-        expenseListReq.add("authorizeApprove",objDetailsArray)
+        orderEntryApproveReq.add("authorizeApprove",objDetailsArray)
 
         CommonMethods.getBatteryPercentage(mActivity)
         val leaveApprovalCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
-            ?.getApprovaReject(expenseListReq)
+            ?.getApprovaReject(orderEntryApproveReq)
 
         leaveApprovalCall?.enqueue(object : Callback<ApproveRejectResponse> {
             override fun onResponse(

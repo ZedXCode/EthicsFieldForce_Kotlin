@@ -63,6 +63,8 @@ import ethicstechno.com.fieldforce.models.ReportResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardDrillResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.DashboardListResponse
 import ethicstechno.com.fieldforce.models.dashboarddrill.FilterListResponse
+import ethicstechno.com.fieldforce.models.moreoption.expense.ExpenseListResponse
+import ethicstechno.com.fieldforce.models.moreoption.leave.LeaveApplicationListResponse
 import ethicstechno.com.fieldforce.models.moreoption.partydealer.AccountMasterList
 import ethicstechno.com.fieldforce.models.moreoption.visit.BranchMasterResponse
 import ethicstechno.com.fieldforce.models.moreoption.visit.CategoryMasterResponse
@@ -73,7 +75,15 @@ import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.DateOptionAdapter
 import ethicstechno.com.fieldforce.ui.adapter.spinneradapter.FilterAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.AddExpenseFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.ExpenseListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.AddLeaveApplicationFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicationListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.AddOrderEntryFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.AddProductDialogFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.AddQuotationEntryFragment
+import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.PaymentFollowUpFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM10
@@ -96,6 +106,10 @@ import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
+import ethicstechno.com.fieldforce.utils.FORM_ID_EXPENSE_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_ORDER_ENTRY_NUMBER
+import ethicstechno.com.fieldforce.utils.FORM_ID_QUOTATION_ENTRY_NUMBER
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
@@ -1152,7 +1166,7 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                                 binding.tvColumn2.text = dashBoardDrillData.column2
                                 binding.tvValue1.text = dashBoardDrillData.value1
                                 binding.tvValue2.text = dashBoardDrillData.value2
-                                if(dashBoardDrillData.column2.isEmpty() && dashBoardDrillData.value2.isEmpty()){
+                                if (dashBoardDrillData.column2.isEmpty() && dashBoardDrillData.value2.isEmpty()) {
                                     binding.lylRow2.visibility = View.GONE
                                 }
                             }
@@ -1658,6 +1672,97 @@ class DashboardDrillFragment : HomeBaseFragment(), View.OnClickListener, FilterD
                             false,
                             AnimationType.fadeInfadeOut
                         )
+                    } else {
+                        if (drillData.redirectFormId > 0) {
+                            when (drillData.redirectFormId.toString()) {
+                                FORM_ID_ORDER_ENTRY_NUMBER -> {
+                                    if (drillData.redirectDocumentId > 0) {
+                                        mActivity.addFragment(
+                                            fragment = AddOrderEntryFragment.newInstance(
+                                                drillData.redirectDocumentId ?: 0,
+                                                allowEdit = false,
+                                                allowDelete = false,
+                                                accountName = "",
+                                                accountMasterId = 0,
+                                                contactPersonName = "",
+                                                isForApproval = false
+                                            ),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.rightInLeftOut
+                                        )
+                                    } else {
+                                        mActivity.addFragment(
+                                            OrderEntryListFragment.newInstance(false),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    }
+                                }
+
+                                FORM_ID_QUOTATION_ENTRY_NUMBER -> {
+                                    if (drillData.redirectDocumentId > 0) {
+                                        mActivity.addFragment(
+                                            fragment = AddQuotationEntryFragment.newInstance(
+                                                drillData.redirectDocumentId ?: 0,
+                                                allowEdit = false,
+                                                allowDelete = false,
+                                                isForApproval = false
+                                            ),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.rightInLeftOut
+                                        )
+                                    } else {
+                                        mActivity.addFragment(
+                                            QuotationEntryListFragment.newInstance(false),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    }
+                                }
+
+                                FORM_ID_EXPENSE_ENTRY_NUMBER -> {
+                                    if (drillData.redirectDocumentId > 0) {
+                                        mActivity.addFragment(
+                                            fragment = AddExpenseFragment.newInstance(drillData.redirectDocumentId ?: 0,true, ExpenseListResponse(), true, false),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    } else {
+                                        mActivity.addFragment(
+                                            ExpenseListFragment.newInstance(false),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    }
+                                }
+
+                                FORM_ID_LEAVE_APPLICATION_ENTRY_NUMBER -> {
+                                    if (drillData.redirectDocumentId > 0) {
+                                        mActivity.addFragment(
+                                            AddLeaveApplicationFragment.newInstance(
+                                                drillData.redirectDocumentId,
+                                                true,
+                                                LeaveApplicationListResponse(),
+                                                false
+                                            ), true, true, AnimationType.fadeInfadeOut
+                                        )
+                                    } else {
+                                        mActivity.addFragment(
+                                            LeaveApplicationListFragment.newInstance(false),
+                                            addToBackStack = true,
+                                            ignoreIfCurrent = true,
+                                            animationType = AnimationType.fadeInfadeOut
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 // binding.executePendingBindings()

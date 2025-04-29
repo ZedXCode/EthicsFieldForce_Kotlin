@@ -44,6 +44,18 @@ android {
             force 'com.example:library:1.2.3'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+    }
 }
 
 
@@ -130,5 +142,9 @@ dependencies {
 
     //google face detection added
     implementation 'com.google.android.gms:play-services-mlkit-face-detection:16.2.0'
+
+    //firebase
+    implementation 'com.google.firebase:firebase-messaging:23.1.1'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.19.0'
 
 }

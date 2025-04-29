@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.models.moreoption.orderentry.ProductGroupResponse
 import ethicstechno.com.fieldforce.utils.CommonMethods
+import java.math.BigDecimal
 
 class OrderDetailsAdapter(
     var mContext: Context,
@@ -66,7 +67,7 @@ class OrderDetailsAdapter(
                 tvSRNo.text = srNo
                 tvProduct.text = item.productName
                 tvQty.text = item.qty.toString() //CommonMethods.formatBigDecimal(item.qty)
-                tvPrice.text = CommonMethods.formatBigDecimal(item.price)
+                tvPrice.text = CommonMethods.formatBigDecimal(item.salesPrice ?: BigDecimal.ZERO)
                 tvAmount.text = CommonMethods.formatBigDecimal(item.amount)
                 tvUnit.text = item.unit.toString()
 

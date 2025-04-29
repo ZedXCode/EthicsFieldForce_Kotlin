@@ -20,7 +20,9 @@ import android.widget.AbsListView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
@@ -38,6 +40,7 @@ import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.getBatteryPercentage
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
+import ethicstechno.com.fieldforce.utils.FCM_TOKEN
 import ethicstechno.com.fieldforce.utils.IS_LOGIN
 import ethicstechno.com.fieldforce.utils.IS_TRIP_START
 import ethicstechno.com.fieldforce.utils.ImageUtils
@@ -56,6 +59,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
     lateinit var appDao: AppDao
     private var passwordShowed: Boolean = false
     var logoFile = ""
+    var notificationAuthToken = ""
 
 
     override fun onCreateView(
@@ -81,6 +85,39 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
         )
         initView()
         notificationPermissionFor33()
+        getFCMToken();
+    }
+
+
+    private fun getFCMToken(){
+        FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                try {
+                    //DialogUtils.removeCustomProcessDialog()
+                    val token = task.result
+
+                    if (!task.isSuccessful) {
+                        //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnComplete\$ :: error = ${task.exception?.stackTrace}")
+                        Toast.makeText(mActivity, "Sorry!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        // Optionally: showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
+                        return@addOnCompleteListener
+                    }
+
+                    if (token != null) {
+                        AppPreference.saveStringPreference(mActivity, FCM_TOKEN, token)
+                        Log.e("TAG", "validateLogin: FETCH NEW TOKEN $token")
+                        //performLogin(customerCode, strDeviceID)
+                    } else {
+                        //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnCompleted\$ :: error = ${task.exception?.stackTrace}")
+                        Toast.makeText(mActivity, "Oops!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        //showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
+                    }
+                } catch (e: Exception) {
+                    //PubFun.writeLog("[LoginActivity] *MSG* IN \$validateLogin\$ :: Found Device Token : ${e.message}")
+                    showToastMessage(mActivity, "Token Exception : "+e.message.toString())
+                }
+            }
+
     }
 
     private fun notificationPermissionFor33() {
@@ -347,7 +384,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
-
+        val notificationToken = AppPreference.getStringPreference(mActivity, FCM_TOKEN, "")
         val checkUserMobileDeviceReq = JsonObject()
         checkUserMobileDeviceReq.addProperty("UserId", loginData.userId)
         checkUserMobileDeviceReq.addProperty("IMEINumber", CommonMethods.getDeviceId(mActivity))
@@ -355,6 +392,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
         checkUserMobileDeviceReq.addProperty("PhoneBrandName", CommonMethods.getdevicename())
         checkUserMobileDeviceReq.addProperty("PhoneOSVersion", CommonMethods.getDeviceVersion())
         checkUserMobileDeviceReq.addProperty("BatteryPercentage", getBatteryPercentage(mActivity))
+        checkUserMobileDeviceReq.addProperty("DeviceToken", notificationToken)
 
         Log.e("TAG", "callLoginApi: " + checkUserMobileDeviceReq.toString())
         val appRegistrationCall = WebApiClient.getInstance(mActivity)

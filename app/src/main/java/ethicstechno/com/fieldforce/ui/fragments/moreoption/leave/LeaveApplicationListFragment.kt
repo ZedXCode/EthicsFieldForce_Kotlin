@@ -411,23 +411,13 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
 //                }
 
                 binding.llMain.setOnClickListener {
-                    if (isForApproval) {
-                        mActivity.addFragment(
-                            AddLeaveApplicationFragment.newInstance(leaveData.leaveApplicationId,
-                                true,
-                                leaveData,
-                                true
-                            ), true, true, AnimationType.fadeInfadeOut
-                        )
-                    } else {
-                        mActivity.addFragment(
-                            AddLeaveApplicationFragment.newInstance(leaveData.leaveApplicationId,
-                                true,
-                                leaveData,
-                                false
-                            ), true, true, AnimationType.fadeInfadeOut
-                        )
-                    }
+                    mActivity.addFragment(
+                        AddLeaveApplicationFragment.newInstance(leaveData.leaveApplicationId,
+                            true,
+                            leaveData,
+                            isForApproval
+                        ), true, true, AnimationType.fadeInfadeOut
+                    )
                 }
 
                 statusColor = leaveData.statusColor.toString()

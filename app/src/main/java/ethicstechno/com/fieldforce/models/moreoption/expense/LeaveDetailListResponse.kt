@@ -15,7 +15,7 @@ data class LeaveDetailListResponse(
     @SerializedName("LeaveCategoryName") val leaveCategoryName: String,
     @SerializedName("LeaveFromDate") val leaveFromDate: String,
     @SerializedName("LeaveToDate") val leaveToDate: String,
-    @SerializedName("TotalLeaveDays") val totalLeaveDays: Int,
+    @SerializedName("TotalLeaveDays") val totalLeaveDays: Double,
     @SerializedName("IsHalfDayLeave") val isHalfDayLeave: Boolean,
     @SerializedName("LeaveReason") val leaveReason: String,
     @SerializedName("ReportingToUserId") val reportingToUserId: Int,
@@ -32,8 +32,8 @@ data class LeaveDetailListResponse(
     @SerializedName("CompanyMasterId") val companyMasterId: Int,
     @SerializedName("BranchMasterId") val branchMasterId: Int,
     @SerializedName("DivisionMasterId") val divisionMasterId: Int,
-    @SerializedName("AllowEdit") val allowEdit: Boolean?,
-    @SerializedName("AllowDelete") val allowDelete: Boolean?,
+    @SerializedName("AllowEdit") val allowEdit: Boolean = false,
+    @SerializedName("AllowDelete") val allowDelete: Boolean = false,
     @SerializedName("Status") val status: String,
     @SerializedName("CompanyName") val companyName: String,
     @SerializedName("BranchName") val branchName: String,
@@ -43,7 +43,7 @@ data class LeaveDetailListResponse(
     @SerializedName("CategoryName") val categoryName: String
 )
     : Parcelable {constructor() : this(
-    0, 0, "", "",0, 0, "", "", "", "", 0,
+    0, 0, "", "",0, 0, "", "", "", "", 0.0,
     false, "", 0, "", "", 0,
     "", "", "", "", "",
     0, "", 0, 0, 0,

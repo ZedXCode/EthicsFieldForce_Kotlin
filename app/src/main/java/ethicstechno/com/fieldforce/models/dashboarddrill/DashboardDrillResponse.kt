@@ -19,36 +19,23 @@ data class DashboardDrillResponse(
     @SerializedName("DrillDownFlag") val drillDownFlag: Boolean,
     @SerializedName("ReportViewFlag") val reportViewFlag: Boolean = false,
     @SerializedName("UserId") val userId: Int,
-    @SerializedName("FromDate") val fromDate: String, // Change to the actual type if needed
-    @SerializedName("ToDate") val toDate: String, // Change to the actual type if needed
+    @SerializedName("FromDate") val fromDate: String?, // Nullable
+    @SerializedName("ToDate") val toDate: String?, // Nullable
     @SerializedName("Filter") val filter: String,
-    @SerializedName("StoreProcedureName") val storeProcedureName: String?, // Change to the actual type if needed
+    @SerializedName("StoreProcedureName") val storeProcedureName: String?,
     @SerializedName("PopUpScreenFlag") val popUpScreenFlag: Int,
-    @SerializedName("ReportFileName") val reportFileName: String = "",
+    @SerializedName("ReportName") val reportName: String = "",
+    @SerializedName("FilterParameterString") val filterParameterString: String = "",
     @SerializedName("Color1") val color1: String = "",
     @SerializedName("Color2") val color2: String = "",
-    @SerializedName("ReportName") val reportName: String = ""
-
-): Parcelable{
+    @SerializedName("RedirectFormId") val redirectFormId: Int = 0,
+    @SerializedName("RedirectDocumentId") val redirectDocumentId: Int = 0,
+    @SerializedName("ViewType") val viewType: Int = 0,
+    @SerializedName("Column3") val column3: String = "",
+    @SerializedName("Value3") val value3: String = ""
+) : Parcelable {
     constructor() : this(
-        "",
-        0,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        false,
-        false,
-        0,
-        "",
-        "",
-        "",
-        null,
-        0,
-        ""
+        "", 0, "", "", "", "", "", "", "", "", false, false, 0,
+        null, null, "", null, 0, "", "", "", "", 0, 0, 0, "", ""
     )
 }

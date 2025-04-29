@@ -48,5 +48,10 @@ data class AccountMasterList(
     @SerializedName("FilePath3") val filePath3: String? = "",
     @SerializedName("FilePath4") val filePath4: String? = "",
     @SerializedName("Success") val success: Boolean = false,
-    @SerializedName("ReturnMessage") val returnMessage: String? = ""
-) : Parcelable
+    @SerializedName("ReturnMessage") val returnMessage: String? = "",
+    @SerializedName("AllowEdit") val allowEdit: Boolean = false,
+    @SerializedName("AllowDelete") val allowDelete: Boolean = false,
+    @SerializedName("AllowOrder") val allowOrder: Boolean = false,
+    @SerializedName("AllowInquiryr") val allowInquiry: Boolean = false,
+
+    ) : Parcelable

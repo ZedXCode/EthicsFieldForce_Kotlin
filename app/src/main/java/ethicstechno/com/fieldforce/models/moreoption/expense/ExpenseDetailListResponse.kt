@@ -71,8 +71,8 @@ data class ExpenseDetailListResponse(
     @SerializedName("FilePath3") val filePath3: String?,
     @SerializedName("FilePath4") val filePath4: String?,
     @SerializedName("DocumentNo") val documentNo: Int?,
-    @SerializedName("AllowEdit") val allowEdit: Boolean?,
-    @SerializedName("AllowDelete") val allowDelete: Boolean?,
+    @SerializedName("AllowEdit") val allowEdit: Boolean = false,
+    @SerializedName("AllowDelete") val allowDelete: Boolean = false,
     @SerializedName("Status") val status: String?
 )
     : Parcelable {constructor() : this(

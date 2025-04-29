@@ -45,6 +45,7 @@ import ethicstechno.com.fieldforce.databinding.ItemUserBinding
 import ethicstechno.com.fieldforce.listener.ItemClickListener
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.AppRegistrationResponse
+import ethicstechno.com.fieldforce.models.ApproveRejectResponse
 import ethicstechno.com.fieldforce.models.CommonDropDownListModel
 import ethicstechno.com.fieldforce.models.CommonDropDownResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
@@ -64,6 +65,7 @@ import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
+import ethicstechno.com.fieldforce.utils.ARG_PARAM4
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -72,6 +74,7 @@ import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessag
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_GROUP_TYPE
 import ethicstechno.com.fieldforce.utils.DIALOG_PRODUCT_TYPE
+import ethicstechno.com.fieldforce.utils.DOCUMENT_NAME_QUOTATION
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_CURRENCY
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_FREIGHT_TERMS
 import ethicstechno.com.fieldforce.utils.DROP_DOWN_TRANSACTION_TYPE
@@ -185,6 +188,7 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var selectedTransactionType: CommonDropDownResponse? = null
     private var selectedFreightTerms: CommonDropDownResponse? = null
     private var shippingAddressList: ArrayList<ShippingAddressResponse> = arrayListOf()
+    private var isForApproval: Boolean = false
     //var accountMasterId : Int = 0
 
     private val groupItemClickListener =
@@ -215,11 +219,13 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId: Int,
             allowEdit: Boolean?,
             allowDelete: Boolean?,
+            isForApproval: Boolean
         ): AddQuotationEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
             args.putBoolean(ARG_PARAM2, allowEdit ?: false)
             args.putBoolean(ARG_PARAM3, allowDelete ?: false)
+            args.putBoolean(ARG_PARAM4, isForApproval ?: false)
             val fragment = AddQuotationEntryFragment()
             fragment.arguments = args
             return fragment
@@ -254,6 +260,7 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             orderId = it.getInt(ARG_PARAM1, -1)
             allowEdit = it.getBoolean(ARG_PARAM2, false)
             allowDelete = it.getBoolean(ARG_PARAM3, false)
+            isForApproval = it.getBoolean(ARG_PARAM4, false)
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -278,6 +285,22 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.cardImageCapture.setOnClickListener(this)
         setupImageUploadRecyclerView()
 
+        if(isForApproval){
+            binding.llApprovalRemarks.visibility = View.VISIBLE
+            binding.tvSubmit.visibility = View.GONE
+            binding.llAcceptReject.visibility = View.VISIBLE
+        }else{
+            if(orderId > 0){
+                binding.tvSubmit.visibility = View.GONE
+                binding.llAcceptReject.visibility = View.GONE
+            }else{
+                binding.tvSubmit.visibility = View.VISIBLE
+                binding.llAcceptReject.visibility = View.GONE
+            }
+        }
+        binding.tvAccept.setOnClickListener(this)
+        binding.tvReject.setOnClickListener(this)
+
         setOrderDetailsAdapter()
         binding.llHeader.setOnClickListener {
             toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle, true)
@@ -292,8 +315,10 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (allowEdit) {
                 binding.toolbar.imgDelete.visibility = View.VISIBLE
             }
+
             binding.toolbar.imgEdit.setOnClickListener(this)
             binding.toolbar.imgDelete.setOnClickListener(this)
+
             formViewMode(true)
             callOrderDetailsApi()
         } else {
@@ -327,7 +352,7 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.VISIBLE
             binding.tvRemarks.visibility = View.VISIBLE
             binding.etRemarks.visibility = View.GONE
-            binding.llBottom.visibility = View.GONE
+            //binding.llAcceptReject.visibility = View.GONE
             binding.flCategory.visibility = View.GONE
             binding.edtPaymentTerms.isEnabled = false
             binding.edtTermsAndCondition.isEnabled = false
@@ -340,7 +365,7 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.GONE
             binding.tvRemarks.visibility = View.GONE
             binding.etRemarks.visibility = View.VISIBLE
-            binding.llBottom.visibility = View.VISIBLE
+            //binding.llAcceptReject.visibility = View.VISIBLE
             disableRadioButtons(true)
             binding.flConsingneeName.setOnClickListener(this)
             binding.llSelectTransactionType.setOnClickListener(this)
@@ -1320,7 +1345,11 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
         when (p0?.id) {
             R.id.imgBack -> {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
-                mActivity.onBackPressed()
+                if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    mActivity.onBackPressedDispatcher.onBackPressed()
+                } else {
+                    mActivity.onBackPressed()
+                }
             }
 
             R.id.flPartyDealer -> {
@@ -1427,6 +1456,9 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     object : PositiveButtonListener {
                         override fun okClickListener() {
                             binding.toolbar.imgEdit.visibility = View.GONE
+                            binding.llAcceptReject.visibility = View.GONE
+                            binding.tvSubmit.visibility = View.VISIBLE
+                            binding.tvSubmit.text = getString(R.string.update)
                             formViewMode(false)
                         }
                     },
@@ -1597,6 +1629,12 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.edtShippingAddress.setText("")
                 binding.edtShippingAddress.isEnabled = true
                 binding.imgAddressClear.visibility = View.GONE
+            }
+            R.id.tvAccept -> {
+                callApproveRejectQuotation(true)
+            }
+            R.id.tvReject -> {
+                callApproveRejectQuotation(false)
             }
         }
     }
@@ -1980,6 +2018,94 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
                     CommonMethods.showAlertDialog(
                         mActivity,
                         mActivity.getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }
+            }
+        })
+
+    }
+
+    private fun callApproveRejectQuotation(isApprove:Boolean) {
+        if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+            CommonMethods.showToastMessage(mActivity, getString(R.string.no_internet))
+            return
+        }
+        if(binding.etApprovalRemarks.text.toString().isEmpty()){
+            CommonMethods.showToastMessage(mActivity, getString(R.string.enter_approval_remarks))
+            return
+        }
+        CommonMethods.showLoading(mActivity)
+
+        val appRegistrationData = appDao.getAppRegistration()
+
+        val orderEntryApproveReq = JsonObject()
+        orderEntryApproveReq.addProperty("loginUserId", loginData.userId)
+
+        val objDetailsArray = JsonArray()
+        // for (i in orderDetailsList) {
+        val objDetails = JsonObject()
+        objDetails.addProperty("documentId", orderId)
+        objDetails.addProperty("remarks", binding.etApprovalRemarks.text.toString())
+        objDetails.addProperty("isApprove",isApprove)
+        objDetails.addProperty("documentName", DOCUMENT_NAME_QUOTATION)
+        objDetailsArray.add(objDetails)
+        // }
+        orderEntryApproveReq.add("authorizeApprove",objDetailsArray)
+
+       /* val orderEntryReq = JsonObject()
+        orderEntryReq.addProperty("documentId", orderId)
+        orderEntryReq.addProperty("remarks", binding.etApprovalRemarks.text.toString())
+        orderEntryReq.addProperty("isApprove",isApprove)
+        orderEntryReq.addProperty("documentName","quotation")*/
+        val orderApprovalCall = WebApiClient.getInstance(mActivity)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.getApprovaReject(orderEntryApproveReq)
+
+        orderApprovalCall?.enqueue(object : Callback<ApproveRejectResponse> {
+            override fun onResponse(
+                call: Call<ApproveRejectResponse>,
+                response: Response<ApproveRejectResponse>
+            ) {
+                CommonMethods.hideLoading()
+                if (isSuccess(response)) {
+                    response.body()?.let {
+                        if (it.success) {
+                            CommonMethods.showAlertDialog(mActivity,
+                                getString(R.string.order_approval),
+                                it.returnMessage/*if (isLeaveApprove) getString(R.string.leave_approve_msg) else getString(
+                                    R.string.leave_reject_msg
+                                )*/,
+                                isCancelVisibility = false,
+                                okListener = object : PositiveButtonListener {
+                                    override fun okClickListener() {
+                                        AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, true)
+                                        if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                                            mActivity.onBackPressedDispatcher.onBackPressed()
+                                        } else {
+                                            mActivity.onBackPressed()
+                                        }
+                                    }
+                                })
+                        }
+                    }
+                }else {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        getString(R.string.error_message),
+                        null
+                    )
+                }
+            }
+
+            override fun onFailure(call: Call<ApproveRejectResponse>, t: Throwable) {
+                CommonMethods.hideLoading()
+                if(mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
                         t.message,
                         null
                     )
@@ -2481,8 +2607,8 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
                 tvSchemeValue.text = buildString {
                     append(productModel.altUnit)
-                    if (productModel.finalQty?.takeIf { it > BigDecimal.ZERO } != null) {
-                        append(":${productModel.finalQty}")
+                    if ((productModel.qty)?.takeIf { it > BigDecimal.ZERO } != null) {
+                        append(":${productModel.qty * (productModel.conversionFactor?.toBigDecimal() ?: BigDecimal.ZERO)}")
                     }
                     append(", ${productModel.scheme}")
                 }
@@ -2749,7 +2875,6 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.lylTotalOrderAmount.visibility = View.GONE
         }
     }
-
 
     fun calculateAmount(productModel: ProductQuotationGroupResponse?) {
         if (isUpdating) return

@@ -338,6 +338,12 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                 }
             }
             binding.lylCbOrderInquiry.visibility = View.VISIBLE
+            if(visitData.allowOrder){
+                binding.cbAddOrder.visibility = View.VISIBLE
+            }
+            if(visitData.allowInquiry){
+                binding.cbAddInqury.visibility = View.VISIBLE
+            }
             binding.cbAddInqury.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (isChecked) {
                     binding.cbAddOrder.isChecked = false
@@ -1679,7 +1685,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                                     accountName = visitData.accountName,
                                                     accountMasterId = visitData.accountMasterId,
                                                     contactPersonName = binding.etContactPerson.text.toString()
-                                                        .trim() ?: ""
+                                                        .trim() ?: "",
+                                                    isForApproval = false
                                                 ),
                                                 addToBackStack = true,
                                                 ignoreIfCurrent = true,
@@ -1695,7 +1702,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                                     accountName = visitData.accountName,
                                                     accountMasterId = visitData.accountMasterId,
                                                     contactPersonName = binding.etContactPerson.text.toString()
-                                                        .trim() ?: ""
+                                                        .trim() ?: "",
+                                                    isForApproval = false
                                                 ),
                                                 addToBackStack = true,
                                                 ignoreIfCurrent = true,

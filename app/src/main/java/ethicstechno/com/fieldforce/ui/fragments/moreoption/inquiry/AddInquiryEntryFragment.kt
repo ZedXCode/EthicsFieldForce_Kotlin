@@ -65,6 +65,7 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM3
 import ethicstechno.com.fieldforce.utils.ARG_PARAM4
 import ethicstechno.com.fieldforce.utils.ARG_PARAM5
 import ethicstechno.com.fieldforce.utils.ARG_PARAM6
+import ethicstechno.com.fieldforce.utils.ARG_PARAM7
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -167,6 +168,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var accountMasterIdFromVisit: Int = 0
     private var contactPersonNameFromVisit = ""
     private var isPartyChangeFromVisit = false
+    private var isForApproval : Boolean = false
 
     private val groupItemClickListener =
         object : ItemClickListener<ProductInquiryGroupResponse> {
@@ -198,7 +200,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             allowDelete: Boolean?,
             accountName: String?,
             accountMasterId : Int?,
-            contactPersonName : String?
+            contactPersonName : String?,
+            isForApproval: Boolean
         ): AddInquiryEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
@@ -207,6 +210,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             args.putString(ARG_PARAM4, accountName ?: "")
             args.putInt(ARG_PARAM5, accountMasterId ?: 0)
             args.putString(ARG_PARAM6, contactPersonName ?: "")
+            args.putBoolean(ARG_PARAM7, isForApproval)
             val fragment = AddInquiryEntryFragment()
             fragment.arguments = args
             return fragment
@@ -244,6 +248,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             accountNameFromVisit = it.getString(ARG_PARAM4, "")
             accountMasterIdFromVisit = it.getInt(ARG_PARAM5, 0)
             contactPersonNameFromVisit = it.getString(ARG_PARAM6, "")
+            isForApproval = it.getBoolean(ARG_PARAM7, false)
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -270,6 +275,17 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         binding.cardImageCapture.setOnClickListener(this)
         setupImageUploadRecyclerView()
 
+        if(isForApproval){
+            binding.llApprovalRemarks.visibility = View.VISIBLE
+            binding.tvSubmit.visibility = View.GONE
+            binding.llAcceptReject.visibility = View.VISIBLE
+        }else{
+            binding.tvSubmit.visibility = View.VISIBLE
+            binding.llAcceptReject.visibility = View.GONE
+        }
+        binding.tvAccept.setOnClickListener(this)
+        binding.tvReject.setOnClickListener(this)
+
         setOrderDetailsAdapter()
         binding.llHeader.setOnClickListener {
             toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
@@ -278,7 +294,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if(allowEdit){
                 binding.toolbar.imgEdit.visibility = View.VISIBLE
             }
-            if(allowEdit) {
+            if(allowDelete) {
                 binding.toolbar.imgDelete.visibility = View.VISIBLE
             }
             binding.toolbar.imgEdit.setOnClickListener(this)
@@ -312,7 +328,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.VISIBLE
             binding.tvRemarks.visibility = View.VISIBLE
             binding.etRemarks.visibility = View.GONE
-            binding.llBottom.visibility = View.GONE
+            //binding.llAcceptReject.visibility = View.GONE
             binding.flCategory.visibility = View.GONE
             disableRadioButtons(false)
         } else {
@@ -322,7 +338,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             binding.tvContactPerson.visibility = View.GONE
             binding.tvRemarks.visibility = View.GONE
             binding.etRemarks.visibility = View.VISIBLE
-            binding.llBottom.visibility = View.VISIBLE
+            //binding.llAcceptReject.visibility = View.VISIBLE
             disableRadioButtons(true)
             binding.flPartyDealer.setOnClickListener(this)
 
@@ -1082,7 +1098,11 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
         when (p0?.id) {
             R.id.imgBack -> {
                 AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
-                mActivity.onBackPressed()
+                if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
+                    mActivity.onBackPressedDispatcher.onBackPressed()
+                } else {
+                    mActivity.onBackPressed()
+                }
             }
 
             R.id.flPartyDealer -> {
@@ -1973,8 +1993,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
 
                 tvSchemeValue.text = buildString {
                     append(productModel.altUnit)
-                    if (productModel.finalQty?.takeIf { it > BigDecimal.ZERO } != null) {
-                        append(":${productModel.finalQty}")
+                    if ((productModel.qty)?.takeIf { it > BigDecimal.ZERO } != null) {
+                        append(":${productModel.qty * (productModel.conversionFactor?.toBigDecimal() ?: BigDecimal.ZERO)}")
                     }
                     append(", ${productModel.scheme}")
                 }
