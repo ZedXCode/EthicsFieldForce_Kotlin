@@ -23,6 +23,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
@@ -59,8 +60,6 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
     lateinit var appDao: AppDao
     private var passwordShowed: Boolean = false
     var logoFile = ""
-    var notificationAuthToken = ""
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,23 +72,26 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        appDao = appDatabase.appDao()
-        binding.etUsername.setText(AppPreference.getStringPreference(mActivity, USER_NAME, ""))
-        binding.btnLogin.setOnClickListener(this)
-        binding.imgPwdIndicator.setOnClickListener(this)
-        mActivity.addFragment(
-            LoginFragment(),
-            false,
-            true,
-            animationType = AnimationType.fadeInfadeOut
-        )
-        initView()
-        notificationPermissionFor33()
-        getFCMToken();
+        try {
+            appDao = appDatabase.appDao()
+            binding.etUsername.setText(AppPreference.getStringPreference(mActivity, USER_NAME, ""))
+            binding.btnLogin.setOnClickListener(this)
+            binding.imgPwdIndicator.setOnClickListener(this)
+            mActivity.addFragment(
+                LoginFragment(),
+                false,
+                true,
+                animationType = AnimationType.fadeInfadeOut
+            )
+            initView()
+            notificationPermissionFor33()
+            getFCMToken();
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$onViewCreated()$ ::  " + e.message.toString())
+        }
     }
 
-
-    private fun getFCMToken(){
+    private fun getFCMToken() {
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
                 try {
@@ -98,7 +100,11 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
                     if (!task.isSuccessful) {
                         //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnComplete\$ :: error = ${task.exception?.stackTrace}")
-                        Toast.makeText(mActivity, "Sorry!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            mActivity,
+                            "Sorry!!! Unable to get token from Google, please reinstall your app and try again",
+                            Toast.LENGTH_LONG
+                        ).show()
                         // Optionally: showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
                         return@addOnCompleteListener
                     }
@@ -109,15 +115,19 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                         //performLogin(customerCode, strDeviceID)
                     } else {
                         //PubFun.writeLog("[LoginActivity] *ERROR* IN \$validateLogin:OnCompleted\$ :: error = ${task.exception?.stackTrace}")
-                        Toast.makeText(mActivity, "Oops!!! Unable to get token from Google, please reinstall your app and try again", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            mActivity,
+                            "Oops!!! Unable to get token from Google, please reinstall your app and try again",
+                            Toast.LENGTH_LONG
+                        ).show()
                         //showDialogForLoginEvenAfterTokenNotReceived(customerCode, strDeviceID)
                     }
                 } catch (e: Exception) {
+                    CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$getFCMToken()$ ::Token error = " + e.message.toString())
                     //PubFun.writeLog("[LoginActivity] *MSG* IN \$validateLogin\$ :: Found Device Token : ${e.message}")
-                    showToastMessage(mActivity, "Token Exception : "+e.message.toString())
+                    showToastMessage(mActivity, "Token Exception : " + e.message.toString())
                 }
             }
-
     }
 
     private fun notificationPermissionFor33() {
@@ -139,15 +149,19 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
     }
 
     private fun initView() {
-        appDao.getAppRegistration().let {
-            if(it != null){
-                logoFile = it.apiHostingServer + it.logoFilePath
-                if (logoFile.isNotEmpty()) {
-                    ImageUtils().loadImageUrl(mActivity, logoFile, binding.imgLogo)
+        try {
+            appDao.getAppRegistration().let {
+                if (it != null) {
+                    logoFile = it.apiHostingServer + it.logoFilePath
+                    if (logoFile.isNotEmpty()) {
+                        ImageUtils().loadImageUrl(mActivity, logoFile, binding.imgLogo)
+                    }
+                } else {
+                    binding.imgLogo.setImageResource(R.drawable.ethics_app_logo)
                 }
-            } else {
-                binding.imgLogo.setImageResource(R.drawable.ethics_app_logo)
             }
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$initView()$ :: error = " + e.message.toString())
         }
     }
 
@@ -162,6 +176,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                     animationType = AnimationType.fadeInfadeOut
                 )
             }
+
             R.id.imgPwdIndicator -> {
                 mActivity.hideKeyboard()
                 if (binding.etPassword.text.toString().isNotEmpty()) {
@@ -179,8 +194,6 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                     binding.etPassword.setSelection(binding.etPassword.text.toString().length)
                 }
             }
-
-
         }
     }
 
@@ -197,10 +210,14 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
     }
 
     private fun gotoHome() {
-        val intent = Intent(mActivity, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
-        mActivity.finish()
+        try {
+            val intent = Intent(mActivity, HomeActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            mActivity.finish()
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$gotoHome()$ :: error = " + e.message.toString())
+        }
     }
 
     private fun callAppRegistrationApi() {
@@ -220,6 +237,8 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
         val appRegistrationReq = JsonObject()
         appRegistrationReq.addProperty("RegistredMobileNo", username)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: API REQUEST = " + appRegistrationReq.toString())
+
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without()?.getAppRegistration(appRegistrationReq)
 
@@ -229,6 +248,11 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                 response: Response<List<AppRegistrationResponse>>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] *ERROR* IN \$callAppRegistrationApi()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
 
                 if (isSuccess(response)) {
                     response.body()?.let {
@@ -252,7 +276,8 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                                     false,
                                     "",
                                     0.0,
-                                    0.0
+                                    0.0,
+                                    ""
                                 )
                             )
                             companyList.addAll(it)
@@ -282,7 +307,8 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<AppRegistrationResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: API onFailure = " + t.message)
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -312,7 +338,8 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
         loginReq.addProperty("Password", password)
         loginReq.addProperty("Version", BuildConfig.VERSION_NAME)
 
-        Log.e("TAG", "callLoginApi: " + loginReq.toString())
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: API REQUEST = " + loginReq.toString())
+
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)?.loginApi(loginReq)
 
@@ -322,6 +349,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                 response: Response<LoginResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: response = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!it.success) {
@@ -343,7 +371,11 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                             )
                             AppPreference.saveBooleanPreference(mActivity, IS_LOGIN, true)
                             val isTripStart = appDatabase.appDao().getLoginData().tripId > 0
-                            AppPreference.saveBooleanPreference(mActivity, IS_TRIP_START, isTripStart)
+                            AppPreference.saveBooleanPreference(
+                                mActivity,
+                                IS_TRIP_START,
+                                isTripStart
+                            )
                             callCheckUserMobileDevice()
                         } else {
                             mActivity.showUpdateDialog()
@@ -361,7 +393,8 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: response = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -372,7 +405,6 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
             }
 
         })
-
     }
 
     private fun callCheckUserMobileDevice() {
@@ -394,7 +426,9 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
         checkUserMobileDeviceReq.addProperty("BatteryPercentage", getBatteryPercentage(mActivity))
         checkUserMobileDeviceReq.addProperty("DeviceToken", notificationToken)
 
-        Log.e("TAG", "callLoginApi: " + checkUserMobileDeviceReq.toString())
+
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callCheckUserMobileDevice()$ :: API REQUEST = " + checkUserMobileDeviceReq.toString())
+
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.checkUserMobileDevice(checkUserMobileDeviceReq)
@@ -405,6 +439,7 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                 response: Response<CheckUserMobileResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callCheckUserMobileDevice()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!it.success) {
@@ -424,8 +459,9 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<CheckUserMobileResponse>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$onFailure()$ :: API RESPONSE = " + t.message.toString())
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -434,49 +470,55 @@ class LoginFragment : MainBaseFragment(), View.OnClickListener {
                     )
                 }
             }
-
         })
-
     }
 
     private fun showCompanyDialog(companyList: List<AppRegistrationResponse>) {
-        val companyDialog = Dialog(mActivity)
-        companyDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        companyDialog.setCancelable(true)
-        companyDialog.setContentView(R.layout.company_selection_dialog)
+        try {
+            val companyDialog = Dialog(mActivity)
+            companyDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            companyDialog.setCancelable(true)
+            companyDialog.setContentView(R.layout.company_selection_dialog)
 
-        val spCompany: Spinner = companyDialog.findViewById(R.id.spCompany)
-        val btnSubmit: TextView = companyDialog.findViewById(R.id.btnSubmit)
+            val spCompany: Spinner = companyDialog.findViewById(R.id.spCompany)
+            val btnSubmit: TextView = companyDialog.findViewById(R.id.btnSubmit)
 
-        btnSubmit.setOnClickListener {
-            if (spCompany.selectedItemPosition == 0) {
-                showToastMessage(mActivity, getString(R.string.please_select_company))
-                return@setOnClickListener
+            btnSubmit.setOnClickListener {
+                if (spCompany.selectedItemPosition == 0) {
+                    showToastMessage(mActivity, getString(R.string.please_select_company))
+                    return@setOnClickListener
+                }
+                companyDialog.dismiss()
+                appDao.deleteAppRegistration()
+                Log.e("TAG", "showCompanyDialog: " + spCompany.selectedItemPosition)
+
+                val selectedCompany = companyList[spCompany.selectedItemPosition]
+                appDao.insertAppRegistration(selectedCompany)
+
+                Log.d("SELECTCOMPANY===>", selectedCompany.customerName)
+
+                AppPreference.saveStringPreference(
+                    mActivity,
+                    SELECT_COMPANY,
+                    selectedCompany.customerName
+                )
+                callLoginApi()
             }
-            companyDialog.dismiss()
-            appDao.deleteAppRegistration()
-            Log.e("TAG", "showCompanyDialog: " + spCompany.selectedItemPosition)
 
-            val selectedCompany = companyList[spCompany.selectedItemPosition]
-            appDao.insertAppRegistration(selectedCompany)
+            val adapter = CompanyAdapter(mActivity, R.layout.simple_spinner_item, companyList)
+            spCompany.adapter = adapter
+            spCompany.setSelection(0)
 
-            Log.d("SELECTCOMPANY===>", selectedCompany.customerName)
-
-            AppPreference.saveStringPreference(mActivity, SELECT_COMPANY, selectedCompany.customerName)
-            callLoginApi()
+            val window = companyDialog.window
+            window!!.setLayout(
+                AbsListView.LayoutParams.MATCH_PARENT,
+                AbsListView.LayoutParams.WRAP_CONTENT
+            )
+            companyDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            companyDialog.show()
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$showCompanyDialog()$ :: error = " + e.message.toString())
         }
-
-        val adapter = CompanyAdapter(mActivity, R.layout.simple_spinner_item, companyList)
-        spCompany.adapter = adapter
-        spCompany.setSelection(0)
-
-        val window = companyDialog.window
-        window!!.setLayout(
-            AbsListView.LayoutParams.MATCH_PARENT,
-            AbsListView.LayoutParams.WRAP_CONTENT
-        )
-        companyDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        companyDialog.show()
     }
 
     inner class CompanyAdapter(

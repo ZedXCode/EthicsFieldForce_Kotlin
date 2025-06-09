@@ -4,6 +4,7 @@ import AnimationType
 import addFragment
 import android.app.Activity
 import android.content.Context
+import android.graphics.Typeface
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -11,7 +12,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.TextWatcher
+import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -623,6 +627,25 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                 binding.tvEmail.text = visitData.email
                 binding.tvMobile.text = visitData.phoneNo
                 binding.tvCategory.text = " - " + visitData.categoryName
+                binding.ratingBarVisit.rating = ((visitData.rating).toFloat() ?: 0f)
+                binding.ratingBarParty.rating = ((visitData.rating).toFloat() ?: 0f)
+                // For "Next Visit :"
+                val nextVisitLabel = "Next Visit : "
+                val nextVisitText = visitData.nextVisitDateTime ?: ""
+                val nextVisitSpannable = SpannableStringBuilder(nextVisitLabel + nextVisitText).apply {
+                    setSpan(StyleSpan(Typeface.BOLD), 0, nextVisitLabel.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                binding.tvNextVisit.text = nextVisitSpannable
+                if((visitData.nextVisitDateTime ?: "").isNotEmpty()){
+                    binding.tvNextVisit.setTextColor(CommonMethods.getVisitDateColor(visitData.nextVisitDateTime))
+                }
+                // For "Last Visit :"
+                val lastVisitLabel = "Last Visit : "
+                val lastVisitText = visitData.lastVisitDateTime ?: ""
+                val lastVisitSpannable = SpannableStringBuilder(lastVisitLabel + lastVisitText).apply {
+                    setSpan(StyleSpan(Typeface.BOLD), 0, lastVisitLabel.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                binding.tvLastVisit.text = lastVisitSpannable
 
                 binding.tvAddVisit.setOnClickListener {
                     mActivity.addFragment(
@@ -668,8 +691,8 @@ class VisitListFragment : HomeBaseFragment(), View.OnClickListener {
                     )
                 }
 
-                binding.llMain.setOnClickListener {
-                }
+                /*binding.llMain.setOnClickListener {
+                }*/
             }
         }
     }

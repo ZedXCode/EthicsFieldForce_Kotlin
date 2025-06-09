@@ -1703,7 +1703,8 @@ class AddVisitFragment : HomeBaseFragment(), View.OnClickListener, LeaveTypeAdap
                                                     accountMasterId = visitData.accountMasterId,
                                                     contactPersonName = binding.etContactPerson.text.toString()
                                                         .trim() ?: "",
-                                                    isForApproval = false
+                                                    isForApproval = false,
+                                                    visitId =  (it.visitId ?: 0)
                                                 ),
                                                 addToBackStack = true,
                                                 ignoreIfCurrent = true,

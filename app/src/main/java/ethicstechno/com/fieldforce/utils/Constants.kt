@@ -2,6 +2,8 @@ package ethicstechno.com.fieldforce.utils
 
 
 const val DATE_FORMAT = "MM/dd/yyyy"
+const val LOG_DATE_FORMAT = "dd-MM-yyyy"
+const val TIME_FORMAT = "HH:mm:ss"
 const val DATE_FORMAT_FOR_SERVICE = "dd/MM/yyyy hh:mm:ss a"
 
 const val PRESENT_DAY = "P"
@@ -194,6 +196,11 @@ var EXPENSE_ENTRY_PRINT = "expense_entry_print"
 var EXPENSE_APPROVAL_PRINT = "expense_approval_print"
 var LEAVE_APPLICATION_PRINT = "leave_application_print"
 var LEAVE_APPROVAL_PRINT = "leave_approval_print"
+var APPROVAL_MODULE_PRINT = "approval_module_print"
+var ATTENDANCE_REPORT_PRINT = "attendance_report_print"
+var TRIP_REPORT_PRINT = "trip_report_print"
+var TRIP_SUMMERY_REPORT_PRINT = "trip_summery_report_print"
+var VISIT_REPORT_MODULE_PRINT = "visit_report_print"
 
 const val MENU_PARTY_DEALER = "Party/Dealer"
 const val MENU_VISIT = "Visit"
@@ -237,6 +244,11 @@ const val DOCUMENT_NAME_ORDER = "order"
 const val DOCUMENT_NAME_QUOTATION = "quotation"
 
 const val APPROVAL_STRING = "Approval"
-
 const val NOTIFICATION_ID_BIG_IMAGE = 101
+
+const val NETWORK_STATUS = "networkStatus"
+const val NETWORK_STATUS_CONNECTED = "Connected"
+const val NETWORK_STATUS_DISCONNECTED = "Disconnected"
+const val NETWORK_STATUS_SLOW = "Slow"
+const val NETWORK_STATUS_CHANGE = "NETWORK_STATUS_CHANGE"
 

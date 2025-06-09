@@ -66,6 +66,7 @@ import ethicstechno.com.fieldforce.utils.ARG_PARAM4
 import ethicstechno.com.fieldforce.utils.ARG_PARAM5
 import ethicstechno.com.fieldforce.utils.ARG_PARAM6
 import ethicstechno.com.fieldforce.utils.ARG_PARAM7
+import ethicstechno.com.fieldforce.utils.ARG_PARAM8
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -169,6 +170,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
     private var contactPersonNameFromVisit = ""
     private var isPartyChangeFromVisit = false
     private var isForApproval : Boolean = false
+    private var visitId : Int = 0
 
     private val groupItemClickListener =
         object : ItemClickListener<ProductInquiryGroupResponse> {
@@ -201,7 +203,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             accountName: String?,
             accountMasterId : Int?,
             contactPersonName : String?,
-            isForApproval: Boolean
+            isForApproval: Boolean,
+            visitId: Int
         ): AddInquiryEntryFragment {
             val args = Bundle()
             args.putInt(ARG_PARAM1, orderId)
@@ -211,6 +214,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             args.putInt(ARG_PARAM5, accountMasterId ?: 0)
             args.putString(ARG_PARAM6, contactPersonName ?: "")
             args.putBoolean(ARG_PARAM7, isForApproval)
+            args.putInt(ARG_PARAM8, visitId)
             val fragment = AddInquiryEntryFragment()
             fragment.arguments = args
             return fragment
@@ -249,6 +253,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             accountMasterIdFromVisit = it.getInt(ARG_PARAM5, 0)
             contactPersonNameFromVisit = it.getString(ARG_PARAM6, "")
             isForApproval = it.getBoolean(ARG_PARAM7, false)
+            visitId = it.getInt(ARG_PARAM8, 0)
             userId = loginData.userId
         }
         mActivity.bottomHide()
@@ -291,12 +296,8 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             toggleSectionVisibility(binding.llOptionalFields, binding.ivToggle)
         }
         if (orderId > 0) {
-            if(allowEdit){
-                binding.toolbar.imgEdit.visibility = View.VISIBLE
-            }
-            if(allowDelete) {
-                binding.toolbar.imgDelete.visibility = View.VISIBLE
-            }
+            binding.toolbar.imgEdit.visibility = if(allowEdit) View.VISIBLE else View.GONE
+            binding.toolbar.imgDelete.visibility = if(allowDelete) View.VISIBLE else View.GONE
             binding.toolbar.imgEdit.setOnClickListener(this)
             binding.toolbar.imgDelete.setOnClickListener(this)
             formViewMode(true)
@@ -1706,6 +1707,7 @@ class AddInquiryEntryFragment : HomeBaseFragment(), View.OnClickListener,
             objDetails.addProperty("QuantityRoundOffType", i.quantityRoundOffType)
             objDetails.addProperty("PerUnitWeight", i.perUnitWeight)
             objDetails.addProperty("NewField", i.newField)
+            objDetails.addProperty("VisitId", visitId)
             objDetailsArray.add(objDetails)
         }
         objReq.add("InquiryDetails", objDetailsArray)

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/dialog_shape"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?colorPrimary"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_42sdp"
+            android:layout_weight="1"
+            android:gravity="start|center"
+            android:padding="@dimen/_8sdp"
+            android:text="Send Log File"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_16ssp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imgClose"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="match_parent"
+            android:layout_gravity="end|center"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:paddingEnd="@dimen/_3sdp"
+            android:src="@drawable/ic_close" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:orientation="vertical">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_marginTop="@dimen/_10sdp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:shapeAppearance="@style/Cut"
+            android:hint="Enter Your Reason">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tieReason"
+                android:lines="3"
+                android:gravity="top|left"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_marginTop="@dimen/_10sdp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            card_view:shapeAppearance="@style/Cut"
+            android:hint="Enter Mobile Number">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/tieNumber"
+                android:lines="1"
+                android:gravity="top|left"
+                android:maxLength="10"
+                android:inputType="number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSendLogFile"
+            android:layout_marginTop="@dimen/_10sdp"
+            android:layout_marginBottom="@dimen/_5sdp"
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/_12sdp"
+            android:paddingEnd="@dimen/_12sdp"
+            android:textSize="@dimen/_16ssp"
+            card_view:cornerRadius="@dimen/_10sdp"
+            android:text="SEND lOG FILE"
+            android:layout_height="@dimen/_45sdp"/>
+    </LinearLayout>
+</LinearLayout>

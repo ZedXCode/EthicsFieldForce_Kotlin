@@ -54,5 +54,8 @@ data class AppRegistrationResponse(
     val hqLatitude: Double,
 
     @SerializedName("HQLongitude")
-    val hqLongitude: Double
+    val hqLongitude: Double,
+
+    @SerializedName("WEBHostingServer")
+    val webHostingServer: String
 )

@@ -198,6 +198,8 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getDynamicMenuList(dynamicMenuReq)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callDynamicMenuList()$ :: API REQUEST = " + dynamicMenuReq.toString())
+
         reportListCall?.enqueue(object : Callback<List<DynamicMenuListResponse>> {
             override fun onResponse(
                 call: Call<List<DynamicMenuListResponse>>,
@@ -235,6 +237,7 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<List<DynamicMenuListResponse>>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callDynamicMenuList()$ :: onFailure = " + t.message.toString())
                 CommonMethods.hideLoading()
                 setupMoreAdapter()
                 if (mActivity != null) {
@@ -481,5 +484,4 @@ class MoreListFragment : HomeBaseFragment(), View.OnClickListener {
                 mActivity.openDrawer()
         }
     }
-
 }

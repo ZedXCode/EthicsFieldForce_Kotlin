@@ -3,6 +3,7 @@ package ethicstechno.com.fieldforce.ui.base
 
 import android.content.Context
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.fragment.app.Fragment
 import ethicstechno.com.fieldforce.db.AppDatabase
 import ethicstechno.com.fieldforce.db.dao.AppDao
@@ -43,7 +44,6 @@ open class HomeBaseFragment : Fragment() {
     open fun isSuccess(response: Response<*>): Boolean {
         return when {
             response.code() == 200 -> {
-
                 true
             }
 
@@ -69,4 +69,7 @@ open class HomeBaseFragment : Fragment() {
         }
     }
 
+    open fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        TODO("Not yet implemented")
+    }
 }

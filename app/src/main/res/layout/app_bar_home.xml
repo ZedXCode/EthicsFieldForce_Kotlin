@@ -6,6 +6,8 @@
         android:id="@+id/coordinator"
         android:layout_height="match_parent">
 
-    <include layout="@layout/content_home"/>
+    <include
+        android:id="@+id/contentHome"
+        layout="@layout/content_home"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

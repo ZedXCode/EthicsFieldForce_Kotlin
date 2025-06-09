@@ -178,6 +178,14 @@
             android:layout_width="@dimen/_35sdp"
             android:layout_height="@dimen/_35sdp"/>
 
+        <ImageView
+            android:id="@+id/imgLogFile"
+            android:layout_width="@dimen/_24sdp"
+            android:layout_height="@dimen/_24sdp"
+            android:visibility="gone"
+            android:src="@drawable/ic_log"
+            android:layout_centerInParent="true"/>
+
         <RelativeLayout
             android:id="@+id/rlNotification"
             android:layout_width="@dimen/_32sdp"

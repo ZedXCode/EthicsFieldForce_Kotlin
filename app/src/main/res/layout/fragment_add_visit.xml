@@ -775,7 +775,7 @@
                     android:orientation="horizontal">
                     <CheckBox
                         android:id="@+id/cbAddOrder"
-                        android:text="Add Order"
+                        android:text="@string/add_order"
                         android:buttonTint="@color/colorMaroon"
                         android:layout_width="0dp"
                         android:layout_weight="1"
@@ -785,7 +785,7 @@
 
                     <CheckBox
                         android:id="@+id/cbAddInqury"
-                        android:text="Add Inquiry"
+                        android:text="@string/add_inquiry"
                         android:layout_width="0dp"
                         android:layout_weight="1"
                         android:visibility="gone"

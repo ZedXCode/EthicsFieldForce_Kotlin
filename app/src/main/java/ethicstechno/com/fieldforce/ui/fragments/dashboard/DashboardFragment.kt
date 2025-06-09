@@ -2,16 +2,32 @@ package ethicstechno.com.fieldforce.ui.fragments.dashboard
 
 import AnimationType
 import addFragment
+import android.content.Context
+import android.content.Context.LAYOUT_INFLATER_SERVICE
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.widget.ImageView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.storage.FirebaseStorage
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
@@ -27,9 +43,11 @@ import ethicstechno.com.fieldforce.ui.fragments.moreoption.leave.LeaveApplicatio
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.order_entry.OrderEntryListFragment
 import ethicstechno.com.fieldforce.ui.fragments.moreoption.quotation.QuotationEntryListFragment
 import ethicstechno.com.fieldforce.utils.APPROVAL_MODULE
+import ethicstechno.com.fieldforce.utils.APPROVAL_MODULE_PRINT
 import ethicstechno.com.fieldforce.utils.APPROVAL_STRING
 import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT
 import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT_PRINT
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.showToastMessage
@@ -70,15 +88,23 @@ import ethicstechno.com.fieldforce.utils.TOUR_PLAN_MODULE
 import ethicstechno.com.fieldforce.utils.TOUR_PLAN_PRINT
 import ethicstechno.com.fieldforce.utils.TRIP_REPORT
 import ethicstechno.com.fieldforce.utils.TRIP_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.TRIP_REPORT_PRINT
 import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT
 import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.TRIP_SUMMERY_REPORT_PRINT
 import ethicstechno.com.fieldforce.utils.VISIT_MODULE
 import ethicstechno.com.fieldforce.utils.VISIT_PRINT
 import ethicstechno.com.fieldforce.utils.VISIT_REPORT
 import ethicstechno.com.fieldforce.utils.VISIT_REPORT_MODULE
+import ethicstechno.com.fieldforce.utils.VISIT_REPORT_MODULE_PRINT
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.util.Locale
 
 class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
@@ -86,6 +112,22 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
     var dashboardList: ArrayList<DashboardListResponse> = arrayListOf()
 
     var statusColor = ""
+    var logFileDialog: AlertDialog? = null
+    private var oAttachmentFilePath = ""
+    private var strLogFilePath: String = ""
+    private var strLogFileName: String = ""
+    private var strLogDownloadUrl: String = ""
+    private var strBackupDownloadUrl = ""
+    private var gMailSubject = ""
+    private var gMailBody = ""
+    private var gMailSenderEmail = ""
+    private var isNetworkLoss = false
+    private var isBackupFileSend: Boolean = false
+    private var isLogFileSend: Boolean = false
+    private lateinit var tieMobile: TextInputEditText
+    private lateinit var tieReason: TextInputEditText
+    private var gMailRecipients: ArrayList<String> = arrayListOf()
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -118,6 +160,10 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         dashboardBinding.toolbar.imgMenu.setOnClickListener(this)
         dashboardBinding.toolbar.rlNotification.setOnClickListener(this)
         dashboardBinding.toolbar.rlNotification.visibility = View.VISIBLE
+        /*dashboardBinding.toolbar.imgLogFile.visibility = View.VISIBLE
+        dashboardBinding.toolbar.imgLogFile.setOnClickListener {
+            showLogFileDialog(mActivity.applicationContext)
+        }*/
 
         callDashboardListApi()
         callMoreOptionList()
@@ -129,6 +175,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
             R.id.imgMenu -> {
                 mActivity.openDrawer()
             }
+
             R.id.rlNotification -> {
                 mActivity.addFragment(
                     NotificationFragment(),
@@ -154,9 +201,12 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         val dashboardListReq = JsonObject()
         dashboardListReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callDashboardListApi()$ :: API REQUEST = " + dashboardListReq)
+
         val dashboardListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getDashboardList(dashboardListReq)
+
 
         dashboardListCall?.enqueue(object : Callback<List<DashboardListResponse>> {
             override fun onResponse(
@@ -164,6 +214,11 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                 response: Response<List<DashboardListResponse>>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] IN \$callDashboardListApi()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
@@ -183,6 +238,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<List<DashboardListResponse>>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callDashboardListApi()$ :: onFailure = " + t.message.toString())
                 CommonMethods.hideLoading()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -209,6 +265,8 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         val dashboardListReq = JsonObject()
         dashboardListReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callMoreOptionList()$ :: API REQUEST = " + dashboardListReq.toString())
+
         val dashboardListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getMoreOptionMenuList(dashboardListReq)
@@ -218,6 +276,11 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                 call: Call<List<MoreOptionMenuListResponse>>,
                 response: Response<List<MoreOptionMenuListResponse>>
             ) {
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] IN \$callMoreOptionList()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
                 if (response.isSuccessful) {
                     response.body()?.let { moreOptionMenuList ->
 
@@ -352,6 +415,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                         option.allowPrint
                                     )
                                 }
+
                                 MENU_APPROVAL -> {
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
@@ -360,22 +424,24 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                     )
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                        APPROVAL_MODULE,
+                                        APPROVAL_MODULE_PRINT,
                                         option.allowPrint
                                     )
                                 }
+
                                 ATTENDANCE_REPORT -> {
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                       ATTENDANCE_REPORT_MODULE,
+                                        ATTENDANCE_REPORT_MODULE,
                                         option.allowRights
                                     )
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                        ATTENDANCE_REPORT_MODULE,
+                                        ATTENDANCE_REPORT_PRINT,
                                         option.allowPrint
                                     )
                                 }
+
                                 TRIP_REPORT -> {
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
@@ -384,10 +450,11 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                     )
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                        TRIP_REPORT_MODULE,
+                                        TRIP_REPORT_PRINT,
                                         option.allowPrint
                                     )
                                 }
+
                                 TRIP_SUMMERY_REPORT -> {
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
@@ -396,10 +463,11 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                     )
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                        TRIP_SUMMERY_REPORT_MODULE,
+                                        TRIP_SUMMERY_REPORT_PRINT,
                                         option.allowPrint
                                     )
                                 }
+
                                 VISIT_REPORT -> {
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
@@ -408,7 +476,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                     )
                                     AppPreference.saveBooleanPreference(
                                         mActivity,
-                                        VISIT_REPORT_MODULE,
+                                        VISIT_REPORT_MODULE_PRINT,
                                         option.allowPrint
                                     )
                                 }
@@ -422,6 +490,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<MoreOptionMenuListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callMoreOptionList()$ :: onFailure = " + t.message.toString())
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -446,6 +515,8 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         val notificationCountReq = JsonObject()
         notificationCountReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callLoginApi()$ :: API REQUEST = " + notificationCountReq.toString())
+
         val notificationReqCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getNotificationCount(notificationCountReq)
@@ -455,9 +526,14 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                 call: Call<NotificationCountResponse>,
                 response: Response<NotificationCountResponse>
             ) {
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] IN \$callGetNotificationCountApi()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
                 if (response.isSuccessful) {
                     response.body()?.let { notificationCount ->
-                        if(notificationCount.unReadCount > 0) {
+                        if (notificationCount.unReadCount > 0) {
                             dashboardBinding.toolbar.cardNotificationCount.visibility = View.VISIBLE
                             dashboardBinding.toolbar.txtNotificationCount.text =
                                 notificationCount.unReadCount.toString()
@@ -473,7 +549,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
                                     dpToPx(topBottomPadding)   // bottom
                                 )
                             }
-                        }else{
+                        } else {
                             dashboardBinding.toolbar.cardNotificationCount.visibility = View.GONE
                         }
 
@@ -484,6 +560,7 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<NotificationCountResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callGetNotificationCountApi()$ :: onFailure = " + t.message.toString())
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
@@ -509,7 +586,12 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         mActivity.bottomVisible()
-        if (isAdded && !hidden && AppPreference.getBooleanPreference(mActivity, IS_DATA_UPDATE, false)) {
+        if (isAdded && !hidden && AppPreference.getBooleanPreference(
+                mActivity,
+                IS_DATA_UPDATE,
+                false
+            )
+        ) {
             AppPreference.saveBooleanPreference(mActivity, IS_DATA_UPDATE, false)
             dashboardBinding.rvDashboard.isEnabled = true
             callGetNotificationCountApi()
@@ -522,6 +604,280 @@ class DashboardFragment : HomeBaseFragment(), View.OnClickListener {
         dashboardBinding.rvDashboard.layoutManager =
             LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
     }
+
+    private fun showLogFileDialog(context: Context) {
+        try {
+            if (logFileDialog != null && logFileDialog!!.isShowing) {
+                return
+            }
+            val builder = AlertDialog.Builder(mActivity, R.style.MyAlertDialogStyle)
+            logFileDialog = builder.create()
+            logFileDialog!!.window!!.attributes.windowAnimations =
+                R.style.TopRightRevealDialogAnimation
+            logFileDialog!!.setCancelable(false)
+            logFileDialog!!.setCanceledOnTouchOutside(false)
+            logFileDialog!!.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            logFileDialog!!.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            val inflater = mActivity.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val layout: View = inflater.inflate(R.layout.dialog_log_file, null)
+            val imgClose = layout.findViewById<View>(R.id.imgClose) as ImageView
+            tieReason = layout.findViewById<TextInputEditText>(R.id.tieReason)
+            tieMobile = layout.findViewById<TextInputEditText>(R.id.tieNumber)
+            val btnSendLogFile = layout.findViewById<MaterialButton>(R.id.btnSendLogFile)
+            btnSendLogFile.setOnClickListener(View.OnClickListener {
+                if (tieReason.text.toString().isEmpty()) {
+                    Toast.makeText(mActivity, "Please enter your reason", Toast.LENGTH_SHORT).show()
+                    return@OnClickListener
+                }
+                if (tieMobile.text.toString().isEmpty()) {
+                    Toast.makeText(mActivity, "Please enter your mobile number", Toast.LENGTH_SHORT)
+                        .show()
+                    return@OnClickListener
+                }
+                uploadBackUpFileToFireBaseStorage(mActivity.applicationContext)
+                logFileDialog!!.dismiss()
+
+            })
+            imgClose.setOnClickListener { view: View? -> logFileDialog!!.dismiss() }
+            logFileDialog!!.setView(layout, 0, 0, 0, 0)
+            logFileDialog!!.window?.setBackgroundDrawableResource(R.drawable.dialog_shape)
+            logFileDialog!!.show()
+        } catch (e: Exception) {
+            val exception =
+                "[ScanMultipleInvoiceFragment] *ERROR* IN \$assetDetailDialog$ :: error = $e"
+            CommonMethods.writeLog(exception)
+        }
+    }
+
+    fun uploadBackUpFileToFireBaseStorage(context: Context) {
+        try {
+            val dir = context.cacheDir.toString()
+            val s = CommonMethods.getCurrentDate()
+            val fileNameFormat = s
+            val strLogFilePath = "$dir/Log_$fileNameFormat.txt"
+            val strLogFileName =
+                "EMP_ID_${loginData.userName}_${strLogFilePath.substring(strLogFilePath.indexOf("Log_"))}"
+
+            var isBackupFileSend = false
+            var isLogFileSend = false
+            var isNetworkLoss = false
+
+            if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+                showToastMessage(mActivity, getString(R.string.no_internet))
+                return
+            }
+
+            Log.e("TAG", "uploadBackUpFileToFireBaseStorage: INTERNET IS WORKING GO AHEAD")
+
+            val storage = FirebaseStorage.getInstance().reference
+            val logRef = storage.child("backupfile")
+
+            val inFileName = "/data/data/${context.packageName}/databases/FieldForce"
+            val dbFile = File(inFileName)
+            val fis = FileInputStream(dbFile)
+            val outFileName = "${context.cacheDir}/FieldForce"
+            val desFile = File(outFileName)
+
+            if (desFile.exists()) {
+                desFile.delete()
+            }
+
+            val output: OutputStream = FileOutputStream(outFileName)
+            val buffer = ByteArray(1024)
+            var length: Int
+
+            while (fis.read(buffer).also { length = it } > 0) {
+                output.write(buffer, 0, length)
+            }
+
+            output.flush()
+            output.close()
+            fis.close()
+
+            val inputStream = FileInputStream(File(outFileName))
+            val fileRef = logRef.child(strLogFileName.replace("txt", "db"))
+
+            fileRef.putStream(inputStream)
+                .addOnSuccessListener { taskSnapshot ->
+                    fileRef.downloadUrl.addOnSuccessListener { uri ->
+                        strBackupDownloadUrl = uri.toString()
+                        isBackupFileSend = true
+                        uploadLogFileToFireBaseStorage(context)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    isBackupFileSend = false
+                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                    CommonMethods.hideLoading()
+                }
+                .addOnProgressListener { taskSnapshot ->
+                    val progress =
+                        (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
+                    // Optional: Log progress if needed
+                }
+
+            val handler = Handler(Looper.getMainLooper())
+            var count = 0
+            val runnable = object : Runnable {
+                override fun run() {
+                    count++
+                    if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+                        showToastMessage(mActivity, getString(R.string.no_internet))
+                        return
+                    }
+
+                    if (isBackupFileSend) {
+                        isNetworkLoss = false
+                        handler.removeCallbacks(this)
+                        return
+                    }
+                    handler.postDelayed(this, 1000)
+                }
+            }
+
+            handler.postDelayed(runnable, 1000)
+
+        } catch (e: Exception) {
+            Log.e("TAG", "uploadBackUpFileToFireBaseStorage: ${e.message}")
+            CommonMethods.hideLoading()
+            //PubFun.writeLog("[FragmentMyProfile] *ERROR* IN \$uploadLogFileToFireBaseStorage\$ :: error = ${e}")
+        }
+    }
+
+    fun uploadLogFileToFireBaseStorage(context: Context) {
+        try {
+            var storageReference = FirebaseStorage.getInstance().reference
+            val logRef = storageReference.child("logs")
+
+            val inputStream = FileInputStream(File(strLogFilePath))
+            val fileRef = logRef.child(strLogFileName)
+
+            fileRef.putStream(inputStream)
+                .addOnSuccessListener {
+                    fileRef.downloadUrl.addOnSuccessListener { uri ->
+                        strLogDownloadUrl = uri.toString()
+                        isLogFileSend = true
+//                    sendGMailToSupportTeam() // Uncomment if needed
+                        getEmailAddressFromServerSettings()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    isLogFileSend = false
+                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                    CommonMethods.hideLoading()
+                }
+                .addOnProgressListener { taskSnapshot ->
+                    val progress =
+                        (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
+                    // Optional: Log or use progress
+                }
+
+            val handler = Handler(Looper.getMainLooper())
+            var count = 0
+            val runnable = object : Runnable {
+                override fun run() {
+                    if (!ConnectionUtil.isInternetAvailable(mActivity)) {
+                        showToastMessage(mActivity, getString(R.string.no_internet))
+                        return
+                    }
+
+                    if (isLogFileSend) {
+                        isNetworkLoss = false
+                        handler.removeCallbacks(this)
+                        return
+                    }
+
+                    handler.postDelayed(this, 1000)
+                }
+            }
+
+            handler.postDelayed(runnable, 1000)
+
+        } catch (e: Exception) {
+            CommonMethods.hideLoading()
+            //PubFun.writeLog("[FragmentMyProfile] *ERROR* IN \$uploadLogFileToFireBaseStorage\$ :: error = ${e}")
+        }
+    }
+
+    fun getEmailAddressFromServerSettings() {
+        try {
+            val strSetKey = "logemail" // Hardcoded as guided by Pratik Thummar
+            gMailSenderEmail =
+                "parth.khatsuriya@vc-erp.com, vishal.bhadani@vc-erp.com, mobileapps@vc-erp.com, mayur.patel@vc-erp.com"
+
+            fireEmailIntent()
+        } catch (e: Exception) {
+            //PubFun.writeLog("[UserDetailFragment] *ERROR* IN \$getEmailAddressFromServerSettings\$ :: error = ${e}")
+        }
+    }
+
+    private fun fireEmailIntent() {
+        try {
+            if (!isNetworkLoss) {
+                oAttachmentFilePath = strLogFilePath
+                val file = File(oAttachmentFilePath)
+                if (file.exists()) {
+
+                    //1. Subject
+                    gMailSubject =
+                        resources.getString(R.string.app_name) + " Log file from " + loginData.userName+ "( emmp id  =  " + loginData.userId + ")  for Investigation (" + CommonMethods.getCurrentDateTime() + ")"
+                    val strReason: String = tieReason.text.toString().trim { it <= ' ' }
+
+                    //2. Body
+                    gMailBody = """Dear Support team,
+Problem I face today, here is my explanation: $strReason
+
+Also here is a log file content for your quick investigation with
+My mobile no: ${tieMobile.text.toString().trim { it <= ' ' }}
+
+Log file name: $strLogFileName - $strLogDownloadUrl
+DB file name: ${strLogFileName.replace("txt", "db")} - $strBackupDownloadUrl"""
+
+                    //3.Receiver
+                    /*gMailRecipients = new String[]{"krunal.prajapati@vc-erp.com", "milan.sheth@vc-erp.com", "anand.patel@vc-erp.com," +
+                            " mayur.patel@vc-erp.com, dmssupport@vadilalgroup.com", "abhijit@vadilalgroup.com"};*/
+                    gMailRecipients = arrayListOf(gMailSenderEmail)
+                    val emailIntent = Intent(Intent.ACTION_SEND)
+                    emailIntent.putExtra(Intent.EXTRA_EMAIL, gMailRecipients)
+                    emailIntent.putExtra(Intent.EXTRA_SUBJECT, gMailSubject)
+                    emailIntent.type = "text/plain"
+                    emailIntent.putExtra(Intent.EXTRA_TEXT, gMailBody)
+                    val pm: PackageManager = mActivity.packageManager
+                    val matches = pm.queryIntentActivities(emailIntent, 0)
+                    var best: ResolveInfo? = null
+                    for (info in matches) {
+                        if (info.activityInfo.packageName.endsWith(".gm") || info.activityInfo.name.lowercase(
+                                Locale.getDefault()
+                            ).contains("gmail")
+                        ) {
+                            best = info
+                        }
+                    }
+                    if (best != null) {
+                        emailIntent.setClassName(
+                            best.activityInfo.packageName,
+                            best.activityInfo.name
+                        )
+                    }
+                    startActivity(emailIntent)
+                    CommonMethods.hideLoading()
+                    //goNext(AppConstants.VIEW_DASHBOARD, null, "")
+                } else {
+                    //PubFun.writeLog("[FragmentMyProfile] *MSG* IN \$sendGmailToSupportTeam$ :: attachment file not found at path = $oAttachmentFilePath")
+                    CommonMethods.hideLoading()
+                    Toast.makeText(
+                        mActivity,
+                        "Mail Sending Failed!, Oops! some how log file was not created / found in your device. please try again. If this issue is still persisting then please contact administrator",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        } catch (e: java.lang.Exception) {
+            CommonMethods.hideLoading()
+            //PubFun.writeLog("[FragmentMyProfile] *ERROR* IN \$sendGMailToSupportTeam$ :: error = $e")
+        }
+    }
+
 
     inner class DashboardAdapter(
         private val dashboardList: ArrayList<DashboardListResponse>

@@ -41,6 +41,7 @@ import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.itextpdf.text.BaseColor
 import com.itextpdf.text.Document
@@ -118,31 +119,45 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                if (fusedLocationClient == null) {
-                    return@registerForActivityResult
+            try {
+                if (result.resultCode == Activity.RESULT_OK) {
+                    if (fusedLocationClient == null) {
+                        return@registerForActivityResult
+                    }
+                    fetchLocation(fusedLocationClient!!) // Call the method to fetch the location again or perform any other necessary tasks.
+                } else {
+                    CommonMethods.showToastMessage(
+                        mActivity,
+                        mActivity.getString(R.string.enable_location)
+                    )
+                    locationEnableDialog()
+                    // Location settings resolution failed or was canceled.
+                    // Handle the failure or cancellation accordingly.
                 }
-                fetchLocation(fusedLocationClient!!) // Call the method to fetch the location again or perform any other necessary tasks.
-            } else {
-                CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.enable_location))
-                locationEnableDialog()
-                // Location settings resolution failed or was canceled.
-                // Handle the failure or cancellation accordingly.
+            } catch (e: Exception) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$locationSettingsLauncher$ :: onFailure = " + e.message.toString())
             }
         }
 
     private val settingLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val locationManager =
-            mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            fusedLocationClient =
-                LocationServices.getFusedLocationProviderClient(mActivity)
-            fetchLocation(fusedLocationClient!!)
-        } else {
-            locationEnableDialog()
-            CommonMethods.showToastMessage(mActivity, mActivity.getString(R.string.enable_location))
+        try {
+            val locationManager =
+                mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                fusedLocationClient =
+                    LocationServices.getFusedLocationProviderClient(mActivity)
+                fetchLocation(fusedLocationClient!!)
+            } else {
+                locationEnableDialog()
+                CommonMethods.showToastMessage(
+                    mActivity,
+                    mActivity.getString(R.string.enable_location)
+                )
+            }
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$settingLauncher$ :: onFailure = " + e.message.toString())
         }
     }
 
@@ -178,109 +193,126 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
             }
         }
         initView()
-
     }
-
 
 
     private fun initView() {
-        startDate = CommonMethods.getStartDateOfCurrentMonth()
-        endDate = CommonMethods.getCurrentDate()
+        try {
+            startDate = CommonMethods.getStartDateOfCurrentMonth()
+            endDate = CommonMethods.getCurrentDate()
 
-        binding.toolbar.imgMenu.visibility = if (isFromAttendanceReport) View.GONE else View.VISIBLE
-        binding.toolbar.imgBack.visibility = if (isFromAttendanceReport) View.VISIBLE else View.GONE
-        if(isFromAttendanceReport) {
-            binding.toolbar.tvHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18F)
+            binding.toolbar.imgMenu.visibility =
+                if (isFromAttendanceReport) View.GONE else View.VISIBLE
+            binding.toolbar.imgBack.visibility =
+                if (isFromAttendanceReport) View.VISIBLE else View.GONE
+            if (isFromAttendanceReport) {
+                binding.toolbar.tvHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18F)
+            }
+            binding.toolbar.tvHeader.text =
+                if (isFromAttendanceReport) mActivity.getString(R.string.attendance_report) else mActivity.getString(
+                    R.string.attendance
+                )
+            binding.toolbar.imgFilter.visibility =
+                if (isFromAttendanceReport) View.VISIBLE else View.GONE
+            binding.toolbar.imgShare.visibility =
+                if (isFromAttendanceReport) View.VISIBLE else View.GONE
+
+            if (isFromAttendanceReport) {
+                mActivity.bottomHide()
+                binding.llAttendanceLayout.visibility = View.GONE
+                binding.llAttendanceReportLayout.visibility = View.VISIBLE
+                binding.toolbar.imgFilter.setOnClickListener(this)
+                binding.toolbar.imgShare.setOnClickListener(this)
+                binding.llAttendanceHeader.llAttendanceReport.visibility = View.VISIBLE
+                binding.llAttendanceHeader.llAttendance.visibility = View.GONE
+            } else {
+                mActivity.bottomVisible()
+                binding.llAttendanceLayout.visibility = View.VISIBLE
+                binding.llAttendanceReportLayout.visibility = View.GONE
+                binding.llAttendanceHeader.llAttendance.visibility = View.VISIBLE
+                binding.llAttendanceHeader.llAttendanceReport.visibility = View.GONE
+            }
+
+            binding.toolbar.imgBack.setOnClickListener(this)
+            binding.toolbar.imgMenu.setOnClickListener(this)
+            binding.tvPunchIn.setOnClickListener(this)
+            binding.tvPunchOut.setOnClickListener(this)
+            binding.llAttendanceReportHeader.tvUsername.setOnClickListener(this)
+
+            val currentDate = Date() // Replace this with your date
+            binding.tvCurrentMonth.text = formatDateToMMMyyyy(currentDate)
+
+            if (isFromAttendanceReport) {
+                selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
+                binding.llAttendanceReportHeader.tvUsername.text = selectedUser.userName
+                setupAttendanceReportData()
+                callUserListApi()
+            }
+
+            callGetUsersLastSyncLocationApi()
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$initView()$ :: error = " + e.message.toString())
         }
-        binding.toolbar.tvHeader.text = if(isFromAttendanceReport) mActivity.getString(R.string.attendance_report) else mActivity.getString(R.string.attendance)
-        binding.toolbar.imgFilter.visibility =
-            if (isFromAttendanceReport) View.VISIBLE else View.GONE
-        binding.toolbar.imgShare.visibility =
-            if (isFromAttendanceReport) View.VISIBLE else View.GONE
+    }
 
-        if (isFromAttendanceReport) {
-            mActivity.bottomHide()
-            binding.llAttendanceLayout.visibility = View.GONE
-            binding.llAttendanceReportLayout.visibility = View.VISIBLE
-            binding.toolbar.imgFilter.setOnClickListener(this)
-            binding.toolbar.imgShare.setOnClickListener(this)
-            binding.llAttendanceHeader.llAttendanceReport.visibility = View.VISIBLE
-            binding.llAttendanceHeader.llAttendance.visibility = View.GONE
-        } else {
-            mActivity.bottomVisible()
-            binding.llAttendanceLayout.visibility = View.VISIBLE
-            binding.llAttendanceReportLayout.visibility = View.GONE
-            binding.llAttendanceHeader.llAttendance.visibility = View.VISIBLE
-            binding.llAttendanceHeader.llAttendanceReport.visibility = View.GONE
-        }
-
-        binding.toolbar.imgBack.setOnClickListener(this)
-        binding.toolbar.imgMenu.setOnClickListener(this)
-        binding.tvPunchIn.setOnClickListener(this)
-        binding.tvPunchOut.setOnClickListener(this)
-        binding.llAttendanceReportHeader.tvUsername.setOnClickListener(this)
-
-        val currentDate = Date() // Replace this with your date
-        binding.tvCurrentMonth.text = formatDateToMMMyyyy(currentDate)
-
-        if (!loginData.todayClockInDone && !loginData.todayClockOutDone) {
-            binding.tvAttendanceLabel.text = mActivity.getString(R.string.please_punch_in_to_start)
+    fun setPunchInOutButton(todayClockInDone: Boolean, todayClockedOutDone: Boolean) {
+        if (!todayClockInDone && !todayClockedOutDone) {
+            binding.tvAttendanceLabel.text =
+                mActivity.getString(R.string.please_punch_in_to_start)
             binding.tvPunchOut.setBackgroundResource(R.drawable.button_background_disable)
             binding.tvPunchOut.isEnabled = false
-        } else if (loginData.todayClockInDone && !loginData.todayClockOutDone) {
+        } else if (todayClockInDone && !todayClockedOutDone) {
             binding.tvAttendanceLabel.text = "Don't Forget To Punch Out"
             binding.tvPunchIn.setBackgroundResource(R.drawable.button_background_disable)
             binding.tvPunchIn.isEnabled = false
-        } else if(loginData.todayClockInDone && loginData.todayClockOutDone){
-            binding.tvAttendanceLabel.text = mActivity.getString(R.string.your_today_attendance_done)
+        } else if (todayClockInDone && todayClockedOutDone) {
+            binding.tvAttendanceLabel.text =
+                mActivity.getString(R.string.your_today_attendance_done)
             binding.tvPunchIn.isEnabled = false
             binding.tvPunchOut.isEnabled = false
             binding.tvPunchOut.setBackgroundResource(R.drawable.button_background_disable)
             binding.tvPunchIn.setBackgroundResource(R.drawable.button_background_disable)
-        }else{
-            binding.tvAttendanceLabel.text = mActivity.getString(R.string.your_today_attendance_done)
+        } else {
+            binding.tvAttendanceLabel.text =
+                mActivity.getString(R.string.your_today_attendance_done)
             binding.tvPunchIn.isEnabled = false
             binding.tvPunchOut.isEnabled = false
             binding.tvPunchOut.setBackgroundResource(R.drawable.button_background_disable)
             binding.tvPunchIn.setBackgroundResource(R.drawable.button_background_disable)
         }
-
-
-
-        if (isFromAttendanceReport) {
-            selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
-            binding.llAttendanceReportHeader.tvUsername.text = selectedUser.userName
-            setupAttendanceReportData()
-            callUserListApi()
-        }
-
-        callGetUsersLastSyncLocationApi()
     }
 
     private fun setupAttendanceReportData() {
-        binding.llAttendanceReportHeader.tvUsername.text = loginData.userName
-        selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
-        binding.llAttendanceReportHeader.tvDateOption.text = dateTypeList[4]
-        val dateRange =
-            "${CommonMethods.getStartDateOfCurrentMonth()} To ${CommonMethods.getCurrentDate()}"
-        binding.llAttendanceReportHeader.tvDateRange.text = dateRange
+        try {
+            binding.llAttendanceReportHeader.tvUsername.text = loginData.userName
+            selectedUser = UserListResponse(loginData.userId, loginData.userName ?: "")
+            binding.llAttendanceReportHeader.tvDateOption.text = dateTypeList[4]
+            val dateRange =
+                "${CommonMethods.getStartDateOfCurrentMonth()} To ${CommonMethods.getCurrentDate()}"
+            binding.llAttendanceReportHeader.tvDateRange.text = dateRange
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$setupAttendanceReportData()$ :: error = " + e.message.toString())
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if(isFromAttendanceReport){
+        if (isFromAttendanceReport) {
             mActivity.bottomHide()
-        }else {
+        } else {
             mActivity.bottomVisible()
+            startDate = CommonMethods.getStartDateOfCurrentMonth()
+            endDate = CommonMethods.getCurrentDate()
+            callCurrentMonthAttendanceApi(startDate, endDate)
         }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (isAdded && !hidden) {
-            if(isFromAttendanceReport){
+            if (isFromAttendanceReport) {
                 mActivity.bottomHide()
-            }else {
+            } else {
                 mActivity.bottomVisible()
             }
         }
@@ -290,6 +322,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         when (p0?.id) {
             R.id.imgMenu ->
                 mActivity.openDrawer()
+
             R.id.imgBack -> {
                 if (mActivity.onBackPressedDispatcher.hasEnabledCallbacks()) {
                     mActivity.onBackPressedDispatcher.onBackPressed()
@@ -297,6 +330,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                     mActivity.onBackPressed()
                 }
             }
+
             R.id.imgFilter -> {
                 CommonMethods.showFilterDialog(
                     this,
@@ -306,43 +340,58 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                     selectedDateOptionPosition
                 )
             }
+
             R.id.imgShare -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     createAttendanceReport()
-                }else{
-                    val arrayPermissions = arrayListOf(android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    PermissionUtil(mActivity).requestPermissions(arrayPermissions){
+                } else {
+                    val arrayPermissions = arrayListOf(
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                    PermissionUtil(mActivity).requestPermissions(arrayPermissions) {
                         createAttendanceReport()
                     }
                 }
             }
+
             R.id.tvPunchIn -> {
-                val locationManager = mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    if(currentLatitude == 0.0 || currentLongitude == 0.0){
-                        CommonMethods.showToastMessage(mActivity, getString(R.string.please_wait_fetching_location))
-                    }else{
+                val locationManager =
+                    mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    if (currentLatitude == 0.0 || currentLongitude == 0.0) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            getString(R.string.please_wait_fetching_location)
+                        )
+                    } else {
                         callPunchInApi()
                     }
-                }else{
+                } else {
                     CommonMethods.showToastMessage(mActivity, getString(R.string.enable_location))
                     openLocationSettings()
                 }
 
             }
+
             R.id.tvPunchOut -> {
-                val locationManager = mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    if(currentLatitude == 0.0 || currentLongitude == 0.0){
-                        CommonMethods.showToastMessage(mActivity, getString(R.string.please_wait_fetching_location))
-                    }else{
+                val locationManager =
+                    mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    if (currentLatitude == 0.0 || currentLongitude == 0.0) {
+                        CommonMethods.showToastMessage(
+                            mActivity,
+                            getString(R.string.please_wait_fetching_location)
+                        )
+                    } else {
                         callPunchOutApi()
                     }
-                }else{
+                } else {
                     CommonMethods.showToastMessage(mActivity, getString(R.string.enable_location))
                     openLocationSettings()
                 }
             }
+
             R.id.tvUsername -> {
                 Log.e("TAG", "onClick: ${userList.size}")
                 if (userList.size > 0) {
@@ -358,41 +407,50 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
     }
 
     private fun openLocationSettings() {
-        val locationManager =
-            mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        // Check if location services are enabled
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            // Build an intent to open location settings
-            val settingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        try {
+            val locationManager =
+                mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-            // Check if there's an activity that can handle the intent
-            if (settingsIntent.resolveActivity(mActivity.packageManager) != null) {
-                // Start the activity to open location settings using the launcher
-                settingLauncher.launch(settingsIntent)
-            } else {
-                // Handle the case where there's no activity to handle the intent
-                // You may want to display a message to the user
-                Log.e("TAG", "No activity to handle the intent")
+            // Check if location services are enabled
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                // Build an intent to open location settings
+                val settingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+
+                // Check if there's an activity that can handle the intent
+                if (settingsIntent.resolveActivity(mActivity.packageManager) != null) {
+                    // Start the activity to open location settings using the launcher
+                    settingLauncher.launch(settingsIntent)
+                } else {
+                    // Handle the case where there's no activity to handle the intent
+                    // You may want to display a message to the user
+                    Log.e("TAG", "No activity to handle the intent")
+                }
             }
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$openLocationSettings()$ :: onFailure = " + e.message.toString())
         }
     }
 
     private fun askLocationPermission() {
-        val arrListOfPermission = arrayListOf<String>(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-            val locationManager =
-                mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                fusedLocationClient =
-                    LocationServices.getFusedLocationProviderClient(mActivity)
-                fetchLocation(fusedLocationClient!!)
-            }else {
-                locationEnableDialog()
+        try {
+            val arrListOfPermission = arrayListOf<String>(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                val locationManager =
+                    mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                    fusedLocationClient =
+                        LocationServices.getFusedLocationProviderClient(mActivity)
+                    fetchLocation(fusedLocationClient!!)
+                } else {
+                    locationEnableDialog()
+                }
             }
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$askLocationPermission()$ :: onFailure = " + e.message.toString())
         }
     }
 
@@ -415,6 +473,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         val userLastSyncLocationReq = JsonObject()
         userLastSyncLocationReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callGetUsersLastSyncLocationApi()$ :: API REQUEST = " + userLastSyncLocationReq.toString())
+
         val userLastSyncLocationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getUserLastSyncLocation(userLastSyncLocationReq)
@@ -425,11 +485,15 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 response: Response<List<UserLastSyncResponse>>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callGetUsersLastSyncLocationApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let { it ->
                         if (it.isNotEmpty()) {
                             userLastSyncData = it[0]
-                            appDao.updateAttendanceId(userLastSyncData?.attendanceId!!, loginData.userId)
+                            appDao.updateAttendanceId(
+                                userLastSyncData?.attendanceId!!,
+                                loginData.userId
+                            )
                             if (userLastSyncData?.attendanceId!! > 0) {
                                 lastSyncLocation = userLastSyncData?.lastSyncLocation!!
                                 lastSyncDateTime = userLastSyncData?.lastSyncDateTime!!
@@ -460,7 +524,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
             override fun onFailure(call: Call<List<UserLastSyncResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callGetUsersLastSyncLocationApi()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -470,7 +535,6 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 }
             }
         })
-
     }
 
     private fun callCurrentMonthAttendanceApi(startDate: String, endDate: String) {
@@ -490,9 +554,13 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         val loginData = loginData
 
         val attendanceListReq = JsonObject()
-        attendanceListReq.addProperty("UserId", if(isFromAttendanceReport) selectedUser.userId else loginData.userId)
+        attendanceListReq.addProperty("UserId",
+            if (isFromAttendanceReport) selectedUser.userId else loginData.userId
+        )
         attendanceListReq.addProperty("StartDate", startDate)
         attendanceListReq.addProperty("EndDate", endDate)
+
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callCurrentMonthAttendanceApi()$ :: API REQUEST = " + attendanceListReq.toString())
 
         CommonMethods.getBatteryPercentage(mActivity)
 
@@ -506,12 +574,18 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 response: Response<List<CurrentMonthAttendanceResponse>>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callCurrentMonthAttendanceApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
                             attendanceList.clear()
                             attendanceList.addAll(it)
-                            setupAttendanceAdapter()
+                            if(attendanceList.size > 0) {
+                                val todayClockInTime = (attendanceList[0].punchInTime ?: "").isNotEmpty()
+                                val todayClockOutTime = (attendanceList[0].punchOutTime ?: "").isNotEmpty()
+                                setPunchInOutButton(todayClockInTime, todayClockOutTime)
+                                setupAttendanceAdapter()
+                            }
                         }
                     }
                 } else {
@@ -526,7 +600,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
             override fun onFailure(call: Call<List<CurrentMonthAttendanceResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callDashboardListApi()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -576,7 +651,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         punchInReq.addProperty("PunchInLocation", currentAddress)
         punchInReq.addProperty("MapKMFromHQ", totalDistance)
 
-        Log.e("TAG", "callLoginApi: " + punchInReq.toString())
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchInApi()$ :: API REQUEST = " + punchInReq.toString())
         val punchInCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)?.punchInApi(punchInReq)
 
@@ -586,6 +661,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 response: Response<PunchInResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchInApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!it.success) {
@@ -600,7 +676,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                         binding.tvPunchIn.setBackgroundResource(R.drawable.button_background_disable)
                         binding.tvPunchOut.setBackgroundResource(R.drawable.button_background_primary)
                         binding.tvPunchIn.isEnabled = false
-                        binding.tvAttendanceLabel.text = getString(R.string.dont_forget_to_punch_out)
+                        binding.tvAttendanceLabel.text =
+                            getString(R.string.dont_forget_to_punch_out)
                         appDao.updatePunchInFlag(true, loginData.userId)
                         appDao.updateAttendanceId(it.attendanceId, loginData.userId)
                         CommonMethods.showAlertDialog(
@@ -631,7 +708,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
             override fun onFailure(call: Call<PunchInResponse>, t: Throwable) {
                 Log.e("TAG", "onFailure: " + t.message)
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callPunchInApi()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -665,7 +743,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         punchOutReq.addProperty("Remarks", "sample clockout")
         punchOutReq.addProperty("PunchOutLocation", currentAddress)
 
-        Log.e("TAG", "callLoginApi: " + punchOutReq.toString())
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchOutApi()$ :: API REQUEST = " + punchOutReq.toString())
+
         val punchOutCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)?.punchOutApi(punchOutReq)
 
@@ -675,6 +754,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 response: Response<PunchInResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchOutApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!it.success) {
@@ -693,18 +773,20 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                             mActivity,
                             it.returnMessage,//getString(R.string.punch_out_success),
                             getString(R.string.punch_out_success_msg),
-                            okListener = object : PositiveButtonListener{
+                            okListener = object : PositiveButtonListener {
                                 override fun okClickListener() {
-                                 callCurrentMonthAttendanceApi(
-                                     CommonMethods.getStartDateOfCurrentMonth(),
-                                     CommonMethods.getCurrentDate())
+                                    callCurrentMonthAttendanceApi(
+                                        CommonMethods.getStartDateOfCurrentMonth(),
+                                        CommonMethods.getCurrentDate()
+                                    )
                                 }
                             },
                             isCancelVisibility = false
                         )
                         binding.tvPunchIn.isEnabled = false
                         binding.tvPunchOut.isEnabled = false
-                        binding.tvAttendanceLabel.text = getString(R.string.your_today_attendance_is_done)
+                        binding.tvAttendanceLabel.text =
+                            getString(R.string.your_today_attendance_is_done)
                         binding.tvPunchOut.setBackgroundResource(R.drawable.button_background_disable)
                         binding.tvPunchIn.setBackgroundResource(R.drawable.button_background_disable)
                         val mServiceIntent = Intent(mActivity, EthicsBackgroundService::class.java)
@@ -724,7 +806,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
             override fun onFailure(call: Call<PunchInResponse>, t: Throwable) {
                 Log.e("TAG", "onFailure: " + t.message)
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callPunchOutApi()$ :: onFailure = " +t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -753,6 +836,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         val userListReq = JsonObject()
         userListReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callUserListApi()$ :: API REQUEST = " + userListReq.toString())
 
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)?.getUserList(userListReq)
@@ -762,6 +846,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 call: Call<List<UserListResponse>>,
                 response: Response<List<UserListResponse>>
             ) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callUserListApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
@@ -777,7 +862,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                             )
                         }
                     }
-                }else{
+                } else {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -789,7 +874,8 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
             override fun onFailure(call: Call<List<UserListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callUserListApi()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -800,12 +886,11 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
             }
 
         })
-
     }
 
     private fun locationEnableDialog() {
         try {
-            if(!appDao.getLoginData().todayClockInDone) {
+            if (!appDao.getLoginData().todayClockInDone) {
                 binding.tvLocation.text = getString(R.string.fetching_location)
             }
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(mActivity)
@@ -816,8 +901,9 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
             val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
             builder.setAlwaysShow(true)
 
-            val result: Task<LocationSettingsResponse> = LocationServices.getSettingsClient(mActivity)
-                .checkLocationSettings(builder.build())
+            val result: Task<LocationSettingsResponse> =
+                LocationServices.getSettingsClient(mActivity)
+                    .checkLocationSettings(builder.build())
             result.addOnCompleteListener { task ->
                 try {
                     val response: LocationSettingsResponse? =
@@ -835,6 +921,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }
@@ -842,14 +929,15 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 }
             }
         } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$locationEnableDialog()$ :: = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("TAG", "locationEnableDialog: "+e.printStackTrace() )
+            Log.e("TAG", "locationEnableDialog: " + e.printStackTrace())
         }
     }
 
     private fun fetchLocation(fusedLocationClient: FusedLocationProviderClient) {
         try {
-            if(!appDao.getLoginData().todayClockInDone) {
+            if (!appDao.getLoginData().todayClockInDone) {
                 binding.tvLocation.text = getString(R.string.fetching_location)
             }
             val locationRequest = LocationRequest.create()
@@ -867,19 +955,30 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                     currentLongitude = location.longitude
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        AppPreference.saveBooleanPreference(mActivity, IS_MOCK_LOCATION, location.isMock)
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isMock
+                        )
                     } else {
-                        AppPreference.saveBooleanPreference(mActivity, IS_MOCK_LOCATION, location.isFromMockProvider)
+                        AppPreference.saveBooleanPreference(
+                            mActivity,
+                            IS_MOCK_LOCATION,
+                            location.isFromMockProvider
+                        )
                     }
 
-                    if(AppPreference.getBooleanPreference(mActivity, IS_MOCK_LOCATION)){
-                        CommonMethods.showAlertDialog(mActivity, getString(R.string.location_error_title),
+                    if (AppPreference.getBooleanPreference(mActivity, IS_MOCK_LOCATION)) {
+                        CommonMethods.showAlertDialog(mActivity,
+                            getString(R.string.location_error_title),
                             getString(R.string.mock_location_msg),
-                            okListener = object :PositiveButtonListener{
+                            okListener = object : PositiveButtonListener {
                                 override fun okClickListener() {
                                     mActivity.finish()
                                 }
-                            }, isCancelVisibility = false)
+                            },
+                            isCancelVisibility = false
+                        )
                     }
 
                     val distanceCalculatorUtils = DistanceCalculatorUtils()
@@ -902,7 +1001,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                         currentLatitude,
                         currentLongitude
                     ) ?: ""
-                    if(userLastSyncData?.attendanceId!! == 0) {
+                    if (userLastSyncData?.attendanceId!! == 0) {
                         binding.tvLocation.text = currentAddress
                     }
                     fusedLocationClient.removeLocationUpdates(this)
@@ -914,6 +1013,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$fetchLocation()$ :: = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
             e.printStackTrace()
         }
@@ -945,8 +1045,11 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
         callCurrentMonthAttendanceApi(startDate, endDate)
     }
 
-    override fun onLocationClick(currentMonthData: CurrentMonthAttendanceResponse, tripSummeryData: TripSummeryReportResponse) {
-        if((currentMonthData.punchInTime ?: "").isEmpty()){
+    override fun onLocationClick(
+        currentMonthData: CurrentMonthAttendanceResponse,
+        tripSummeryData: TripSummeryReportResponse
+    ) {
+        if ((currentMonthData.punchInTime ?: "").isEmpty()) {
             CommonMethods.showToastMessage(mActivity, "Attendance data not found")
             return
         }
@@ -961,7 +1064,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
                 currentMonthData.punchInLocation,
                 currentMonthData.punchOutLatitude,
                 currentMonthData.punchOutLongitude,
-                "Punch Out" + " (${currentMonthData.punchOutTime ?: ""})",
+                "Punch Out" + " (${currentMonthData.punchOutTime})",
                 currentMonthData.punchOutLocation,
                 true
             ),
@@ -1026,20 +1129,80 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
 // Add headers to the table with improved styling
             val headerFont = Font(Font.FontFamily.HELVETICA, 14f, Font.BOLD, BaseColor.WHITE)
-            table.addCell(CommonMethods.getStyledCell(getString(R.string.sr_no), headerFont, BaseColor.BLUE))
-            table.addCell(CommonMethods.getStyledCell(getString(R.string.date), headerFont, BaseColor.BLUE))
-            table.addCell(CommonMethods.getStyledCell(getString(R.string.in_time), headerFont, BaseColor.BLUE))
-            table.addCell(CommonMethods.getStyledCell(getString(R.string.out_time), headerFont, BaseColor.BLUE))
-            table.addCell(CommonMethods.getStyledCell(getString(R.string.type), headerFont, BaseColor.BLUE))
+            table.addCell(
+                CommonMethods.getStyledCell(
+                    getString(R.string.sr_no),
+                    headerFont,
+                    BaseColor.BLUE
+                )
+            )
+            table.addCell(
+                CommonMethods.getStyledCell(
+                    getString(R.string.date),
+                    headerFont,
+                    BaseColor.BLUE
+                )
+            )
+            table.addCell(
+                CommonMethods.getStyledCell(
+                    getString(R.string.in_time),
+                    headerFont,
+                    BaseColor.BLUE
+                )
+            )
+            table.addCell(
+                CommonMethods.getStyledCell(
+                    getString(R.string.out_time),
+                    headerFont,
+                    BaseColor.BLUE
+                )
+            )
+            table.addCell(
+                CommonMethods.getStyledCell(
+                    getString(R.string.type),
+                    headerFont,
+                    BaseColor.BLUE
+                )
+            )
 
 // Add data to the table
             val dataFont = Font(Font.FontFamily.HELVETICA, 12f, Font.NORMAL, BaseColor.BLACK)
             for (i in attendanceList.indices) {
-                table.addCell(CommonMethods.getStyledCell((i + 1).toString(), dataFont, BaseColor.WHITE))
-                table.addCell(CommonMethods.getStyledCell(attendanceList[i].punchInDate, dataFont, BaseColor.WHITE))
-                table.addCell(CommonMethods.getStyledCell(attendanceList[i].punchInTime, dataFont, BaseColor.WHITE))
-                table.addCell(CommonMethods.getStyledCell(attendanceList[i].punchOutTime, dataFont, BaseColor.WHITE))
-                table.addCell(CommonMethods.getStyledCell(attendanceList[i].attendanceStatus, dataFont, BaseColor.WHITE))
+                table.addCell(
+                    CommonMethods.getStyledCell(
+                        (i + 1).toString(),
+                        dataFont,
+                        BaseColor.WHITE
+                    )
+                )
+                table.addCell(
+                    CommonMethods.getStyledCell(
+                        attendanceList[i].punchInDate,
+                        dataFont,
+                        BaseColor.WHITE
+                    )
+                )
+                table.addCell(
+                    CommonMethods.getStyledCell(
+                        (attendanceList[i].punchInTime ?: ""),
+                        dataFont,
+                        BaseColor.WHITE
+                    )
+                )
+                table.addCell(
+                    CommonMethods.getStyledCell(
+                        (attendanceList[i].punchOutTime ?: ""),
+                        dataFont,
+                        BaseColor.WHITE
+                    )
+                )
+                table.addCell(
+                    CommonMethods.getStyledCell(
+                        attendanceList[i].attendanceStatus,
+                        dataFont,
+                        BaseColor.WHITE
+                    )
+                )
             }
 
             document.add(table)
@@ -1049,6 +1212,7 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
             openPDFWithIntent(filePath)
 
         } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$createAttendanceReport()$ :: = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
             e.printStackTrace()
         }
@@ -1075,43 +1239,52 @@ class AttendanceFragment : HomeBaseFragment(), View.OnClickListener, FilterDialo
 
         } catch (e: ActivityNotFoundException) {
             FirebaseCrashlytics.getInstance().recordException(e)
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$openPDFWithIntent()$ :: error = " + e.message.toString())
             // Handle the exception if a PDF viewer is not installed
-            CommonMethods.showToastMessage(mActivity, "Error : "+e.message.toString())
+            CommonMethods.showToastMessage(mActivity, "Error : " + e.message.toString())
             Toast.makeText(mActivity, "No PDF viewer installed", Toast.LENGTH_SHORT).show()
         }
     }
 
     fun startLocationService() {
 
-        val arrListOfPermission = arrayListOf<String>(
-            android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-        PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
-            if (appDao.getLoginData().attendanceId > 0) {
+        try {
 
-                LocalBroadcastManager.getInstance(mActivity).registerReceiver(
-                    object : BroadcastReceiver() {
-                        override fun onReceive(context: Context, intent: Intent) {
-                            serviceLat = intent.getStringExtra(EXTRA_LATITUDE) ?: "0.01"
-                            serviceLng = intent.getStringExtra(EXTRA_LONGITUDE) ?: "0.01"
-                            if (serviceLat == "0.01" && serviceLng == "0.01") {
-                                CommonMethods.showToastMessage(mActivity, "Unable to fetch location. Please allow the location for this app")
+            val arrListOfPermission = arrayListOf<String>(
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+            PermissionUtil(mActivity).requestPermissions(arrListOfPermission) {
+                if (appDao.getLoginData().attendanceId > 0) {
+
+                    LocalBroadcastManager.getInstance(mActivity).registerReceiver(
+                        object : BroadcastReceiver() {
+                            override fun onReceive(context: Context, intent: Intent) {
+                                serviceLat = intent.getStringExtra(EXTRA_LATITUDE) ?: "0.01"
+                                serviceLng = intent.getStringExtra(EXTRA_LONGITUDE) ?: "0.01"
+                                if (serviceLat == "0.01" && serviceLng == "0.01") {
+                                    CommonMethods.showToastMessage(
+                                        mActivity,
+                                        "Unable to fetch location. Please allow the location for this app"
+                                    )
+                                }
                             }
-                        }
-                    }, IntentFilter(EthicsBackgroundService().ACTION_LOCATION_BROADCAST)
-                )
-                val mServiceIntent = Intent(mActivity, EthicsBackgroundService::class.java)
+                        }, IntentFilter(EthicsBackgroundService().ACTION_LOCATION_BROADCAST)
+                    )
+                    val mServiceIntent = Intent(mActivity, EthicsBackgroundService::class.java)
 
-                if (!isMyServiceRunning(EthicsBackgroundService::class.java)) {
-                    mActivity.startService(mServiceIntent)
+                    if (!isMyServiceRunning(EthicsBackgroundService::class.java)) {
+                        mActivity.startService(mServiceIntent)
+                    }
+                } else {
+                    serviceLat = "0.01"
+                    serviceLng = "0.01"
                 }
-            } else {
-                serviceLat = "0.01"
-                serviceLng = "0.01"
             }
-        }
 
+        }catch (e:Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$startLocationService()$ :: = " + e.message.toString())
+        }
 
     }
 

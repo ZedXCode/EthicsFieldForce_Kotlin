@@ -418,4 +418,5 @@ interface WebApi {
 
     @POST("api/notificationreadupdate")
     fun notificationRead(@Body jsonObject: JsonObject) : Call<CommonSuccessResponse>
+
 }

@@ -415,7 +415,8 @@ class InquiryEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                             accountName = "",
                             accountMasterId = 0,
                             contactPersonName = "",
-                            isForApproval = false
+                            isForApproval = false,
+                            visitId = 0
                         ),
                         addToBackStack = true,
                         ignoreIfCurrent = true,

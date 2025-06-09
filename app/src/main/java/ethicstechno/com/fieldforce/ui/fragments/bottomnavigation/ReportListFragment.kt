@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
@@ -24,6 +25,7 @@ import ethicstechno.com.fieldforce.ui.fragments.dashboard.DashboardDrillFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.TripReportFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.TripSummeryReportFragment
 import ethicstechno.com.fieldforce.ui.fragments.reports.VisitReportFragment
+import ethicstechno.com.fieldforce.ui.fragments.reports.WebViewReportFragment
 import ethicstechno.com.fieldforce.utils.ATTENDANCE_REPORT_MODULE
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CommonMethods
@@ -73,51 +75,54 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
         }
     }
 
-
     override fun onStart() {
         super.onStart()
         Log.e("TAG", "onStart: ")
     }
 
     private fun initView() {
-        binding.toolbar.imgMenu.visibility = View.VISIBLE
-        binding.toolbar.imgBack.visibility = View.GONE
-        binding.toolbar.tvHeader.text = getString(R.string.reports)
-        binding.toolbar.imgMenu.setOnClickListener(this)
-        reportList.clear()
-        if(AppPreference.getBooleanPreference(mActivity, ATTENDANCE_REPORT_MODULE)){
-            reportList.add(
-                ReportListResponse(
-                    reportName = getString(R.string.attendance_report),
-                    isDynamicReport = false
+        try {
+            binding.toolbar.imgMenu.visibility = View.VISIBLE
+            binding.toolbar.imgBack.visibility = View.GONE
+            binding.toolbar.tvHeader.text = getString(R.string.reports)
+            binding.toolbar.imgMenu.setOnClickListener(this)
+            reportList.clear()
+            if (AppPreference.getBooleanPreference(mActivity, ATTENDANCE_REPORT_MODULE)) {
+                reportList.add(
+                    ReportListResponse(
+                        reportName = getString(R.string.attendance_report),
+                        isDynamicReport = false
+                    )
                 )
-            )
-        }
-        if(AppPreference.getBooleanPreference(mActivity, TRIP_REPORT_MODULE)) {
-            reportList.add(
-                ReportListResponse(
-                    reportName = getString(R.string.trip_report),
-                    isDynamicReport = false
+            }
+            if (AppPreference.getBooleanPreference(mActivity, TRIP_REPORT_MODULE)) {
+                reportList.add(
+                    ReportListResponse(
+                        reportName = getString(R.string.trip_report),
+                        isDynamicReport = false
+                    )
                 )
-            )
-        }
-        if(AppPreference.getBooleanPreference(mActivity, TRIP_SUMMERY_REPORT_MODULE)) {
-            reportList.add(
-                ReportListResponse(
-                    reportName = getString(R.string.trip_summery_report),
-                    isDynamicReport = false
+            }
+            if (AppPreference.getBooleanPreference(mActivity, TRIP_SUMMERY_REPORT_MODULE)) {
+                reportList.add(
+                    ReportListResponse(
+                        reportName = getString(R.string.trip_summery_report),
+                        isDynamicReport = false
+                    )
                 )
-            )
-        }
-        if(AppPreference.getBooleanPreference(mActivity, VISIT_REPORT_MODULE)) {
-            reportList.add(
-                ReportListResponse(
-                    reportName = getString(R.string.visit_report),
-                    isDynamicReport = false
+            }
+            if (AppPreference.getBooleanPreference(mActivity, VISIT_REPORT_MODULE)) {
+                reportList.add(
+                    ReportListResponse(
+                        reportName = getString(R.string.visit_report),
+                        isDynamicReport = false
+                    )
                 )
-            )
+            }
+            callReportListApi()
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$initView()$ :: onFailure = " + e.message.toString())
         }
-        callReportListApi()
     }
 
     override fun onClick(p0: View?) {
@@ -139,6 +144,8 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
         val reportListReq = JsonObject()
         reportListReq.addProperty("UserId", loginData.userId)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callReportListApi()$ :: API REQUEST = " + reportListReq.toString())
+
         val reportListCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.getReportList(reportListReq)
@@ -149,6 +156,12 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                 response: Response<List<ReportListResponse>>
             ) {
                 CommonMethods.hideLoading()
+
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] IN \$callReportListApi()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
 
                 if (isSuccess(response)) {
                     response.body()?.let {
@@ -174,6 +187,7 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<ReportListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callReportListApi()$ :: onFailure = " + t.message.toString())
                 setupReportRecyclerView()
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(
@@ -185,7 +199,6 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
                 }
             }
         })
-
     }
 
     private fun setupReportRecyclerView() {
@@ -222,63 +235,69 @@ class ReportListFragment : HomeBaseFragment(), View.OnClickListener {
 
                 binding.llMain.setOnClickListener {
 
-                    if (report.isDynamicReport) {
+                    if (report.webUrl.isNotEmpty()) {
                         mActivity.addFragment(
-                            DashboardDrillFragment.newInstance(
-                                false,
-                                DashboardListResponse(),
-                                DashboardDrillResponse(),
-                                report.storeProcedureName,
-                                report.reportSetupId,
-                                arrayListOf(),
-                                report.reportName,
-                                report.filter,
-                                report.reportGroupBy,
-                                true,
-                                productFilter = report.productFilter
-                            ), true, true, AnimationType.fadeInfadeOut
+                            WebViewReportFragment.newInstance(report.reportName, report.webUrl),
+                            addToBackStack = true,
+                            ignoreIfCurrent = true, AnimationType.fadeInfadeOut
                         )
                     } else {
-                        when (report.reportName) {
-                            getString(R.string.attendance_report) -> {
-                                mActivity.addFragment(
-                                    AttendanceFragment.newInstance(true),
-                                    addToBackStack = true,
-                                    ignoreIfCurrent = true,
-                                    animationType = AnimationType.fadeInfadeOut
-                                )
-                            }
+                        if (report.isDynamicReport) {
+                            mActivity.addFragment(
+                                DashboardDrillFragment.newInstance(
+                                    false,
+                                    DashboardListResponse(),
+                                    DashboardDrillResponse(),
+                                    report.storeProcedureName,
+                                    report.reportSetupId,
+                                    arrayListOf(),
+                                    report.reportName,
+                                    report.filter,
+                                    report.reportGroupBy,
+                                    true,
+                                    productFilter = report.productFilter
+                                ), true, true, AnimationType.fadeInfadeOut
+                            )
+                        } else {
+                            when (report.reportName) {
+                                getString(R.string.attendance_report) -> {
+                                    mActivity.addFragment(
+                                        AttendanceFragment.newInstance(true),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
 
-                            getString(R.string.trip_report) -> {
-                                mActivity.addFragment(
-                                    TripReportFragment(),
-                                    addToBackStack = true,
-                                    ignoreIfCurrent = true,
-                                    animationType = AnimationType.fadeInfadeOut
-                                )
-                            }
+                                getString(R.string.trip_report) -> {
+                                    mActivity.addFragment(
+                                        TripReportFragment(),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
 
-                            getString(R.string.trip_summery_report) -> {
-                                mActivity.addFragment(
-                                    TripSummeryReportFragment(),
-                                    addToBackStack = true,
-                                    ignoreIfCurrent = true,
-                                    animationType = AnimationType.fadeInfadeOut
-                                )
-                            }
+                                getString(R.string.trip_summery_report) -> {
+                                    mActivity.addFragment(
+                                        TripSummeryReportFragment(),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
 
-                            getString(R.string.visit_report) -> {
-                                mActivity.addFragment(
-                                    VisitReportFragment(),
-                                    addToBackStack = true,
-                                    ignoreIfCurrent = true,
-                                    animationType = AnimationType.fadeInfadeOut
-                                )
+                                getString(R.string.visit_report) -> {
+                                    mActivity.addFragment(
+                                        VisitReportFragment(),
+                                        addToBackStack = true,
+                                        ignoreIfCurrent = true,
+                                        animationType = AnimationType.fadeInfadeOut
+                                    )
+                                }
                             }
                         }
                     }
-
-
                 }
                 binding.executePendingBindings()
             }

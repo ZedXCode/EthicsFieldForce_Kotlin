@@ -34,6 +34,7 @@ import com.google.android.gms.location.LocationSettingsResponse
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.tasks.Task
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
@@ -115,69 +116,73 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
     }
 
     private fun initView() {
-        binding.toolbar.imgMenu.visibility = View.VISIBLE
-        binding.toolbar.imgBack.visibility = View.GONE
-        binding.toolbar.tvHeader.text = getString(R.string.trip)
-        binding.toolbar.imgMenu.setOnClickListener(this)
-        binding.cardStartImage.setOnClickListener(this)
-        binding.tvStartTrip.setOnClickListener(this)
-        binding.tvEndTrip.setOnClickListener(this)
-        binding.imgStartImageFile.setOnClickListener(this)
-        binding.imgEndImageFile.setOnClickListener(this)
-        binding.imgRefresh.setOnClickListener(this)
-        binding.tvLocation.setTextIsSelectable(true)
+        try {
+            binding.toolbar.imgMenu.visibility = View.VISIBLE
+            binding.toolbar.imgBack.visibility = View.GONE
+            binding.toolbar.tvHeader.text = getString(R.string.trip)
+            binding.toolbar.imgMenu.setOnClickListener(this)
+            binding.cardStartImage.setOnClickListener(this)
+            binding.tvStartTrip.setOnClickListener(this)
+            binding.tvEndTrip.setOnClickListener(this)
+            binding.imgStartImageFile.setOnClickListener(this)
+            binding.imgEndImageFile.setOnClickListener(this)
+            binding.imgRefresh.setOnClickListener(this)
+            binding.tvLocation.setTextIsSelectable(true)
 
-        if (loginData.todayClockInDone && loginData.todayClockOutDone) {
-            binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_disable)
-            binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_disable)
-            binding.tvStartTrip.isEnabled = false
-            binding.tvEndTrip.isEnabled = false
-            CommonMethods.showAlertDialog(
-                mActivity,
-                getString(R.string.alert),
-                getString(R.string.your_today_attendance_done_try_tommorrow),
-                object : PositiveButtonListener {
-                    override fun okClickListener() {
-                        mActivity.checkBottomNavigationItem(2)
-                        mActivity.addFragment(
-                            DashboardFragment(),
-                            false,
-                            true,
-                            AnimationType.fadeInfadeOut
-                        )
-                    }
-                },
-                isCancelVisibility = false
-            )
-        } else if (loginData.todayClockInDone) {
-            binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_primary)
-            binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_primary)
-            binding.tvStartTrip.isEnabled = true
-            binding.tvEndTrip.isEnabled = true
-            callVehicleTypeList()
-        } else {
-            binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_disable)
-            binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_disable)
-            binding.tvStartTrip.isEnabled = false
-            binding.tvEndTrip.isEnabled = false
-            CommonMethods.showAlertDialog(
-                mActivity,
-                getString(R.string.alert),
-                getString(R.string.punch_in_trip_operation),
-                object : PositiveButtonListener {
-                    override fun okClickListener() {
-                        mActivity.checkBottomNavigationItem(0)
-                        mActivity.addFragment(
-                            AttendanceFragment(),
-                            addToBackStack = false,
-                            ignoreIfCurrent = true,
-                            animationType = AnimationType.fadeInfadeOut
-                        )
-                    }
+            if (loginData.todayClockInDone && loginData.todayClockOutDone) {
+                binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_disable)
+                binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_disable)
+                binding.tvStartTrip.isEnabled = false
+                binding.tvEndTrip.isEnabled = false
+                CommonMethods.showAlertDialog(
+                    mActivity,
+                    getString(R.string.alert),
+                    getString(R.string.your_today_attendance_done_try_tommorrow),
+                    object : PositiveButtonListener {
+                        override fun okClickListener() {
+                            mActivity.checkBottomNavigationItem(2)
+                            mActivity.addFragment(
+                                DashboardFragment(),
+                                false,
+                                true,
+                                AnimationType.fadeInfadeOut
+                            )
+                        }
+                    },
+                    isCancelVisibility = false
+                )
+            } else if (loginData.todayClockInDone) {
+                binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_primary)
+                binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_primary)
+                binding.tvStartTrip.isEnabled = true
+                binding.tvEndTrip.isEnabled = true
+                callVehicleTypeList()
+            } else {
+                binding.tvStartTrip.setBackgroundResource(R.drawable.button_background_disable)
+                binding.tvEndTrip.setBackgroundResource(R.drawable.button_background_disable)
+                binding.tvStartTrip.isEnabled = false
+                binding.tvEndTrip.isEnabled = false
+                CommonMethods.showAlertDialog(
+                    mActivity,
+                    getString(R.string.alert),
+                    getString(R.string.punch_in_trip_operation),
+                    object : PositiveButtonListener {
+                        override fun okClickListener() {
+                            mActivity.checkBottomNavigationItem(0)
+                            mActivity.addFragment(
+                                AttendanceFragment(),
+                                addToBackStack = false,
+                                ignoreIfCurrent = true,
+                                animationType = AnimationType.fadeInfadeOut
+                            )
+                        }
 
-                },
-                isCancelVisibility = false
-            )
+                    },
+                    isCancelVisibility = false
+                )
+            }
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$initView()$ :: = " + e.message.toString())
         }
     }
 
@@ -214,6 +219,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
         when (p0?.id) {
             R.id.imgMenu ->
                 mActivity.openDrawer()
+
             R.id.imgStartImageFile -> {
                 if (selectedVehicleType?.vehicleTypeName == VEHICLE_TYPE_NA) {
                     CommonMethods.showToastMessage(
@@ -224,6 +230,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 }
                 askCameraGalleryPermission()
             }
+
             R.id.imgEndImageFile -> {
                 if (selectedVehicleType?.vehicleTypeName == VEHICLE_TYPE_NA) {
                     CommonMethods.showToastMessage(mActivity, getString(R.string.no_image_required))
@@ -231,6 +238,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 }
                 askCameraGalleryPermission()
             }
+
             R.id.tvStartTrip -> {
                 val locationManager =
                     mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -251,6 +259,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                     locationEnableDialog()
                 }
             }
+
             R.id.tvEndTrip -> {
                 val locationManager =
                     mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -271,6 +280,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                     locationEnableDialog()
                 }
             }
+
             R.id.imgRefresh -> {
                 val locationManager =
                     mActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -412,57 +422,61 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
     }
 
     private fun openAlbum() {
-        AlbumUtility(mActivity, true).openAlbumAndHandleCameraSelection(
-            isFrontCamera = false,
-            onImageSelected = {
-                meterReadingImageFile = it
+        try {
+            AlbumUtility(mActivity, true).openAlbumAndHandleCameraSelection(
+                isFrontCamera = false,
+                onImageSelected = {
+                    meterReadingImageFile = it
 
-                val executor = Executors.newSingleThreadExecutor()
-                val handler = Handler(Looper.getMainLooper())
-                executor.execute {
-                    // This code runs on a background thread
-                    val modifiedImageFile: File = CommonMethods.addDateAndTimeToFile(
-                        it,
-                        CommonMethods.createImageFile(mActivity)!!
-                    )
+                    val executor = Executors.newSingleThreadExecutor()
+                    val handler = Handler(Looper.getMainLooper())
+                    executor.execute {
+                        // This code runs on a background thread
+                        val modifiedImageFile: File = CommonMethods.addDateAndTimeToFile(
+                            it,
+                            CommonMethods.createImageFile(mActivity)!!
+                        )
 
-                    if (modifiedImageFile != null) {
+                        if (modifiedImageFile != null) {
 
-                        // Simulate a time-consuming task
-                        Thread.sleep(1000)
+                            // Simulate a time-consuming task
+                            Thread.sleep(1000)
 
-                        // Update the UI on the main thread using runOnUiThread
-                        handler.post {
-                            if (visitFromPlaceData?.tripId == 0) {
-                                ImageUtils().loadImageFile(
-                                    mActivity,
-                                    modifiedImageFile,
-                                    binding.imgStartImageFile
-                                )
-                            } else {
-                                ImageUtils().loadImageFile(
-                                    mActivity,
-                                    modifiedImageFile,
-                                    binding.imgEndImageFile
-                                )
-                            }
-                            /*Glide.with(mActivity)
+                            // Update the UI on the main thread using runOnUiThread
+                            handler.post {
+                                if (visitFromPlaceData?.tripId == 0) {
+                                    ImageUtils().loadImageFile(
+                                        mActivity,
+                                        modifiedImageFile,
+                                        binding.imgStartImageFile
+                                    )
+                                } else {
+                                    ImageUtils().loadImageFile(
+                                        mActivity,
+                                        modifiedImageFile,
+                                        binding.imgEndImageFile
+                                    )
+                                }
+                                /*Glide.with(mActivity)
                                 .load(modifiedImageFile)
                                 .into(binding.imgStartImageFile)*/
-                            base64String =
-                                CommonMethods.convertImageFileToBase64(modifiedImageFile)
-                                    .toString()
-                            binding.imgStartImageFile.scaleType = ImageView.ScaleType.CENTER_CROP
-                            binding.imgEndImageFile.scaleType = ImageView.ScaleType.CENTER_CROP
+                                base64String =
+                                    CommonMethods.convertImageFileToBase64(modifiedImageFile)
+                                        .toString()
+                                binding.imgStartImageFile.scaleType =
+                                    ImageView.ScaleType.CENTER_CROP
+                                binding.imgEndImageFile.scaleType = ImageView.ScaleType.CENTER_CROP
+                            }
                         }
                     }
+                },
+                onError = {
+                    CommonMethods.showToastMessage(mActivity, it)
                 }
-            },
-            onError = {
-                CommonMethods.showToastMessage(mActivity, it)
-            }
-        )
-
+            )
+        } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$openAlbum()$ :: = " + e.message.toString())
+        }
     }
 
     private fun locationEnableDialog() {
@@ -498,6 +512,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                                 IntentSenderRequest.Builder(resolvable.resolution).build()
                             locationSettingsLauncher.launch(intentSenderRequest)
                         }
+
                         LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
                             // settings, so we won't show the dialog.
                         }
@@ -505,6 +520,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 }
             }
         } catch (e: Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$locationEnableDialog()$ :: onFailure = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
             Log.e("TAG", "locationEnableDialog: " + e.printStackTrace())
         }
@@ -529,6 +545,11 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 call: Call<List<VehicleTypeListResponse>>,
                 response: Response<List<VehicleTypeListResponse>>
             ) {
+                CommonMethods.writeLog(
+                    "[" + this.javaClass.simpleName + "] IN \$callVehicleTypeList()$ :: API RESPONSE = " + Gson().toJson(
+                        response.body()
+                    )
+                )
                 CommonMethods.hideLoading()
                 if (isSuccess(response)) {
                     response.body()?.let {
@@ -551,7 +572,8 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<List<VehicleTypeListResponse>>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callVehicleTypeList()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -577,7 +599,9 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
         val fromPlaceReq = JsonObject()
         fromPlaceReq.addProperty("UserId", loginData.userId)
-            fromPlaceReq.addProperty("ParameterString", "")
+        fromPlaceReq.addProperty("ParameterString", "")
+
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callGetVisitFromPlaceList()$ :: API REQUEST = " + fromPlaceReq.toString())
 
         val fromPlaceCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -589,6 +613,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 response: Response<List<GetVisitFromPlaceListResponse>>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callGetVisitFromPlaceList()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.isNotEmpty()) {
@@ -605,7 +630,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                                 isTripIdZero = true
                                 askLocationPermission()
                                 if (isFromEndTrip) {
-                                    if(mActivity != null && isAdded) {
+                                    if (mActivity != null && isAdded) {
                                         mActivity.addFragment(
                                             TripFragment(), false,
                                             ignoreIfCurrent = false,
@@ -631,8 +656,9 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<List<GetVisitFromPlaceListResponse>>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callGetVisitFromPlaceList()$ :: onFailure = " + t.message.toString())
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -642,7 +668,6 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 }
             }
         })
-
     }
 
     private fun setupDataForEndTrip(visitFromPlaceData: GetVisitFromPlaceListResponse) {
@@ -682,6 +707,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             }
             askLocationPermission()
         } catch (e: java.lang.Exception) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callUserListApi()$ :: = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
         }
 
@@ -720,7 +746,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
         startTripReq.addProperty("Remarks", "start trip")
         startTripReq.addProperty("ReturnMessage", "dadad")
 
-        Log.e("TAG", "callStartTripApi: " + startTripReq.toString())
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callStartTripApi()$ :: API REQUEST = " + startTripReq.toString())
         val startTripCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.startTripApi(startTripReq)
@@ -731,6 +757,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 response: Response<TripSubmitResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callStartTripApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.success) {
@@ -763,7 +790,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                         }
                     }
                 } else {
-                    Log.e("TAG", "onResponse: "+response.message()+", "+response.body() )
+                    Log.e("TAG", "onResponse: " + response.message() + ", " + response.body())
                     CommonMethods.showAlertDialog(
                         mActivity,
                         "Error",
@@ -776,7 +803,8 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
 
             override fun onFailure(call: Call<TripSubmitResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callStartTripApi()$ :: onFailure = " + t.message.toString())
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -799,7 +827,9 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
         val appRegistrationData = appDao.getAppRegistration()
         val loginData = appDao.getLoginData()
         val endTripReq = JsonObject()
-        val endMeterReading = if(binding.etEndMeterReading.text.toString().trim().isEmpty()) 0 else binding.etEndMeterReading.text.toString().trim().toDouble()
+        val endMeterReading = if (binding.etEndMeterReading.text.toString().trim()
+                .isEmpty()
+        ) 0 else binding.etEndMeterReading.text.toString().trim().toDouble()
 
         endTripReq.addProperty("TripId", visitFromPlaceData?.tripId)
         endTripReq.addProperty("UserId", loginData.userId)
@@ -815,6 +845,8 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
         endTripReq.addProperty("UpdateBy", loginData.userId)
         endTripReq.addProperty("IsTripCompleted", true.toString())
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callEndTripApi()$ :: API REQUEST = " + endTripReq.toString())
+
         val endTripCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
             ?.endTripApi(endTripReq)
@@ -825,11 +857,13 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 response: Response<TripSubmitResponse>
             ) {
                 CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callEndTripApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
+
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (it.success) {
                             AppPreference.saveBooleanPreference(mActivity, IS_TRIP_START, false)
-                            if(mActivity != null && isAdded) {
+                            if (mActivity != null && isAdded) {
                                 CommonMethods.showAlertDialog(
                                     mActivity,
                                     getString(R.string.end_trip),
@@ -868,8 +902,9 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
             }
 
             override fun onFailure(call: Call<TripSubmitResponse>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callEndTripApi()$ :: onFailure = " + t.message.toString())
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -879,9 +914,7 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 }
             }
         })
-
     }
-
 
     private fun setupVehicleTypeSpinner() {
         val adapter = VehicleTypeAdapter(
@@ -1039,9 +1072,9 @@ class TripFragment : HomeBaseFragment(), View.OnClickListener {
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$fetchLocation()$ :: " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
             e.printStackTrace()
         }
     }
-
 }

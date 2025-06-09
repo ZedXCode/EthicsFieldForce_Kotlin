@@ -41,6 +41,8 @@
     <color name="color_card2">#FFFFD8</color>
     <color name="color_card3">#EAEBFF</color>
     <color name="color_card4">#E0FEFE</color>
+    <color name="ratingStarYellow">#FFD700</color> <!-- Gold -->
+
 
 
 </resources>

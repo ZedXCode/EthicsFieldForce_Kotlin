@@ -155,8 +155,8 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
         if (isFromApproval) {
             binding.tvSubmit.visibility = View.GONE
             binding.llAcceptReject.visibility = View.VISIBLE
-            binding.toolbar.imgDelete.visibility = View.GONE
-            binding.toolbar.imgEdit.visibility = View.GONE
+            //binding.toolbar.imgDelete.visibility = View.GONE
+            //binding.toolbar.imgEdit.visibility = View.GONE
             binding.tvAccept.setOnClickListener(this)
             binding.tvReject.setOnClickListener(this)
         }
@@ -297,7 +297,7 @@ class AddLeaveApplicationFragment : HomeBaseFragment(), View.OnClickListener, Da
     ) {
         //binding.tvDate.text = leaveDetails.leaveApplicationDate
         binding.toolbar.imgEdit.visibility = if(leaveApplicationData.allowEdit) View.VISIBLE else View.GONE
-        binding.toolbar.imgDelete.visibility = if(leaveApplicationData.allowEdit) View.VISIBLE else View.GONE
+        binding.toolbar.imgDelete.visibility = if(leaveApplicationData.allowDelete) View.VISIBLE else View.GONE
 
 
         binding.tvReportTo.text = leaveDetails.reportingToUserName

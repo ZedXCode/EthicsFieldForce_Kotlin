@@ -91,7 +91,7 @@ class VisitReportFragment : HomeBaseFragment(), View.OnClickListener, FilterDial
         binding.toolbar.imgFilter.visibility = View.VISIBLE
         mActivity.bottomHide()
         binding.toolbar.imgFilter.setOnClickListener(this)
-        binding.toolbar.imgShare.setOnClickListener(this)
+        //binding.toolbar.imgShare.setOnClickListener(this)
 
         binding.toolbar.imgBack.setOnClickListener(this)
         binding.llVisitReportHeader.tvUsername.setOnClickListener(this)

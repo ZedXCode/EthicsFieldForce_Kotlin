@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
@@ -63,27 +64,30 @@ class SplashFragment : MainBaseFragment() {
             return
         }*/
 
-        val isLogin = AppPreference.getBooleanPreference(mActivity, IS_LOGIN)
-        appDao = appDatabase.appDao()
+        try {
+            val isLogin = AppPreference.getBooleanPreference(mActivity, IS_LOGIN)
+            appDao = appDatabase.appDao()
 
-        appDao.getAppRegistration()?.let {
-            val logoFile = it.apiHostingServer + it.logoFilePath
-            if (logoFile.isNotEmpty()) {
-                ImageUtils().loadImageUrl(mActivity, logoFile, binding.imgLogo)
-            } else {
-                binding.imgLogo.setImageResource(R.drawable.ethics_app_logo)
+            appDao.getAppRegistration()?.let {
+                val logoFile = it.apiHostingServer + it.logoFilePath
+                if (logoFile.isNotEmpty()) {
+                    ImageUtils().loadImageUrl(mActivity, logoFile, binding.imgLogo)
+                } else {
+                    binding.imgLogo.setImageResource(R.drawable.ethics_app_logo)
+                }
             }
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (isLogin) {
+                    callLoginApi()
+                } else {
+                    gotoLogin()
+                }
+
+            }, 1000)
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$onViewCreated$ :: error = " + e.message.toString())
         }
-
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (isLogin) {
-                callLoginApi()
-            } else {
-                gotoLogin()
-            }
-
-        }, 1000)
-
     }
 
     fun showMockAlertDialog(){
@@ -101,19 +105,27 @@ class SplashFragment : MainBaseFragment() {
     }
 
     private fun gotoLogin() {
-        mActivity.addFragment(
-            LoginFragment(),
-            false,
-            true,
-            animationType = AnimationType.rightInLeftOut
-        )
+        try {
+            mActivity.addFragment(
+                LoginFragment(),
+                false,
+                true,
+                animationType = AnimationType.rightInLeftOut
+            )
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$gotoLogin()$ :: error = " + e.message.toString())
+        }
     }
 
     private fun gotoHome() {
-        val intent = Intent(mActivity, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        mActivity.startActivity(intent)
-        mActivity.finish()
+        try {
+            val intent = Intent(mActivity, HomeActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            mActivity.startActivity(intent)
+            mActivity.finish()
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$gotoHome()$ :: error = " + e.message.toString())
+        }
     }
 
     private fun callLoginApi() {
@@ -135,6 +147,8 @@ class SplashFragment : MainBaseFragment() {
         loginReq.addProperty("Password", password)
         loginReq.addProperty("Version", BuildConfig.VERSION_NAME)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callLoginApi()$ :: API REQUEST = " + loginReq.toString())
+
         Log.e("TAG", "callLoginApi: " + loginReq.toString())
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)?.loginApi(loginReq)
@@ -144,7 +158,7 @@ class SplashFragment : MainBaseFragment() {
                 call: Call<LoginResponse>,
                 response: Response<LoginResponse>
             ) {
-
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callLoginApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         if (!it.success) {
@@ -176,11 +190,11 @@ class SplashFragment : MainBaseFragment() {
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: API onFailure = " + t.message.toString())
                 //CommonMethods.showAlertDialog(mActivity, getString(R.string.error), t.message, null)
             }
 
         })
-
     }
 
     private fun getFCMToken(): String {
@@ -216,6 +230,7 @@ class SplashFragment : MainBaseFragment() {
                         mActivity,
                         "Token Exception : " + e.message.toString()
                     )
+                    CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$getFCMToken()$ :: = " + e.message.toString())
                 }
             }
         return AppPreference.getStringPreference(mActivity, FCM_TOKEN, "")
@@ -245,6 +260,9 @@ class SplashFragment : MainBaseFragment() {
         )
         checkUserMobileDeviceReq.addProperty("DeviceToken", fcmToken)
 
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callLoginApi()$ :: API REQUEST = " + checkUserMobileDeviceReq)
+
+
         Log.e("TAG", "callLoginApi: $checkUserMobileDeviceReq")
         val appRegistrationCall = WebApiClient.getInstance(mActivity)
             .webApi_without(appRegistrationData.apiHostingServer)
@@ -255,6 +273,7 @@ class SplashFragment : MainBaseFragment() {
                 call: Call<CheckUserMobileResponse>,
                 response: Response<CheckUserMobileResponse>
             ) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callCheckUserMobileDevice()$ :: API RESPONSE = " + Gson().toJson(response.body()))
                 if (isSuccess(response)) {
                     response.body()?.let {
                         gotoHome()
@@ -278,6 +297,7 @@ class SplashFragment : MainBaseFragment() {
             }
 
             override fun onFailure(call: Call<CheckUserMobileResponse>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLoginApi()$ :: API onFailure = " + t.message)
                 if (mActivity != null) {
                     CommonMethods.showAlertDialog(mActivity, getString(R.string.error), t.message, null)
                 }

@@ -17,5 +17,11 @@ data class UserLastSyncResponse(
     @SerializedName("SaveIntervalWiseLocation") val saveIntervalWiseLocation: Boolean,
     @SerializedName("ReturnMessage") val returnMessage: String?, // Change the type to the appropriate one
     @SerializedName("Success") val success: Boolean,
-    @SerializedName("StopBackgroundService") val isStopBackgroundService: Boolean
+    @SerializedName("StopBackgroundService") val isStopBackgroundService: Boolean,
+    @SerializedName("TodayClockInDone") val todayClockInDone : String,
+    @SerializedName("TodayClockOutDone") val todayClockedOutDone : String,
+    @SerializedName("AutoPunchOutFlag") val autoPunchOutFlag: Boolean,
+    @SerializedName("AutoPunchOutTime") val autoPunchOutTime: String,
+    @SerializedName("ReferenceTableName") val referenceTableName: String,
+    @SerializedName("ReferenceId") val referenceId: String,
 )

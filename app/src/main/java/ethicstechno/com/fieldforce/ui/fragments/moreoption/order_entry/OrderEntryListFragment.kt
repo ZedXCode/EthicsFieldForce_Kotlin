@@ -127,6 +127,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
     var isForApproval = false
     var orderForDelete: ArrayList<String> = arrayListOf()
+
     companion object {
 
         fun newInstance(
@@ -145,7 +146,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        orderEntryListBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_order_entry_list, container, false)
+        orderEntryListBinding =
+            DataBindingUtil.inflate(inflater, R.layout.fragment_order_entry_list, container, false)
         arguments?.let {
             isForApproval = it.getBoolean(ARG_PARAM1, false)
         }
@@ -241,7 +243,10 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         if (isForApproval) {
             setupSearchFilter()
             orderEntryListBinding.toolbar.svView.visibility = View.VISIBLE
-            orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(mActivity.getString(R.string.search_here), HtmlCompat.FROM_HTML_MODE_LEGACY)
+            orderEntryListBinding.toolbar.svView.queryHint = HtmlCompat.fromHtml(
+                mActivity.getString(R.string.search_here),
+                HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
             orderEntryListBinding.tvAddOrderEntry.visibility = View.GONE
         } else {
             orderEntryListBinding.tvAddOrderEntry.visibility = View.VISIBLE
@@ -294,10 +299,12 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             addProperty("FromDate", startDate)
             addProperty("ToDate", endDate)
             addProperty("isFromApproval", isApprovalFlag)
-            addProperty("ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and " +
-                    "BranchMasterId=${selectedBranch?.branchMasterId} and " +
-                    "DivisionMasterid=${selectedDivision?.divisionMasterId} and " +
-                    "CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY")
+            addProperty(
+                "ParameterString", "CompanyMasterId=${selectedCompany?.companyMasterId} and " +
+                        "BranchMasterId=${selectedBranch?.branchMasterId} and " +
+                        "DivisionMasterid=${selectedDivision?.divisionMasterId} and " +
+                        "CategoryMasterId=${selectedCategory?.categoryMasterId} and $FORM_ID_ORDER_ENTRY"
+            )
         }
 
         val orderEntryListCall = WebApiClient.getInstance(mActivity)
@@ -421,7 +428,8 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvDateName.text = orderData.orderDate
 
                 binding.tvOrderNoTitle.text = "Order No"
-                binding.tvOrderNoTitleName.text = orderData.categoryName+"/"+ orderData.documentNo
+                binding.tvOrderNoTitleName.text =
+                    orderData.categoryName + "/" + orderData.documentNo
 
                 binding.tvPartyNameTitle.text = "Party"
                 binding.tvPartyName.text = orderData.accountName
@@ -433,24 +441,25 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                 binding.tvItemcountName.text = orderData.productCount.toString()
 
                 binding.tvBranchTitle.text = "Branch"
-                binding.tvBranchName.text =  orderData.branchName
+                binding.tvBranchName.text = orderData.branchName
 
                 binding.tvAmountTitle.text = "Amount"
-                binding.tvAmountName.text =  orderData.orderAmount.toString()
+                binding.tvAmountName.text = orderData.orderAmount.toString()
 
                 binding.tvStatus.text = orderData.orderStatusName
                 statusColor = orderData.statusColor.toString()
                 if (statusColor.isEmpty()) {
                     binding.tvStatus.backgroundTintList =
                         ColorStateList.valueOf(Color.parseColor("#FFC107"))
-                }else{
+                } else {
                     binding.tvStatus.backgroundTintList =
                         ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
                 binding.llMain.setOnClickListener {
                     mActivity.addFragment(
-                        fragment = AddOrderEntryFragment.newInstance(orderData.orderId ?: 0,
+                        fragment = AddOrderEntryFragment.newInstance(
+                            orderData.orderId ?: 0,
                             allowEdit = orderData.allowEdit,
                             allowDelete = orderData.allowDelete,
                             accountName = "",
@@ -464,13 +473,13 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     )
                 }
 
-                if (AppPreference.getBooleanPreference(mActivity, ORDER_ENTRY_PRINT)){
+                if (AppPreference.getBooleanPreference(mActivity, ORDER_ENTRY_PRINT)) {
                     binding.ivShare.visibility = View.VISIBLE
-                }else{
+                } else {
                     binding.ivShare.visibility = View.GONE
                 }
 
-                binding.ivShare.setOnClickListener{
+                binding.ivShare.setOnClickListener {
                     callGetReport(orderData.orderId)
                 }
             }
@@ -513,7 +522,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                     response.body()?.let { reportResponse ->
                         //val fileName = reportResponse.fileName
                         val fileName = appDatabase.appDao()
-                            .getAppRegistration().apiHostingServer +reportResponse.fileName
+                            .getAppRegistration().apiHostingServer + reportResponse.fileName
                         Log.d("FileName", fileName)
 
                         //openUrlInChrome(fileName)
@@ -602,6 +611,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             R.id.tvAccept -> {
                 showRemarksDialog(true)
             }
+
             R.id.tvReject -> {
                 showRemarksDialog(false)
             }
@@ -665,15 +675,15 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
         orderEntryApproveReq.addProperty("loginUserId", loginData.userId)
 
         val objDetailsArray = JsonArray()
-       // for (i in orderDetailsList) {
-            val objDetails = JsonObject()
-            objDetails.addProperty("documentId", orderId)
-            objDetails.addProperty("remarks", remarks)
-            objDetails.addProperty("isApprove",isLeaveApprove)
-            objDetails.addProperty("documentName",DOCUMENT_NAME_ORDER)
-            objDetailsArray.add(objDetails)
-       // }
-        orderEntryApproveReq.add("authorizeApprove",objDetailsArray)
+        // for (i in orderDetailsList) {
+        val objDetails = JsonObject()
+        objDetails.addProperty("documentId", orderId)
+        objDetails.addProperty("remarks", remarks)
+        objDetails.addProperty("isApprove", isLeaveApprove)
+        objDetails.addProperty("documentName", DOCUMENT_NAME_ORDER)
+        objDetailsArray.add(objDetails)
+        // }
+        orderEntryApproveReq.add("authorizeApprove", objDetailsArray)
 
         CommonMethods.getBatteryPercentage(mActivity)
         val leaveApprovalCall = WebApiClient.getInstance(mActivity)
@@ -704,7 +714,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 })
                         }
                     }
-                }else {
+                } else {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         "Error",
@@ -716,7 +726,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
 
             override fun onFailure(call: Call<ApproveRejectResponse>, t: Throwable) {
                 CommonMethods.hideLoading()
-                if(mActivity != null) {
+                if (mActivity != null) {
                     CommonMethods.showAlertDialog(
                         mActivity,
                         getString(R.string.error),
@@ -849,7 +859,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }*/
         }
 
-        btnSubmit.setOnClickListener{
+        btnSubmit.setOnClickListener {
             startDate = tvStartDate.text.toString()
             endDate = tvEndDate.text.toString()
             selectedDateOptionPosition = spDateOption.selectedItemPosition
@@ -1034,7 +1044,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectBranch.text = selectedBranch?.branchName ?: ""
                                 callDivisionListApi()
                             }
-                            if(isFromOnClick){
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_BRANCH,
@@ -1121,7 +1131,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
                                 tvSelectDivision.text = selectedDivision?.divisionName ?: ""
                                 callCategoryListApi()
                             }
-                            if(isFromOnClick){
+                            if (isFromOnClick) {
                                 val userDialog = UserSearchDialogUtil(
                                     mActivity,
                                     type = FOR_DIVISION,
@@ -1371,7 +1381,7 @@ class OrderEntryListFragment : HomeBaseFragment(), View.OnClickListener,
             }
 
             imgClose.setOnClickListener { partyDealerDialog.dismiss() }
-            imgSearchClose.setOnClickListener{
+            imgSearchClose.setOnClickListener {
                 edtSearchPartyDealer.setText("")
                 partyDealerPageNo = 1
                 callAccountMasterList()

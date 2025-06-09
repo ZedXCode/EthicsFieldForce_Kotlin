@@ -4,6 +4,7 @@ import AnimationType
 import addFragment
 import android.app.Activity
 import android.content.Context
+import android.graphics.Typeface
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
@@ -11,7 +12,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.Editable
+import android.text.Spannable
+import android.text.SpannableStringBuilder
 import android.text.TextWatcher
+import android.text.style.StyleSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -666,6 +670,26 @@ class PartyDealerListFragment : HomeBaseFragment(), View.OnClickListener {
                 itemBinding.tvEmail.text = partyDealerData.email
                 itemBinding.tvMobile.text = partyDealerData.phoneNo
                 itemBinding.tvCategory.text = " - " + partyDealerData.categoryName
+                // For "Next Visit :"
+                val nextVisitLabel = "Next Visit : "
+                val nextVisitText = partyDealerData.nextVisitDateTime ?: ""
+                val nextVisitSpannable = SpannableStringBuilder(nextVisitLabel + nextVisitText).apply {
+                    setSpan(StyleSpan(Typeface.BOLD), 0, nextVisitLabel.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                itemBinding.tvNextVisit.text = nextVisitSpannable
+                if((partyDealerData.nextVisitDateTime ?: "").isNotEmpty()){
+                    itemBinding.tvNextVisit.setTextColor(CommonMethods.getVisitDateColor(partyDealerData.nextVisitDateTime))
+                }
+
+                // For "Last Visit :"
+                val lastVisitLabel = "Last Visit : "
+                val lastVisitText = partyDealerData.lastVisitDateTime ?: ""
+                val lastVisitSpannable = SpannableStringBuilder(lastVisitLabel + lastVisitText).apply {
+                    setSpan(StyleSpan(Typeface.BOLD), 0, lastVisitLabel.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }
+                itemBinding.tvLastVisit.text = lastVisitSpannable
+                itemBinding.ratingBarVisit.rating = ((partyDealerData.rating).toFloat() ?: 0f)
+                itemBinding.ratingBarParty.rating = ((partyDealerData.rating).toFloat() ?: 0f)
 
                 itemBinding.tvAddVisitInParty.setOnClickListener {
                     callPartyDealerList(partyDealerData.accountMasterId, FOR_PARTY_DEALER_VISIT)

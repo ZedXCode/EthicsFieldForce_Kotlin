@@ -17,5 +17,6 @@ data class ReportListResponse(
     @SerializedName("UserId") val userId: Int = 0,
     @SerializedName("SerialNo") val serialNo: Int = 0,
     @SerializedName("ProductFilter") val productFilter: Boolean = false,
+    @SerializedName("WebURL") val webUrl : String = "",
     val isDynamicReport: Boolean = true
 )

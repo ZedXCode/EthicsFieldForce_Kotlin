@@ -65,10 +65,10 @@ import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
 import ethicstechno.com.fieldforce.utils.FOR_DIVISION
 import ethicstechno.com.fieldforce.utils.ID_ZERO
-import ethicstechno.com.fieldforce.utils.INQUIRY_PRINT
 import ethicstechno.com.fieldforce.utils.IS_DATA_UPDATE
 import ethicstechno.com.fieldforce.utils.LAST_30_DAYS
 import ethicstechno.com.fieldforce.utils.LAST_7_DAYS
+import ethicstechno.com.fieldforce.utils.LEAVE_APPLICATION_PRINT
 import ethicstechno.com.fieldforce.utils.REJECT_STATUS
 import ethicstechno.com.fieldforce.utils.REPORT_M
 import ethicstechno.com.fieldforce.utils.THIS_MONTH
@@ -192,7 +192,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
         } else {
             leaveApplicationBinding.tvAddLeave.visibility = View.VISIBLE
         }
-        callLeaveApplicationListApi()
+        callLeaveApplicationListApi(startDate, endDate)
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -219,7 +219,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
             LinearLayoutManager(mActivity, RecyclerView.VERTICAL, false)
     }
 
-    private fun callLeaveApplicationListApi() {
+    private fun callLeaveApplicationListApi(tvStartDate : String = "", tvEndDate: String = "") {
         if (!ConnectionUtil.isInternetAvailable(mActivity)) {
             showToastMessage(mActivity, getString(R.string.no_internet))
             return
@@ -241,8 +241,8 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
         } else {
             expenseListReq.addProperty("leaveApplicationId",leaveApplicationId )
             expenseListReq.addProperty("LeaveApprovalStatus", selectedStatus)
-            expenseListReq.addProperty("FromDate", startDate)
-            expenseListReq.addProperty("ToDate", endDate)
+            expenseListReq.addProperty("FromDate", tvStartDate)
+            expenseListReq.addProperty("ToDate", tvEndDate)
             WebApiClient.getInstance(mActivity)
                 .webApi_without(appRegistrationData.apiHostingServer)
                 ?.getLeaveApplicationList(expenseListReq)
@@ -430,7 +430,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                         ColorStateList.valueOf(Color.parseColor(statusColor))
                 }
 
-                if (AppPreference.getBooleanPreference(mActivity, INQUIRY_PRINT)){
+                if (AppPreference.getBooleanPreference(mActivity, LEAVE_APPLICATION_PRINT)){
                     binding.ivShare.visibility = View.VISIBLE
                 }else{
                     binding.ivShare.visibility = View.GONE
@@ -755,7 +755,9 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
         }
 
         btnSubmit.setOnClickListener{
-            callLeaveApplicationListApi()
+            startDate = tvStartDate.text.toString()
+            endDate = tvEndDate.text.toString()
+            callLeaveApplicationListApi(startDate, endDate)
             filterDialog.dismiss()
         }
 
@@ -1288,7 +1290,7 @@ class LeaveApplicationListFragment : HomeBaseFragment(), View.OnClickListener,
                                 isCancelVisibility = false,
                                 okListener = object : PositiveButtonListener {
                                     override fun okClickListener() {
-                                        callLeaveApplicationListApi()
+                                        callLeaveApplicationListApi(startDate, endDate)
                                     }
                                 })
                         }

@@ -485,4 +485,8 @@
     <string name="product_filter" translatable="false">Product Filter</string>
     <string name="notification_list" translatable="false">Notifications</string>
     <!-- TODO: Remove or change this placeholder text -->
+    <string name="add_order" translatable="false">Add Order</string>
+    <string name="you_are_now_connected" translatable="false">You are now connected</string>
+    <string name="internet_is_too_slow_or_not_working" translatable="false">Internet is too slow or not working!</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

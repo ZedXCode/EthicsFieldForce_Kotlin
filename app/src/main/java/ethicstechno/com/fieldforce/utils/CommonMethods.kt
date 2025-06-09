@@ -44,6 +44,7 @@ import com.itextpdf.text.Phrase
 import com.itextpdf.text.pdf.PdfPCell
 import ethicstechno.com.fieldforce.BuildConfig
 import ethicstechno.com.fieldforce.R
+import ethicstechno.com.fieldforce.application.EthicsApplication
 import ethicstechno.com.fieldforce.listener.DatePickerListener
 import ethicstechno.com.fieldforce.listener.FilterDialogListener
 import ethicstechno.com.fieldforce.listener.ItemClickListener
@@ -61,6 +62,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.OutputStreamWriter
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -1181,6 +1183,71 @@ class CommonMethods {
             animation.interpolator = AccelerateDecelerateInterpolator()
             animation.start()
         }
+
+        fun writeLog(strLog: String) {
+            try {
+                System.gc()
+                var isNewFile = false
+
+                val dirPath = EthicsApplication.getAppContext().cacheDir.toString()
+
+                val dateFormat = SimpleDateFormat(LOG_DATE_FORMAT, Locale.ENGLISH)
+                val fileNameFormat = dateFormat.format(Date())
+                val fileName = "$dirPath/Log_$fileNameFormat.txt"
+
+                val logTimeFormat = SimpleDateFormat("${LOG_DATE_FORMAT}-${TIME_FORMAT}", Locale.ENGLISH)
+                val logTime = logTimeFormat.format(Date())
+
+                val dir = File(dirPath)
+                if (!dir.exists()) {
+                    dir.mkdirs()
+                }
+
+                val logFile = File(fileName)
+                if (!logFile.exists()) {
+                    isNewFile = true
+                    logFile.createNewFile()
+                }
+
+                FileOutputStream(logFile, true).use { fOut ->
+                    OutputStreamWriter(fOut).use { writer ->
+                        val logText = "\n$logTime:\nApp Ver:${BuildConfig.VERSION_NAME}\n$strLog"
+                        writer.append(if (isNewFile) logText.trimStart() else logText)
+                        writer.flush()
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                System.gc()
+            }
+        }
+
+        fun getVisitDateColor(dateStr: String): Int {
+            return try {
+                val format = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+                val parsedDate: Date = format.parse(dateStr)!!
+
+                val calendar = Calendar.getInstance()
+                calendar.time = Date()
+                calendar.set(Calendar.HOUR_OF_DAY, 0)
+                calendar.set(Calendar.MINUTE, 0)
+                calendar.set(Calendar.SECOND, 0)
+                calendar.set(Calendar.MILLISECOND, 0)
+                val todayStart = calendar.time
+
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+                val tomorrowStart = calendar.time
+
+                return when {
+                    parsedDate >= todayStart && parsedDate < tomorrowStart -> Color.parseColor("#FFA500") // Orange
+                    parsedDate < todayStart -> Color.RED
+                    else -> Color.GREEN
+                }
+            } catch (e: Exception) {
+                Color.GRAY // fallback for parsing errors
+            }
+        }
+
 
     }
 

@@ -10,6 +10,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -17,12 +18,16 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.*
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.gson.Gson
 import com.google.gson.JsonObject
+import ethicstechno.com.fieldforce.R
 import ethicstechno.com.fieldforce.api.WebApiClient
 import ethicstechno.com.fieldforce.db.AppDatabase
 import ethicstechno.com.fieldforce.db.dao.AppDao
+import ethicstechno.com.fieldforce.models.attendance.PunchInResponse
 import ethicstechno.com.fieldforce.models.attendance.UserLastSyncResponse
 import ethicstechno.com.fieldforce.models.moreoption.CommonSuccessResponse
+import ethicstechno.com.fieldforce.models.trip.TripSubmitResponse
 import ethicstechno.com.fieldforce.utils.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -319,9 +324,10 @@ class EthicsBackgroundService : Service() {
                                                     // Convert milliseconds to minutes
                                                     val differenceInMinutesTrip =
                                                         differenceInMillisTrip / (60 * 1000)
-                                                    //Log.e("ETHICSSERVICE", "onResponse: INTERVAL IS : " + tripTimerInterval + "DIFFRENCEC IS :: " + differenceInMinutesTrip)
+                                                    Log.e("ETHICSSERVICE", "onResponse: INTERVAL IS : " + tripTimerInterval + "DIFFRENCEC IS :: " + differenceInMinutesTrip)
 
                                                     if (tripIdFromApi > 0 && differenceInMinutesTrip >= tripTimerInterval) {
+                                                        Log.e("ETHICSSERVICE", "TRIP SUCCESS")
                                                         if (ConnectionUtil.isInternetAvailable(
                                                                 mContext
                                                             )
@@ -340,6 +346,23 @@ class EthicsBackgroundService : Service() {
                                                                     "0.0"
                                                                 )
                                                                     .toDouble()
+
+                                                            var totalDistance = 0.0
+                                                            val distanceCalculatorUtils = DistanceCalculatorUtils()
+                                                            distanceCalculatorUtils.getDistance(
+                                                                it[0]?.lastSyncLatitude!!,
+                                                                it[0]?.lastSyncLongitude!!,
+                                                                lastLat,
+                                                                lastLng,
+                                                                appDao.getLoginData().googleApiKey!!,
+                                                                object : DistanceCalculatorUtils.DistanceCallback {
+                                                                    override fun onDistanceCalculated(distance: Float) {
+                                                                        totalDistance = distance.toDouble()
+                                                                        Log.e("TAG", "onDistanceCalculated: $totalDistance")
+                                                                    }
+                                                                }
+                                                            )
+
                                                             val apiReq = JsonObject()
                                                             apiReq.addProperty(
                                                                 "TripId",
@@ -363,6 +386,11 @@ class EthicsBackgroundService : Service() {
                                                                     lastLng
                                                                 ) else ""
                                                             )
+                                                            apiReq.addProperty("ReferenceTableName", it[0].referenceTableName)
+                                                            apiReq.addProperty("ReferenceId", it[0].referenceId)
+                                                            apiReq.addProperty("MapKM", totalDistance)
+
+                                                            Log.e("TAG", "onResponse: api called TRIP LOCATION:: "+it[0].referenceTableName)
 
                                                             //Log.e("ETHICSSERVICE", "BACKGORUND API REQ: $apiReq")
 
@@ -409,8 +437,9 @@ class EthicsBackgroundService : Service() {
                                                     val differenceInMinutes =
                                                         differenceInMillis / (60 * 1000)
 
-                                                    //Log.e("ETHICSSERVICE", "onResponse: INTERVAL IS : " + attendanceTimerInterval + "DIFFRENCEC IS :: " + differenceInMinutes)
+                                                    Log.e("ETHICSSERVICE", "onResponse: INTERVAL IS : " + attendanceTimerInterval + "DIFFRENCEC IS :: " + differenceInMinutes)
                                                     if (appDao.getLoginData().todayClockInDone && !appDao.getLoginData().todayClockOutDone && differenceInMinutes >= attendanceTimerInterval) {
+                                                        Log.e("ETHICSSERVICE", "onResponse: ATTENDANCE SUCESS", )
                                                         if (ConnectionUtil.isInternetAvailable(
                                                                 mContext
                                                             )
@@ -427,6 +456,21 @@ class EthicsBackgroundService : Service() {
                                                                     KEY_LAST_LOCATION_LONGITUDE
                                                                 )
                                                                     .toDouble()
+                                                            var totalDistance = 0.0
+                                                            val distanceCalculatorUtils = DistanceCalculatorUtils()
+                                                            distanceCalculatorUtils.getDistance(
+                                                                it[0]?.lastSyncLatitude!!,
+                                                                it[0]?.lastSyncLongitude!!,
+                                                                lastLat,
+                                                                lastLng,
+                                                                appDao.getLoginData().googleApiKey!!,
+                                                                object : DistanceCalculatorUtils.DistanceCallback {
+                                                                    override fun onDistanceCalculated(distance: Float) {
+                                                                        totalDistance = distance.toDouble()
+                                                                        Log.e("TAG", "onDistanceCalculated: $totalDistance")
+                                                                    }
+                                                                }
+                                                            )
                                                             val apiReq = JsonObject()
                                                             apiReq.addProperty(
                                                                 "AttendanceId",
@@ -450,6 +494,10 @@ class EthicsBackgroundService : Service() {
                                                                     lastLng
                                                                 ) else ""
                                                             )
+                                                            apiReq.addProperty("ReferenceTableName", it[0].referenceTableName)
+                                                            apiReq.addProperty("ReferenceId", it[0].referenceId)
+                                                            apiReq.addProperty("MapKM", totalDistance)
+                                                            Log.e("TAG", "onResponse: api called USER LOCATION:: "+it[0].referenceTableName)
 
                                                             //Log.e("ETHICSSERVICE", "BACKGORUND API REQ: $apiReq")
 
@@ -478,6 +526,24 @@ class EthicsBackgroundService : Service() {
 
                                                             })
                                                         }
+                                                    }
+
+                                                    if(tripIdFromApi > 0 && it[0].autoPunchOutFlag){
+                                                        val lastLat =
+                                                        AppPreference.getStringPreference(
+                                                            mContext,
+                                                            KEY_LAST_LOCATION_LATITUDE,
+                                                            "0.0"
+                                                        )
+                                                            .toDouble()
+                                                        val lastLng =
+                                                            AppPreference.getStringPreference(
+                                                                mContext,
+                                                                KEY_LAST_LOCATION_LONGITUDE,
+                                                                "0.0"
+                                                            )
+                                                                .toDouble()
+                                                        callEndTripApi(it[0], mContext, lastLat, lastLng)
                                                     }
                                                 }
                                             }
@@ -508,6 +574,203 @@ class EthicsBackgroundService : Service() {
             FirebaseCrashlytics.getInstance().recordException(e)
             //Log.e("TAG", "startTimer:" + e.message.toString())
         }
+    }
+
+    private fun callEndTripApi(
+        userLastSyncResponse: UserLastSyncResponse,
+        mContext: Context,
+        lastLat: Double,
+        lastLng: Double
+    ) {
+        if (!ConnectionUtil.isInternetAvailable(mContext)) {
+            CommonMethods.showToastMessage(mContext, getString(R.string.no_internet))
+            return
+        }
+        CommonMethods.showLoading(mContext)
+        val currentAddress = CommonMethods.getAddressFromLocation(
+            mContext,
+            lastLat,
+            lastLng
+        ) ?: ""
+        var totalDistance = 0.0
+        val distanceCalculatorUtils = DistanceCalculatorUtils()
+        distanceCalculatorUtils.getDistance(
+            userLastSyncResponse?.lastSyncLatitude!!,
+            userLastSyncResponse?.lastSyncLongitude!!,
+            lastLat,
+            lastLng,
+            appDao.getLoginData().googleApiKey!!,
+            object : DistanceCalculatorUtils.DistanceCallback {
+                override fun onDistanceCalculated(distance: Float) {
+                    totalDistance = distance.toDouble()
+                    Log.e("TAG", "onDistanceCalculated: $totalDistance")
+                }
+            }
+        )
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val loginData = appDao.getLoginData()
+        val endTripReq = JsonObject()
+        val endMeterReading = 0
+
+        endTripReq.addProperty("TripId", userLastSyncResponse.tripId)
+        endTripReq.addProperty("UserId", loginData.userId)
+        endTripReq.addProperty("EndTripLatitude", lastLat)
+        endTripReq.addProperty("EndTripLongitude", lastLng)
+        endTripReq.addProperty("EndTripLocation", currentAddress)
+        endTripReq.addProperty("EndMeterReading", endMeterReading)
+        endTripReq.addProperty("ActualKM", 0)
+        endTripReq.addProperty("TotalTripKm", totalDistance)
+        endTripReq.addProperty("Remarks", "Auto Trip End")
+        endTripReq.addProperty("EndMeterReadingPhoto", "")
+        endTripReq.addProperty("IsActive", true)
+        endTripReq.addProperty("UpdateBy", loginData.userId)
+        endTripReq.addProperty("IsTripCompleted", true.toString())
+
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callEndTripApi()$ :: API REQUEST = " + endTripReq.toString())
+
+        val endTripCall = WebApiClient.getInstance(mContext)
+            .webApi_without(appRegistrationData.apiHostingServer)
+            ?.endTripApi(endTripReq)
+
+        endTripCall?.enqueue(object : Callback<TripSubmitResponse> {
+            override fun onResponse(
+                call: Call<TripSubmitResponse>,
+                response: Response<TripSubmitResponse>
+            ) {
+                CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callEndTripApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
+
+                if (response.code() == 200) {
+                    response.body()?.let {
+                        if (it.success) {
+                            AppPreference.saveBooleanPreference(mContext, IS_TRIP_START, false)
+                            callPunchOutApi(userLastSyncResponse, lastLat, lastLng, currentAddress)
+                        } else {
+                            /*CommonMethods.showAlertDialog(
+                                mActivity,
+                                getString(R.string.end_trip),
+                                it.returnMessage, null
+                            )*/
+                        }
+                    }
+                } else {
+                    /*CommonMethods.showAlertDialog(
+                        mActivity,
+                        "Error",
+                        getString(R.string.error_message),
+                        null
+                    )*/
+                }
+            }
+
+            override fun onFailure(call: Call<TripSubmitResponse>, t: Throwable) {
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callEndTripApi()$ :: onFailure = " + t.message.toString())
+                //CommonMethods.hideLoading()
+                /*if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }*/
+            }
+        })
+    }
+
+    private fun callPunchOutApi(
+        userLastSyncResponse: UserLastSyncResponse,
+        lastLat: Double,
+        lastLng: Double,
+        currentAddress: String
+    ) {
+        if (!ConnectionUtil.isInternetAvailable(mContext)) {
+            CommonMethods.showAlertDialog(
+                mContext,
+                getString(R.string.network_error),
+                getString(R.string.network_error_msg),
+                null
+            )
+            return
+        }
+        //CommonMethods.showLoading(m)
+
+        val appRegistrationData = appDao.getAppRegistration()
+        val punchOutReq = JsonObject()
+        punchOutReq.addProperty("AttendanceId", userLastSyncResponse.attendanceId)
+        punchOutReq.addProperty("UserId", userLastSyncResponse.userId)
+        punchOutReq.addProperty("PunchOutLatitude", lastLat)
+        punchOutReq.addProperty("PunchOutLongitude", lastLng)
+        punchOutReq.addProperty("Remarks", "Auto Punch Out")
+        punchOutReq.addProperty("PunchOutLocation", currentAddress)
+
+        CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchOutApi()$ :: API REQUEST = " + punchOutReq.toString())
+
+        val punchOutCall = WebApiClient.getInstance(mContext)
+            .webApi_without(appRegistrationData.apiHostingServer)?.punchOutApi(punchOutReq)
+
+        punchOutCall?.enqueue(object : Callback<PunchInResponse> {
+            override fun onResponse(
+                call: Call<PunchInResponse>,
+                response: Response<PunchInResponse>
+            ) {
+                CommonMethods.hideLoading()
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] IN \$callPunchOutApi()$ :: API RESPONSE = " + Gson().toJson(response.body()))
+                if (response.code() == 200) {
+                    response.body()?.let {
+                        if (!it.success) {
+                            /*CommonMethods.showAlertDialog(
+                                mContext,
+                                it.returnMessage,//getString(R.string.punch_out_unsuccessful),
+                                it.returnMessage,
+                                null
+                            )*/
+                            return
+                        }
+
+                        appDao.updateAttendanceId(0, userLastSyncResponse.userId)
+                        appDao.updatePunchOutFlag(true, userLastSyncResponse.userId)
+                        /*CommonMethods.showAlertDialog(
+                            mContext,
+                            it.returnMessage,//getString(R.string.punch_out_success),
+                            getString(R.string.punch_out_success_msg),
+                            okListener = object : PositiveButtonListener {
+                                override fun okClickListener() {
+
+                                }
+                            },
+                            isCancelVisibility = false
+                        )*/
+                        val mServiceIntent = Intent(mContext, EthicsBackgroundService::class.java)
+                        if (isMyServiceRunning(EthicsBackgroundService::class.java)) {
+                            mContext.stopService(mServiceIntent)
+                        }
+                    }
+                } else {
+                    /*CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        getString(R.string.error_message),
+                        null
+                    )*/
+                }
+            }
+
+            override fun onFailure(call: Call<PunchInResponse>, t: Throwable) {
+                Log.e("TAG", "onFailure: " + t.message)
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callPunchOutApi()$ :: onFailure = " +t.message.toString())
+                /*if (mActivity != null) {
+                    CommonMethods.showAlertDialog(
+                        mActivity,
+                        getString(R.string.error),
+                        t.message,
+                        null
+                    )
+                }*/
+                //CommonMethods.hideLoading()
+            }
+        })
     }
 
 

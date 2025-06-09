@@ -52,6 +52,8 @@ data class AccountMasterList(
     @SerializedName("AllowEdit") val allowEdit: Boolean = false,
     @SerializedName("AllowDelete") val allowDelete: Boolean = false,
     @SerializedName("AllowOrder") val allowOrder: Boolean = false,
-    @SerializedName("AllowInquiryr") val allowInquiry: Boolean = false,
-
+    @SerializedName("AllowInquiry") val allowInquiry: Boolean = false,
+    @SerializedName("Rating") val rating: Int = 0,
+    @SerializedName("LastVisitDatetime") val lastVisitDateTime: String = "",
+    @SerializedName("NextVisitDatetime") val nextVisitDateTime: String = ""
     ) : Parcelable

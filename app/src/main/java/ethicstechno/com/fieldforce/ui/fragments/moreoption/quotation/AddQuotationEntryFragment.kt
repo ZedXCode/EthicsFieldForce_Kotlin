@@ -312,7 +312,7 @@ class AddQuotationEntryFragment : HomeBaseFragment(), View.OnClickListener,
             if (allowEdit) {
                 binding.toolbar.imgEdit.visibility = View.VISIBLE
             }
-            if (allowEdit) {
+            if (allowDelete) {
                 binding.toolbar.imgDelete.visibility = View.VISIBLE
             }
 

@@ -1,125 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="@dimen/_10sdp"
-    android:layout_marginTop="@dimen/_4sdp"
-    android:layout_marginEnd="@dimen/_10sdp"
-    android:layout_marginBottom="@dimen/_4sdp"
-    app:cardCornerRadius="@dimen/_5sdp"
-    app:cardElevation="@dimen/_5sdp">
+    android:layout_margin="@dimen/_4sdp"
+    android:layout_marginTop="@dimen/_8sdp"
+    android:layout_marginHorizontal="@dimen/_8sdp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeColor="@android:color/darker_gray"
+    android:clickable="true"
+    android:focusable="true"
+    app:strokeWidth="1dp">
 
     <LinearLayout
-        android:id="@+id/llMain"
-        style="@style/LinearLayoutVertical"
-        android:layout_margin="@dimen/_10sdp">
+        android:id="@+id/llTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/_6sdp">
 
+        <!-- Dealer name and category -->
         <LinearLayout
-            android:id="@+id/llTop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvAccountName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/black"
+                android:textSize="@dimen/_12ssp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Place -->
+        <TextView
+            android:id="@+id/tvPlace"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_2sdp"
+            android:text=""
+            android:textColor="@color/black"
+            android:textSize="@dimen/_10ssp" />
+
+        <!-- Contact info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="@dimen/_14sdp"
+                android:layout_height="@dimen/_14sdp"
+                android:src="@drawable/ic_mobile_new"
+                app:tint="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/tvMobile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="@android:color/black"
+                android:textSize="@dimen/_10ssp" />
+
+            <ImageView
+                android:layout_width="@dimen/_14sdp"
+                android:layout_height="@dimen/_14sdp"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/ic_email"
+                app:tint="@color/colorPrimary" />
+
+            <TextView
+                android:id="@+id/tvEmail"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text=""
+                android:textColor="?attr/colorPrimary"
+                android:textSize="@dimen/_10ssp" />
+        </LinearLayout>
+
+        <!-- Rating & Visit Info -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_6sdp"
             android:orientation="vertical">
 
-            <LinearLayout style="@style/LinearLayoutHorizontal">
-
-                <TextView
-                    android:id="@+id/tvAccountName"
-                    style="@style/ListItemHeader"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:singleLine="true"
-                    android:textAllCaps="true"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/_11ssp" />
-
-                <TextView
-                    android:id="@+id/tvCategory"
-                    style="@style/CommonTextViewBoldStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAllCaps="true"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/_11ssp" />
-
-            </LinearLayout>
-
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_2sdp"
+                style="@style/LinearLayoutHorizontal">
                 <TextView
+                    android:id="@+id/tvLastVisit"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:id="@+id/tvPlace"
-                    style="@style/ListItemValue"
-                    android:layout_marginTop="@dimen/_5sdp"
-                    android:textColor="@color/black"
-                    android:textSize="@dimen/_11ssp" />
+                    android:layout_gravity="start|center"
+                    android:gravity="start|center"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/colorGreen"
+                    android:textSize="@dimen/_10ssp" />
 
-            </LinearLayout>
-
-            <LinearLayout
-                style="@style/LinearLayoutHorizontal"
-                android:layout_marginTop="@dimen/_10sdp"
-                android:baselineAligned="false">
-
-                <LinearLayout
-                    style="@style/LinearLayoutHorizontal"
-                    android:layout_width="wrap_content">
-
-                    <ImageView
-                        android:layout_width="@dimen/_20sdp"
-                        android:layout_height="@dimen/_20sdp"
-                        android:src="@drawable/ic_mobile" />
-
-                    <TextView
-                        android:id="@+id/tvMobile"
-                        style="@style/ListItemValue"
-                        android:layout_width="wrap_content"
-                        android:layout_gravity="start|center"
-                        android:gravity="start|center"
-                        android:singleLine="true"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    style="@style/LinearLayoutHorizontal"
-                    android:layout_width="wrap_content"
-                    android:layout_marginStart="@dimen/_10sdp">
-
-                    <ImageView
-                        android:layout_width="@dimen/_20sdp"
-                        android:layout_height="@dimen/_20sdp"
-                        android:src="@drawable/ic_email" />
-
-                    <TextView
-                        android:id="@+id/tvEmail"
-                        style="@style/ListItemValue"
-                        android:layout_width="wrap_content"
-                        android:layout_gravity="start|center"
-                        android:layout_marginStart="@dimen/_10sdp"
-                        android:gravity="start|center"
-                        android:singleLine="true"
-                        android:textColor="@color/colorPrimary"
-                        android:textSize="@dimen/_11ssp" />
-                </LinearLayout>
-
+                <TextView
+                    android:id="@+id/tvNextVisit"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_gravity="start|center"
+                    android:gravity="start|center"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textColor="@color/colorGreen"
+                    android:textSize="@dimen/_10ssp" />
             </LinearLayout>
         </LinearLayout>
 
-
+        <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:background="@color/black" />
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/_4sdp"
+            android:background="@android:color/darker_gray" />
 
         <LinearLayout
             android:id="@+id/llBottomVisit"
-            style="@style/LinearLayoutHorizontal"
-            android:layout_marginTop="@dimen/_10sdp">
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/_5sdp"
+            style="@style/LinearLayoutHorizontal">
 
             <TextView
                 android:id="@+id/tvAddVisit"
@@ -127,13 +161,14 @@
                 android:layout_width="0dp"
                 android:layout_gravity="start|center"
                 android:layout_weight="1"
-                android:drawableLeft="@drawable/ic_add"
                 android:drawablePadding="@dimen/_5sdp"
                 android:gravity="start|center"
                 android:singleLine="true"
                 android:text="@string/add_visit"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/_11ssp" />
+                android:textSize="@dimen/_11ssp"
+                app:drawableTint="@color/colorPrimary"
+                app:drawableLeftCompat="@drawable/ic_add_circle_party" />
 
             <ImageView
                 android:id="@+id/imgLocation"
@@ -141,7 +176,7 @@
                 android:layout_height="@dimen/_22sdp"
                 android:layout_marginStart="@dimen/_10sdp"
                 android:layout_marginEnd="@dimen/_10sdp"
-                android:src="@drawable/ic_location_pin"
+                android:src="@drawable/ic_shop_marker"
                 app:tint="@color/colorPrimary" />
 
             <LinearLayout
@@ -152,22 +187,32 @@
                 android:layout_weight="1"
                 android:gravity="end">
 
-                <ImageView
-                    android:layout_width="@dimen/_25sdp"
-                    android:layout_height="@dimen/_25sdp"
-                    android:src="@drawable/ic_right_arrow"
-                    app:tint="@color/colorPrimary" />
-
-                <TextView
-                    style="@style/ListItemValue"
+                <RatingBar
+                    android:id="@+id/ratingBarVisit"
+                    style="?android:attr/ratingBarStyleSmall"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:layout_gravity="center"
+                    android:stepSize="0.5"
+                    android:isIndicator="true"
+                    android:progressTint="@color/ratingStarYellow"
+                    android:secondaryProgressTint="@color/ratingStarYellow"
+                    android:backgroundTint="@android:color/darker_gray" />
+                <!--<ImageView
+                    android:layout_width="@dimen/_22sdp"
+                    android:layout_height="@dimen/_22sdp"
+                    android:src="@drawable/ic_account"
+                    app:tint="@color/colorPrimary" />-->
+
+                <ImageView
+                    style="@style/ListItemValue"
+                    android:layout_width="@dimen/_22sdp"
+                    android:layout_height="@dimen/_22sdp"
+                    android:layout_marginStart="@dimen/_4sdp"
                     android:layout_gravity="start|center"
-                    android:layout_marginStart="@dimen/_5sdp"
-                    android:singleLine="true"
-                    android:text="@string/account"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="@dimen/_11ssp" />
+                    android:src="@drawable/ic_party_info"
+                    app:tint="@color/colorPrimary" />
             </LinearLayout>
 
 
@@ -175,6 +220,7 @@
 
         <LinearLayout
             android:id="@+id/llPartyBottom"
+            android:layout_gravity="center"
             style="@style/LinearLayoutHorizontal"
             android:layout_marginTop="@dimen/_5sdp">
 
@@ -184,50 +230,63 @@
                 android:layout_width="0dp"
                 android:layout_gravity="start|center"
                 android:layout_weight="1"
-                android:drawableLeft="@drawable/ic_add"
                 android:drawablePadding="@dimen/_5sdp"
                 android:gravity="start|center"
                 android:singleLine="true"
                 android:text="@string/add_visit"
                 android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/_11ssp" />
+                android:textSize="@dimen/_11ssp"
+                app:drawableLeftCompat="@drawable/ic_add_circle_party"
+                app:drawableTint="@color/colorPrimary" />
 
             <ImageView
                 android:id="@+id/imgPartyLocation"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/_22sdp"
                 android:layout_height="@dimen/_22sdp"
                 android:layout_marginStart="@dimen/_10sdp"
                 android:layout_marginEnd="@dimen/_10sdp"
-                android:layout_weight="1"
-                android:src="@drawable/ic_location_pin"
+                android:src="@drawable/ic_shop_marker"
                 app:tint="@color/colorPrimary" />
 
             <LinearLayout
                 android:id="@+id/llPartyAccount"
                 style="@style/LinearLayoutHorizontal"
                 android:layout_width="0dp"
-                android:layout_gravity="center"
+                android:layout_gravity="end"
                 android:layout_weight="1"
-                android:gravity="center">
+                android:gravity="end">
+
+                <!--<ImageView
+                    android:layout_width="@dimen/_22sdp"
+                    android:layout_height="@dimen/_22sdp"
+                    android:src="@drawable/ic_account"
+                    app:tint="@color/colorPrimary" />-->
+
+                <RatingBar
+                    android:id="@+id/ratingBarParty"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:layout_gravity="center"
+                    android:stepSize="0.5"
+                    android:isIndicator="true"
+                    android:progressTint="@color/ratingStarYellow"
+                    android:secondaryProgressTint="@color/ratingStarYellow"
+                    android:backgroundTint="@android:color/darker_gray" />
 
                 <ImageView
-                    android:layout_width="@dimen/_25sdp"
-                    android:layout_height="@dimen/_25sdp"
-                    android:src="@drawable/ic_right_arrow"
-                    app:tint="@color/colorPrimary" />
-
-                <TextView
                     style="@style/ListItemValue"
-                    android:layout_width="wrap_content"
+                    android:src="@drawable/ic_party_info"
+                    android:layout_width="@dimen/_22sdp"
+                    android:layout_height="@dimen/_22sdp"
                     android:layout_gravity="start|center"
                     android:layout_marginStart="@dimen/_5sdp"
-                    android:singleLine="true"
-                    android:text="@string/account"
-                    android:textColor="@color/colorPrimary"
-                    android:textSize="@dimen/_11ssp" />
+                    app:tint="@color/colorPrimary" />
             </LinearLayout>
 
 
         </LinearLayout>
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.location.LocationManager
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
@@ -23,6 +24,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -51,6 +53,7 @@ import ethicstechno.com.fieldforce.db.dao.AppDao
 import ethicstechno.com.fieldforce.listener.PositiveButtonListener
 import ethicstechno.com.fieldforce.models.NavMenuModel
 import ethicstechno.com.fieldforce.permission.KotlinPermissions
+import ethicstechno.com.fieldforce.receiver.NetworkChangeReceiver
 import ethicstechno.com.fieldforce.service.EthicsBackgroundService
 import ethicstechno.com.fieldforce.ui.fragments.bottomnavigation.AttendanceFragment
 import ethicstechno.com.fieldforce.ui.fragments.bottomnavigation.MoreListFragment
@@ -78,6 +81,11 @@ import ethicstechno.com.fieldforce.utils.NAV_LOGOUT
 import ethicstechno.com.fieldforce.utils.NAV_PRIVACY_POLICY
 import ethicstechno.com.fieldforce.utils.NAV_SUPPORT
 import ethicstechno.com.fieldforce.utils.NAV_TERMS_AND_CONDITIONS
+import ethicstechno.com.fieldforce.utils.NETWORK_STATUS
+import ethicstechno.com.fieldforce.utils.NETWORK_STATUS_CHANGE
+import ethicstechno.com.fieldforce.utils.NETWORK_STATUS_CONNECTED
+import ethicstechno.com.fieldforce.utils.NETWORK_STATUS_DISCONNECTED
+import ethicstechno.com.fieldforce.utils.NETWORK_STATUS_SLOW
 import ethicstechno.com.fieldforce.utils.PAGE_ABOUT_US
 import ethicstechno.com.fieldforce.utils.PAGE_PRIVACY_POLICY
 import ethicstechno.com.fieldforce.utils.PAGE_TERMS_CONDITION
@@ -95,80 +103,178 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var fusedLocationClient: FusedLocationProviderClient? = null
     var currentLatitude = 0.0
     var currentLongitude = 0.0
-
+    private lateinit var networkReceiver: NetworkChangeReceiver
 
     init {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
     }
 
+    private val networkStatusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val status = intent?.getStringExtra(NETWORK_STATUS)
+
+            when (status) {
+                NETWORK_STATUS_CONNECTED -> {
+                    hideLayout()
+                    binding.appBarHome.contentHome.txtInternetCheck.text = "Internet is Connected"
+                    binding.appBarHome.contentHome.imgInternet.setImageDrawable(
+                        ContextCompat.getDrawable(this@HomeActivity, R.drawable.ic_internet_working)
+                    )
+                    binding.appBarHome.contentHome.lylInternet.setBackgroundColor(
+                        ContextCompat.getColor(this@HomeActivity, R.color.colorGreen)
+                    )
+                }
+
+                NETWORK_STATUS_SLOW -> {
+                    showLayout()
+                    binding.appBarHome.contentHome.txtInternetCheck.text = "Internet is too slow or not working"
+                    binding.appBarHome.contentHome.imgInternet.setImageDrawable(
+                        ContextCompat.getDrawable(this@HomeActivity, R.drawable.ic_no_internet)
+                    )
+                    binding.appBarHome.contentHome.lylInternet.setBackgroundColor(
+                        ContextCompat.getColor(this@HomeActivity, R.color.colorRed)
+                    )
+                }
+
+                NETWORK_STATUS_DISCONNECTED -> {
+                    showLayout()
+                    binding.appBarHome.contentHome.txtInternetCheck.text = "Internet is not working, Please check"
+                    binding.appBarHome.contentHome.imgInternet.setImageDrawable(
+                        ContextCompat.getDrawable(this@HomeActivity, R.drawable.ic_no_internet)
+                    )
+                    binding.appBarHome.contentHome.lylInternet.setBackgroundColor(
+                        ContextCompat.getColor(this@HomeActivity, R.color.colorRed)
+                    )
+                }
+            }
+        }
+    }
+
     private val locationSettingsLauncher =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                if (fusedLocationClient == null) {
-                    return@registerForActivityResult
+            try {
+                if (result.resultCode == Activity.RESULT_OK) {
+                    if (fusedLocationClient == null) {
+                        return@registerForActivityResult
+                    }
+                    fetchLocation(fusedLocationClient!!) // Call the method to fetch the location again or perform any other necessary tasks.
+                } else {
+                    CommonMethods.showToastMessage(this, getString(R.string.enable_location))
+                    locationEnableDialog()
+                    // Location settings resolution failed or was canceled.
+                    // Handle the failure or cancellation accordingly.
                 }
-                fetchLocation(fusedLocationClient!!) // Call the method to fetch the location again or perform any other necessary tasks.
-            } else {
-                CommonMethods.showToastMessage(this, getString(R.string.enable_location))
-                locationEnableDialog()
-                // Location settings resolution failed or was canceled.
-                // Handle the failure or cancellation accordingly.
+            }catch (e: Exception){
+                CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$locationSettingsLauncher$ :: error = " + e.message.toString())
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        binding = ActivityHomeBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        try {
+            binding = ActivityHomeBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        appDatabase = AppDatabase.getDatabase(this)
-        appDao = appDatabase.appDao()
+            appDatabase = AppDatabase.getDatabase(this)
+            appDao = appDatabase.appDao()
 
-        binding.navView.setNavigationItemSelectedListener(this)
-        //gotoDashBoard()
-        setUpNavigationDrawer()
-        setBottomNavigationItem()
-        ImageUtils().loadImageUrlWithoutPlaceHolder(
-            this,
-            appDao.getAppRegistration().apiHostingServer + appDao.getAppRegistration().logoFilePath,
-            binding.headerLayout.imgBottom
+            binding.navView.setNavigationItemSelectedListener(this)
+            //gotoDashBoard()
+            setUpNavigationDrawer()
+            setBottomNavigationItem()
+            ImageUtils().loadImageUrlWithoutPlaceHolder(
+                this,
+                appDao.getAppRegistration().apiHostingServer + appDao.getAppRegistration().logoFilePath,
+                binding.headerLayout.imgBottom
+            )
+            binding.bottomNavigationView.selectedItemId = R.id.nav_home
+            notificationPermissionFor33()
+            doBackgroundServiceOperations()
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$onCreate()$ :: error = " + e.message.toString())
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        networkReceiver = NetworkChangeReceiver()
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(networkReceiver, filter)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(networkReceiver)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            networkStatusReceiver,
+            IntentFilter(NETWORK_STATUS_CHANGE)
         )
-        binding.bottomNavigationView.selectedItemId = R.id.nav_home
-        notificationPermissionFor33()
-        doBackgroundServiceOperations()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(networkStatusReceiver)
+    }
+
+    private fun showLayout() {
+        binding.appBarHome.contentHome.lylInternet.visibility = View.VISIBLE
+        binding.appBarHome.contentHome.lylInternet.translationY = -binding.appBarHome.contentHome.lylInternet.height.toFloat()
+        binding.appBarHome.contentHome.lylInternet.animate()
+            .translationY(0f)
+            .setDuration(1000)
+            .start()
+    }
+
+    private fun hideLayout() {
+        binding.appBarHome.contentHome.lylInternet.animate()
+            .translationY(-binding.appBarHome.contentHome.lylInternet.height.toFloat())
+            .setDuration(1000)
+            .withEndAction { binding.appBarHome.contentHome.lylInternet.visibility = View.GONE }
+            .start()
     }
 
     fun doBackgroundServiceOperations() {
-        if (appDao.getLoginData().attendanceId > 0) {
-            val arrListOfPermission = arrayListOf<String>(
-                android.Manifest.permission.ACCESS_FINE_LOCATION,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-            PermissionUtil(this).requestPermissions(arrListOfPermission) {
-                if (appDao.getLoginData().todayClockInDone && !appDao.getLoginData().todayClockOutDone) {
-                    val locationManager =
-                        getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                    if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                        fusedLocationClient =
-                            LocationServices.getFusedLocationProviderClient(this)
-                        fetchLocation(fusedLocationClient!!)
-                    } else {
-                        CommonMethods.showToastMessage(this, getString(R.string.enable_location))
-                        locationEnableDialog()
-                    }
+        try {
+            if (appDao.getLoginData().attendanceId > 0) {
+                val arrListOfPermission = arrayListOf<String>(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+                PermissionUtil(this).requestPermissions(arrListOfPermission) {
+                    if (appDao.getLoginData().todayClockInDone && !appDao.getLoginData().todayClockOutDone) {
+                        val locationManager =
+                            getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                            fusedLocationClient =
+                                LocationServices.getFusedLocationProviderClient(this)
+                            fetchLocation(fusedLocationClient!!)
+                        } else {
+                            CommonMethods.showToastMessage(
+                                this,
+                                getString(R.string.enable_location)
+                            )
+                            locationEnableDialog()
+                        }
 
-                } else {
-                    serviceLat = "0.01"
-                    serviceLng = "0.01"
+                    } else {
+                        serviceLat = "0.01"
+                        serviceLng = "0.01"
+                    }
+                }
+
+            } else {
+                val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
+                if (isMyServiceRunning(EthicsBackgroundService::class.java)) {
+                    stopService(mServiceIntent)
                 }
             }
-
-        } else {
-            val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
-            if (isMyServiceRunning(EthicsBackgroundService::class.java)) {
-                stopService(mServiceIntent)
-            }
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$doBackgroundServiceOperations()$ :: " + e.message.toString())
         }
     }
 
@@ -209,7 +315,8 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         } catch (e: Exception) {
             FirebaseCrashlytics.getInstance().recordException(e)
-            Log.e("TAG", "locationEnableDialog: " + e.printStackTrace())
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$locationEnableDialog()$ :: error = " + e.message.toString())
+            Log.e("TAG", "locationEnableDialog: " + e.message.toString())
         }
     }
 
@@ -282,6 +389,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 Looper.getMainLooper()
             )
         } catch (e: SecurityException) {
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$fetchLocation()$ :: error = " + e.message.toString())
             FirebaseCrashlytics.getInstance().recordException(e)
             e.printStackTrace()
         }
@@ -317,80 +425,89 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             NavMenuModel(NAV_LOGOUT, "Logout", R.drawable.ic_nav_logout)
         )
 
+        try {
+            val adapter = NavMenuAdapter(menuItems) { menuItem ->
+                closeDrawer()
+                when (menuItem.navId) {
+                    NAV_ACCOUNT_DETAILS -> {
+                        addFragment(
+                            ProfileFragment(),
+                            true,
+                            false,
+                            animationType = AnimationType.rightInLeftOut
+                        )
+                    }
 
+                    NAV_ABOUT_US -> {
+                        addFragment(
+                            DynamicPageContentFragment.newInstance(PAGE_ABOUT_US),
+                            true,
+                            true,
+                            AnimationType.rightInLeftOut
+                        )
+                    }
 
-        val adapter = NavMenuAdapter(menuItems) { menuItem ->
-            closeDrawer()
-            when(menuItem.navId){
-                NAV_ACCOUNT_DETAILS -> {
-                    addFragment(
-                        ProfileFragment(),
-                        true,
-                        false,
-                        animationType = AnimationType.rightInLeftOut
-                    )
-                }
-                NAV_ABOUT_US ->{
-                    addFragment(
-                        DynamicPageContentFragment.newInstance(PAGE_ABOUT_US),
-                        true,
-                        true,
-                        AnimationType.rightInLeftOut
-                    )
-                }
-                NAV_TERMS_AND_CONDITIONS -> {
-                    addFragment(
-                        DynamicPageContentFragment.newInstance(PAGE_TERMS_CONDITION),
-                        true,
-                        true,
-                        AnimationType.rightInLeftOut
-                    )
-                }
-                NAV_PRIVACY_POLICY -> {
-                    addFragment(
-                        DynamicPageContentFragment.newInstance(PAGE_PRIVACY_POLICY),
-                        true,
-                        true,
-                        AnimationType.rightInLeftOut
-                    )
-                }
-                NAV_CHANGE_PASSWORD -> {
-                    addFragment(
-                        ChangePwdFragment(),
-                        true,
-                        false,
-                        animationType = AnimationType.rightInLeftOut
-                    )
-                }
-                NAV_SUPPORT -> {
-                    addFragment(SupportFragment(), true, true, AnimationType.rightInLeftOut)
-                }
-                NAV_LOGOUT -> {
-                    callLogoutApi()
+                    NAV_TERMS_AND_CONDITIONS -> {
+                        addFragment(
+                            DynamicPageContentFragment.newInstance(PAGE_TERMS_CONDITION),
+                            true,
+                            true,
+                            AnimationType.rightInLeftOut
+                        )
+                    }
+
+                    NAV_PRIVACY_POLICY -> {
+                        addFragment(
+                            DynamicPageContentFragment.newInstance(PAGE_PRIVACY_POLICY),
+                            true,
+                            true,
+                            AnimationType.rightInLeftOut
+                        )
+                    }
+
+                    NAV_CHANGE_PASSWORD -> {
+                        addFragment(
+                            ChangePwdFragment(),
+                            true,
+                            false,
+                            animationType = AnimationType.rightInLeftOut
+                        )
+                    }
+
+                    NAV_SUPPORT -> {
+                        addFragment(SupportFragment(), true, true, AnimationType.rightInLeftOut)
+                    }
+
+                    NAV_LOGOUT -> {
+                        callLogoutApi()
+                    }
                 }
             }
+
+            binding.headerLayout.rvNavigationMenu.layoutManager =
+                LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+            binding.headerLayout.rvNavigationMenu.adapter = adapter
+
+            //val headerView = binding.navView.getHeaderView(0)
+            //val tvLastLoginData: TextView = headerView.findViewById(R.id.tvLastLogin)
+            //imgProfile = binding.headerLayout.findViewById(R.id.imgProfile)
+            //imgProfile = binding.headerLayout.imgProfile
+            //val tvUserName: TextView = headerView.findViewById(R.id.tvUserName)
+            binding.headerLayout.tvUserName.text =
+                appDao.getLoginData().userName + "\n" + appDao.getLoginData().lastLoginDateTime
+            binding.headerLayout.tvVersion.text = BuildConfig.VERSION_NAME
+
+            var displanCompany = AppPreference.getStringPreference(this, SELECT_COMPANY)
+            binding.headerLayout.tvDisplayCompany.text = displanCompany
+            //tvLastLoginData.text = appDao.getLoginData().lastLoginDateTime
+            ImageUtils().loadCircleIMageUrl(
+                this,
+                appDao.getAppRegistration().apiHostingServer + appDao.getLoginData().userPhoto,
+                binding.headerLayout.imgProfile
+            )
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$setUpNavigationDrawer()$ :: " + e.message.toString())
         }
-
-        binding.headerLayout.rvNavigationMenu.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-        binding.headerLayout.rvNavigationMenu.adapter = adapter
-
-        //val headerView = binding.navView.getHeaderView(0)
-        //val tvLastLoginData: TextView = headerView.findViewById(R.id.tvLastLogin)
-        //imgProfile = binding.headerLayout.findViewById(R.id.imgProfile)
-        //imgProfile = binding.headerLayout.imgProfile
-        //val tvUserName: TextView = headerView.findViewById(R.id.tvUserName)
-        binding.headerLayout.tvUserName.text = appDao.getLoginData().userName+"\n"+appDao.getLoginData().lastLoginDateTime
-        binding.headerLayout.tvVersion.text = BuildConfig.VERSION_NAME
-
-        var displanCompany = AppPreference.getStringPreference(this,SELECT_COMPANY)
-        binding.headerLayout.tvDisplayCompany.text = displanCompany
-        //tvLastLoginData.text = appDao.getLoginData().lastLoginDateTime
-        ImageUtils().loadCircleIMageUrl(
-            this,
-            appDao.getAppRegistration().apiHostingServer + appDao.getLoginData().userPhoto,
-            binding.headerLayout.imgProfile
-        )
-
     }
 
     fun refreshProfileImage() {
@@ -461,15 +578,19 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun callLogoutApi() {
-        appDao.deleteLogin()
-        AppPreference.saveBooleanPreference(this, IS_LOGIN, false)
-        val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
-        if (isMyServiceRunning(EthicsBackgroundService::class.java)) {
-            stopService(mServiceIntent)
+        try {
+            appDao.deleteLogin()
+            AppPreference.saveBooleanPreference(this, IS_LOGIN, false)
+            val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
+            if (isMyServiceRunning(EthicsBackgroundService::class.java)) {
+                stopService(mServiceIntent)
+            }
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$callLogoutApi()$ :: " + e.message.toString())
         }
-        val intent = Intent(this, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-        startActivity(intent)
     }
 
 
@@ -502,31 +623,39 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun setBottomNavigationItem() {
-        binding.bottomNavigationView.itemIconTintList = null
-        binding.bottomNavigationView.setOnItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_attendance -> {
-                    fragment = AttendanceFragment.newInstance(false)
-                }
-                R.id.nav_trip -> {
-                    fragment = TripFragment()
-                }
-                R.id.nav_home -> {
-                    fragment = DashboardFragment()
-                }
-                R.id.nav_reports -> {
-                    fragment = ReportListFragment()
-                }
-                R.id.nav_more -> {
-                    fragment = MoreListFragment()
+        try {
+            binding.bottomNavigationView.itemIconTintList = null
+            binding.bottomNavigationView.setOnItemSelectedListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.nav_attendance -> {
+                        fragment = AttendanceFragment.newInstance(false)
+                    }
+
+                    R.id.nav_trip -> {
+                        fragment = TripFragment()
+                    }
+
+                    R.id.nav_home -> {
+                        fragment = DashboardFragment()
+                    }
+
+                    R.id.nav_reports -> {
+                        fragment = ReportListFragment()
+                    }
+
+                    R.id.nav_more -> {
+                        fragment = MoreListFragment()
+                    }
+
                 }
 
+                if (fragment != null) {
+                    displayFragment(fragment!!)
+                }
+                true
             }
-
-            if (fragment != null) {
-                displayFragment(fragment!!)
-            }
-            true
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$setBottomNavigationItem()$ :: " + e.message.toString())
         }
     }
 
@@ -541,81 +670,89 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onBackPressed() {
-        hideKeyboard()
-        val currentFragment: Fragment? =
-            supportFragmentManager.findFragmentById(R.id.frame_container)!!
-        if (currentFragment is DashboardFragment || currentFragment is TripFragment || currentFragment is ReportListFragment
-            || currentFragment is MoreListFragment
-        ) {
-            bottomVisible()
-        } else {
-            bottomHide()
-        }
-
-        val isFromAttendanceReport =
-            AppPreference.getBooleanPreference(this, IS_FOR_ATTENDANCE_REPORT, false)
-
-        if (currentFragment is AttendanceFragment) {
-            if (!isFromAttendanceReport) {
-                checkBottomNavigationItem(2)//Home
-                addFragment(DashboardFragment(), false, true, AnimationType.fadeInfadeOut)
+        try {
+            hideKeyboard()
+            val currentFragment: Fragment? =
+                supportFragmentManager.findFragmentById(R.id.frame_container)!!
+            if (currentFragment is DashboardFragment || currentFragment is TripFragment || currentFragment is ReportListFragment
+                || currentFragment is MoreListFragment
+            ) {
                 bottomVisible()
             } else {
                 bottomHide()
             }
-        }
-        if (currentFragment is TripFragment || currentFragment is ReportListFragment || currentFragment is MoreListFragment) {
-            checkBottomNavigationItem(2)//Home
-            addFragment(DashboardFragment(), false, true, AnimationType.fadeInfadeOut)
-        }
-        when (currentFragment) {
-            is AddOrderEntryFragment -> {
-                currentFragment.isExitFromAddOrder
-                CommonMethods.showAlertDialog(this, getString(R.string.alert),
-                    getString(R.string.are_you_sure_you_want_to_exit),
-                    object :PositiveButtonListener{
-                        override fun okClickListener() {
-                            if (supportFragmentManager.backStackEntryCount > 0) {
-                                supportFragmentManager.popBackStack() // Navigate back in the fragment stack
-                            } else {
-                                finish() // Close the activity if no fragments are in the back stack
+
+            val isFromAttendanceReport =
+                AppPreference.getBooleanPreference(this, IS_FOR_ATTENDANCE_REPORT, false)
+
+            if (currentFragment is AttendanceFragment) {
+                if (!isFromAttendanceReport) {
+                    checkBottomNavigationItem(2)//Home
+                    addFragment(DashboardFragment(), false, true, AnimationType.fadeInfadeOut)
+                    bottomVisible()
+                } else {
+                    bottomHide()
+                }
+            }
+            if (currentFragment is TripFragment || currentFragment is ReportListFragment || currentFragment is MoreListFragment) {
+                checkBottomNavigationItem(2)//Home
+                addFragment(DashboardFragment(), false, true, AnimationType.fadeInfadeOut)
+            }
+            when (currentFragment) {
+                is AddOrderEntryFragment -> {
+                    currentFragment.isExitFromAddOrder
+                    CommonMethods.showAlertDialog(this, getString(R.string.alert),
+                        getString(R.string.are_you_sure_you_want_to_exit),
+                        object : PositiveButtonListener {
+                            override fun okClickListener() {
+                                if (supportFragmentManager.backStackEntryCount > 0) {
+                                    supportFragmentManager.popBackStack() // Navigate back in the fragment stack
+                                } else {
+                                    finish() // Close the activity if no fragments are in the back stack
+                                }
                             }
-                        }
 
-                    }, true, getString(R.string.yes), getString(R.string.no))
-            }
+                        }, true, getString(R.string.yes), getString(R.string.no)
+                    )
+                }
 
-            is DashboardFragment -> {
-                finish()
-            }
+                is DashboardFragment -> {
+                    finish()
+                }
 
-            else -> {
-                super.onBackPressed()
+                else -> {
+                    super.onBackPressed()
+                }
             }
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$onBackPressed()$ :: error = " + e.message.toString())
         }
     }
 
     private fun startLocationService() {
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-            object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    val serviceLat = intent.getStringExtra(EXTRA_LATITUDE) ?: "0.01"
-                    val serviceLng = intent.getStringExtra(EXTRA_LONGITUDE) ?: "0.01"
-                    if (serviceLat == "0.01" && serviceLng == "0.01") {
-                        CommonMethods.showToastMessage(
-                            applicationContext,
-                            getString(R.string.unable_to_fetch_location)
-                        )
+        try {
+            LocalBroadcastManager.getInstance(this).registerReceiver(
+                object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        val serviceLat = intent.getStringExtra(EXTRA_LATITUDE) ?: "0.01"
+                        val serviceLng = intent.getStringExtra(EXTRA_LONGITUDE) ?: "0.01"
+                        if (serviceLat == "0.01" && serviceLng == "0.01") {
+                            CommonMethods.showToastMessage(
+                                applicationContext,
+                                getString(R.string.unable_to_fetch_location)
+                            )
+                        }
                     }
-                }
-            }, IntentFilter(EthicsBackgroundService().ACTION_LOCATION_BROADCAST)
-        )
-        val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
+                }, IntentFilter(EthicsBackgroundService().ACTION_LOCATION_BROADCAST)
+            )
+            val mServiceIntent = Intent(this, EthicsBackgroundService::class.java)
 
-        if (!isMyServiceRunning(EthicsBackgroundService::class.java)) {
-            Log.e("HOMEACTIVITY", "startLocationService: ")
-            startService(mServiceIntent)
+            if (!isMyServiceRunning(EthicsBackgroundService::class.java)) {
+                Log.e("HOMEACTIVITY", "startLocationService: ")
+                startService(mServiceIntent)
+            }
+        }catch (e: Exception){
+            CommonMethods.writeLog("[" + this.javaClass.simpleName + "] *ERROR* IN \$startLocationService()$ :: error = " + e.message.toString())
         }
     }
 

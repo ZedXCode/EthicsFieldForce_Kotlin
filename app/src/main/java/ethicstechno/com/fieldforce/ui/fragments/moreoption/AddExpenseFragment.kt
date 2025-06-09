@@ -48,17 +48,16 @@ import ethicstechno.com.fieldforce.ui.adapter.ImageAdapter
 import ethicstechno.com.fieldforce.ui.adapter.LeaveTypeAdapter
 import ethicstechno.com.fieldforce.ui.base.HomeBaseFragment
 import ethicstechno.com.fieldforce.utils.ARG_PARAM1
-import ethicstechno.com.fieldforce.utils.ARG_PARAM16
 import ethicstechno.com.fieldforce.utils.ARG_PARAM2
 import ethicstechno.com.fieldforce.utils.ARG_PARAM3
 import ethicstechno.com.fieldforce.utils.ARG_PARAM4
+import ethicstechno.com.fieldforce.utils.ARG_PARAM5
 import ethicstechno.com.fieldforce.utils.AlbumUtility
 import ethicstechno.com.fieldforce.utils.AppPreference
 import ethicstechno.com.fieldforce.utils.CONTROL_TYPE_FIX_PER_KM
 import ethicstechno.com.fieldforce.utils.CommonMethods
 import ethicstechno.com.fieldforce.utils.CommonMethods.Companion.dateFormat
 import ethicstechno.com.fieldforce.utils.ConnectionUtil
-import ethicstechno.com.fieldforce.utils.EXPENSE_RAISED
 import ethicstechno.com.fieldforce.utils.FORM_ID_EXPENSE_ENTRY
 import ethicstechno.com.fieldforce.utils.FOR_BRANCH
 import ethicstechno.com.fieldforce.utils.FOR_COMPANY
@@ -140,11 +139,11 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
             isForApproval:Boolean
         ): AddExpenseFragment {
             val args = Bundle()
-            args.putInt(ARG_PARAM16, expenseId)
-            args.putBoolean(ARG_PARAM1, isForUpdate)
-            args.putParcelable(ARG_PARAM2, expenseDataForUpdate)
-            args.putBoolean(ARG_PARAM3, isForDetails)
-            args.putBoolean(ARG_PARAM4, isForApproval)
+            args.putInt(ARG_PARAM1, expenseId)
+            args.putBoolean(ARG_PARAM2, isForUpdate)
+            args.putParcelable(ARG_PARAM3, expenseDataForUpdate)
+            args.putBoolean(ARG_PARAM4, isForDetails)
+            args.putBoolean(ARG_PARAM5, isForApproval)
             val fragment = AddExpenseFragment()
             fragment.arguments = args
             return fragment
@@ -154,15 +153,16 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         arguments?.let {
-            isForUpdate = it.getBoolean(ARG_PARAM1)
+            expenseId = it.getInt(ARG_PARAM1, -1)
+            isForUpdate = it.getBoolean(ARG_PARAM2)
             expenseDataForUpdate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                it.getParcelable(ARG_PARAM2, ExpenseListResponse::class.java)
+                it.getParcelable(ARG_PARAM3, ExpenseListResponse::class.java)
                     ?: ExpenseListResponse()
             } else {
-                it.getParcelable(ARG_PARAM2) ?: ExpenseListResponse()
+                it.getParcelable(ARG_PARAM3) ?: ExpenseListResponse()
             }
-            isForDetails = it.getBoolean(ARG_PARAM3)
-            isForApproval = it.getBoolean(ARG_PARAM4)
+            isForDetails = it.getBoolean(ARG_PARAM4)
+            isForApproval = it.getBoolean(ARG_PARAM5)
         }
         initView()
     }
@@ -173,11 +173,6 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
     }
 
     private fun initView() {
-        arguments?.let {
-            expenseId = it.getInt(ARG_PARAM16, -1)
-            Log.d("EXPENSEID===>", "" + expenseId)
-        }
-
         mActivity.bottomHide()
         binding.toolbar.imgBack.visibility = View.VISIBLE
         binding.toolbar.imgBack.setOnClickListener(this)
@@ -216,6 +211,8 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
 
 
         if (expenseId > 0) {
+            binding.toolbar.imgDelete.visibility = if (expenseDataForUpdate.allowDelete) View.VISIBLE else View.GONE
+            binding.toolbar.imgEdit.visibility = if (expenseDataForUpdate.allowEdit) View.VISIBLE else View.GONE
             callExpenseDetailListApi()
         } else {
             viewLifecycleOwner.lifecycleScope.launch {
@@ -236,18 +233,6 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
         }else{
             binding.llAcceptReject.visibility = View.GONE
             binding.llApprovalRemarks.visibility = View.GONE
-        }
-        if (isForUpdate && !isForDetails) {
-            if (expenseDataForUpdate.expenseStatusName == EXPENSE_RAISED) {
-                binding.toolbar.imgDelete.visibility = if (isForUpdate) View.VISIBLE else View.GONE
-                binding.toolbar.imgEdit.visibility = if (isForUpdate) View.VISIBLE else View.GONE
-            } else {
-                binding.toolbar.imgDelete.visibility = View.GONE
-                binding.toolbar.imgEdit.visibility = View.GONE
-            }
-        } else {
-            binding.toolbar.imgDelete.visibility = View.GONE
-            binding.toolbar.imgEdit.visibility = View.GONE
         }
 
         if (isForDetails && isForUpdate) {
@@ -904,8 +889,6 @@ class AddExpenseFragment : HomeBaseFragment(), View.OnClickListener,
         appRegistrationData: AppRegistrationResponse
     ) {
         expenseDetailsResponse = expenseDetails
-        binding.toolbar.imgEdit.visibility = if(expenseDetailsResponse.allowEdit) View.VISIBLE else View.GONE
-        binding.toolbar.imgDelete.visibility = if(expenseDetailsResponse.allowEdit) View.VISIBLE else View.GONE
         binding.tvExpenseType.text = expenseDetails.expenseTypeName
         binding.tvSelectPlace.text = expenseDetails.cityName
         Log.d("COMPANY--->", "" + expenseDetails.cityName)
